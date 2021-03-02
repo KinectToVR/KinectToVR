@@ -24,6 +24,7 @@
 #include <thread>
 #include <string.h>
 #include <string>
+#include <filesystem>
 #include <openvr_driver.h>
 #include "soft_knuckles_device.h"
 #include "soft_knuckles_debug_handler.h"
@@ -112,7 +113,7 @@ namespace soft_knuckles
 								TrackedDeviceClass_GenericTracker, trp);
 							VRServerDriverHost()->TrackedDeviceAdded(trm->get_serial().c_str(),
 								TrackedDeviceClass_GenericTracker, trm);
-							if(!boost::filesystem::exists("C:/K2EX/no-hip"))
+							if(!(std::filesystem::exists("C:/K2EX/no-hip")))
 							{
 							VRServerDriverHost()->TrackedDeviceAdded(trh->get_serial().c_str(),
 								TrackedDeviceClass_GenericTracker, trh);
