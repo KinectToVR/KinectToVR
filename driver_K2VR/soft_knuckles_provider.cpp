@@ -109,15 +109,15 @@ namespace soft_knuckles
 
 						if (InitS.find("Initialize Trackers!") != std::string::npos)
 						{
-							VRServerDriverHost()->TrackedDeviceAdded(trp->get_serial().c_str(),
-								TrackedDeviceClass_GenericTracker, trp);
+							if (!(std::filesystem::exists("C:/K2EX/no-hip")))
+							{
+								VRServerDriverHost()->TrackedDeviceAdded(trp->get_serial().c_str(),
+									TrackedDeviceClass_GenericTracker, trp);
+							}
 							VRServerDriverHost()->TrackedDeviceAdded(trm->get_serial().c_str(),
 								TrackedDeviceClass_GenericTracker, trm);
-							if(!(std::filesystem::exists("C:/K2EX/no-hip")))
-							{
 							VRServerDriverHost()->TrackedDeviceAdded(trh->get_serial().c_str(),
 								TrackedDeviceClass_GenericTracker, trh);
-							}
 
 							boost::thread m_pipeTR_thread = boost::thread(dlPipeTR);
 							m_pipeTR_thread.detach();
