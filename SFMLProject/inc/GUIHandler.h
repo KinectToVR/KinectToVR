@@ -120,14 +120,14 @@ public:
 
 	GUIHandler()
 	{
-		guiWindow->SetTitle("KinectToVR EX 0.8.0");
+		guiWindow->SetTitle("KinectToVR EX 0.8.1");
 		if(KinectSettings::kinectVersion == 1)
 		{
-			guiWindow->SetTitle("KinectToVR EX 0.8.0 (Xbox 360/V1)");
+			guiWindow->SetTitle("KinectToVR EX 0.8.1 (Xbox 360/V1)");
 		}
 		if(KinectSettings::kinectVersion == 2)
 		{
-			guiWindow->SetTitle("KinectToVR EX 0.8.0 (Xbox One/V2)");
+			guiWindow->SetTitle("KinectToVR EX 0.8.1 (Xbox One/V2)");
 		}
 
 		setDefaultSignals();
