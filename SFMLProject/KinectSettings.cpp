@@ -510,6 +510,25 @@ namespace KinectSettings
 					left_tracker_rot = glm::quat(0, 0, 0, 0);
 					right_tracker_rot = glm::quat(0, 0, 0, 0);
 				}
+				else if (feet_rotation_option == k_HipTrackerOrientationMixed)
+				{
+					if (positional_tracking_option == k_KinectFullTracking)
+					{
+						// create quats from the orientation filter and hip direction
+						glm::quat l_quat = glm::vec3(left_foot_raw_pose.x, waist_raw_pose.y, left_foot_raw_pose.x);
+						glm::quat r_quat = glm::vec3(right_foot_raw_pose.x, waist_raw_pose.y, right_foot_raw_pose.x);
+						if (!flip)
+						{
+							left_tracker_rot = l_quat;
+							right_tracker_rot = r_quat;
+						}
+						else
+						{
+							right_tracker_rot = inverse(l_quat);
+							left_tracker_rot = inverse(r_quat);
+						}
+					}
+				}
 
 				/*******************************************************/
 				glm::quat r = glm::vec3(0.f, hmdYaw, 0.f);

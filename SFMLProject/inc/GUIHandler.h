@@ -1995,6 +1995,8 @@ public:
 		coptbox->AppendItem("Disable Feet Rotation");
 		coptbox->AppendItem("Disable Feet Yaw (+Y)");
 		coptbox->AppendItem("Use Head Orientation");
+		coptbox->AppendItem("Use Tracker Orientation");
+		coptbox->AppendItem("Mixed Tracker Orientation");
 		
 		// Only if we're using kinect v1
 		if(KinectSettings::kinectVersion == 1)

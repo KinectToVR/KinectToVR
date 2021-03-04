@@ -32,6 +32,10 @@ enum footRotationFilterOption
 	///don't rotate foots in +y
 	k_EnableOrientationFilter_HeadOrientation,
 	///use headset orientation for foots
+	k_HipTrackerOrientation,
+	///use the kinect/vive/owotrack hip yaw instead of head
+	k_HipTrackerOrientationMixed,
+	///same as previous but keep orientation filter for pitch/roll
 	k_EnableOrientationFilter_Software,
 	///use headset orientation for foots
 };
