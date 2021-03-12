@@ -270,20 +270,20 @@ void updateServerStatus(GUIHandler& guiRef)
 		KinectSettings::K2Drivercode = checkK2Server();
 		switch (KinectSettings::K2Drivercode) {
 		case -1:
-			guiRef.DriverStatusLabel->SetText("Driver Status: UNKNOWN (Code: -1)");
+			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: UNKNOWN (Code: -1)");
 			break;
 		case -10:
-			guiRef.DriverStatusLabel->SetText("Driver Status: SERVER ERROR (Code: -10)");
+			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: SERVER ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
 			break;
 		case 1:
-			guiRef.DriverStatusLabel->SetText("Driver Status: Success!");
+			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: Success!");
 			KinectSettings::isDriverPresent = true;
 			break;
 		case 10:
-			guiRef.DriverStatusLabel->SetText("Driver Status: ERROR NOT INITIALIZED (Code: 10)");
+			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: ERROR NOT INITIALIZED (Code: 10)");
 			break;
 		default:
-			guiRef.DriverStatusLabel->SetText("Driver Status: UNKNOWN (Code: -1)");
+			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: UNKNOWN (Code: -1)");
 			break;
 		}
 
