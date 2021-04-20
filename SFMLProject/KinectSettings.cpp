@@ -344,15 +344,14 @@ namespace KinectSettings
 					}
 				}
 			}
+			/*****************************************************************************************/
+			// Filters
+			/*****************************************************************************************/
 
+			/*****************************************************************************************/
+			// Resetting PSMoves orientations
+			/*****************************************************************************************/
 			const PSMPSMove left_psmove = left_move_controller, right_psmove = right_move_controller;
-
-			//if (KVR_PSMoves.size() >= 1) {
-			//    hidariKontorora = KVR_PSMoves.at(psmh).PSMoveData;
-			//}
-			//if (KVR_PSMoves.size() >= 2) {
-			//    migiKontorora = KVR_PSMoves.at(psmm).PSMoveData;
-			//}
 
 			if (right_psmove.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
 				offset[0] = right_psmove.Pose.Orientation; //quaterion for further offset maths
