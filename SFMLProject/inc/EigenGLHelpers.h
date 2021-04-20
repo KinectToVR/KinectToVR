@@ -1,4 +1,5 @@
 #pragma once
+#define _USE_MATH_DEFINES
 #include <math.h>
 #include <Eigen/Dense>
 
@@ -11,7 +12,7 @@ namespace EigenUtils {
     /// @see glm::perspective
     template<typename Scalar>
     Eigen::Matrix<Scalar, 4, 4> perspective(Scalar fovy, Scalar aspect, Scalar zNear, Scalar zFar) {
-        Transform<Scalar, 3, Projective> tr;
+        Eigen::Transform<Scalar, 3, Eigen::Projective> tr;
         tr.matrix().setZero();
         assert(aspect > 0);
         assert(zFar > zNear);
@@ -28,7 +29,7 @@ namespace EigenUtils {
 
     template<typename Scalar>
     Eigen::Matrix<Scalar, 4, 4> scale(Scalar x, Scalar y, Scalar z) {
-        Transform<Scalar, 3, Affine> tr;
+        Eigen::Transform<Scalar, 3, Eigen::Affine> tr;
         tr.matrix().setZero();
         tr(0, 0) = x;
         tr(1, 1) = y;
@@ -39,7 +40,7 @@ namespace EigenUtils {
 
     template<typename Scalar>
     Eigen::Matrix<Scalar, 4, 4> translate(Scalar x, Scalar y, Scalar z) {
-        Transform<Scalar, 3, Affine> tr;
+        Eigen::Transform<Scalar, 3, Eigen::Affine> tr;
         tr.matrix().setIdentity();
         tr(0, 3) = x;
         tr(1, 3) = y;
