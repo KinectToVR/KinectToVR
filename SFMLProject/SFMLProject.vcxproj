@@ -84,6 +84,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>false</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -195,6 +198,7 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <ClInclude Include="inc\ColorPositionMethod.h" />
     <ClInclude Include="inc\ColorTracker.h" />
     <ClInclude Include="inc\DeviceHandler.h" />
+    <ClInclude Include="inc\EigenGLHelpers.h" />
     <ClInclude Include="inc\GamepadController.h" />
     <ClInclude Include="inc\GenericController.h" />
     <ClInclude Include="inc\GUIHandler.h" />
