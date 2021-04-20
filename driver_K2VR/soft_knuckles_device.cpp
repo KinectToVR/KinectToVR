@@ -434,18 +434,8 @@ namespace soft_knuckles
 			pposet.qRotation.x = vprotx;
 			pposet.qRotation.y = vproty;
 			pposet.qRotation.z = vprotz;
-
-			hposet.vecPosition[0] += static_cast<float>(nstrn(OfS, "HOX")) / static_cast<float>(10000);
-			hposet.vecPosition[1] += static_cast<float>(nstrn(OfS, "HOY")) / static_cast<float>(10000);
-			hposet.vecPosition[2] += static_cast<float>(nstrn(OfS, "HOZ")) / static_cast<float>(10000);
-			mposet.vecPosition[0] += static_cast<float>(nstrn(OfS, "MOX")) / static_cast<float>(10000);
-			mposet.vecPosition[1] += static_cast<float>(nstrn(OfS, "MOY")) / static_cast<float>(10000);
-			mposet.vecPosition[2] += static_cast<float>(nstrn(OfS, "MOZ")) / static_cast<float>(10000);
-			pposet.vecPosition[0] += static_cast<float>(nstrn(OfS, "POX")) / static_cast<float>(10000);
-			pposet.vecPosition[1] += static_cast<float>(nstrn(OfS, "POY")) / static_cast<float>(10000);
-			pposet.vecPosition[2] += static_cast<float>(nstrn(OfS, "POZ")) / static_cast<float>(10000);
-
-			std::this_thread::sleep_for(std::chrono::milliseconds(3));
+			
+			//std::this_thread::sleep_for(std::chrono::milliseconds(3));
 		}
 	}
 
@@ -2281,7 +2271,7 @@ namespace soft_knuckles
 		VRInputComponentHandle_t input_handle = k_ulInvalidInputComponentHandle;
 		EVRInputError input_error = VRDriverInput()->CreateSkeletonComponent(
 			m_tracked_device_container, name, skeleton_path, base_pose_path,
-			VRSkeletalTracking_Partial, pGripLimitTransforms, unGripLimitTransformCount, &input_handle);
+			pGripLimitTransforms, unGripLimitTransformCount, &input_handle);
 
 		if (input_error != VRInputError_None)
 		{
