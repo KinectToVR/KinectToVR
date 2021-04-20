@@ -2271,7 +2271,7 @@ namespace soft_knuckles
 		VRInputComponentHandle_t input_handle = k_ulInvalidInputComponentHandle;
 		EVRInputError input_error = VRDriverInput()->CreateSkeletonComponent(
 			m_tracked_device_container, name, skeleton_path, base_pose_path,
-			pGripLimitTransforms, unGripLimitTransformCount, &input_handle);
+			VRSkeletalTracking_Partial, pGripLimitTransforms, unGripLimitTransformCount, &input_handle);
 
 		if (input_error != VRInputError_None)
 		{
