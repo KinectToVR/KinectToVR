@@ -141,6 +141,11 @@ namespace KinectSettings
 		bool isValidController = false;
 	} KVRPSMoveData[11];
 
+	extern bool latencyTestPending, doingLatencyTest;
+	extern long long latencyTestMillis;
+	
+	extern std::chrono::steady_clock::time_point latencyTestStart, latencyTestEnd;
+	
 	static std::vector<K2VR_PSMoveData> KVR_PSMoves;
 	extern bool isCalibrating, isKinectPSMS;
 	extern int K2Drivercode, kinectVersion;
