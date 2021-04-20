@@ -147,6 +147,9 @@
     <ClInclude Include="EKF_Filter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="inc\EigenGLHelpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
