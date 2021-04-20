@@ -141,6 +141,7 @@ namespace KinectSettings
 		bool isValidController = false;
 	} KVRPSMoveData[11];
 
+	extern vr::TrackedDeviceIndex_t trackerIndex[3]; // Trackers' indexes : L, R, W
 	extern bool latencyTestPending, doingLatencyTest;
 	extern long long latencyTestMillis;
 	
