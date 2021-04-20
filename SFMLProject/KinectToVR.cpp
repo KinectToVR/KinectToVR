@@ -377,7 +377,7 @@ void processLoop(KinectHandlerBase& kinect)
 		}
 		KinectSettings::svrhmdyaw = yaw;
 
-		LOG(INFO) << "SteamVR Tracking Origin for Driver Relative: " <<
+		LOG(INFO) << "SteamVR Tracking Origin for Driver Relative: " << std::fixed << 
 			KinectSettings::trackingOriginPosition.v[0] << ", " <<
 			KinectSettings::trackingOriginPosition.v[1] << ", " <<
 			KinectSettings::trackingOriginPosition.v[2] << ", " <<
