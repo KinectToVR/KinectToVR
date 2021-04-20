@@ -145,8 +145,8 @@ namespace KinectSettings
 	extern bool isCalibrating, isKinectPSMS;
 	extern int K2Drivercode, kinectVersion;
 	extern PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
-	extern glm::quat left_tracker_rot, right_tracker_rot, waist_tracker_rot;
-	extern glm::quat trackerSoftRot[2]; //Software-calculated
+	extern Eigen::Quaternionf left_tracker_rot, right_tracker_rot, waist_tracker_rot;
+	extern Eigen::Quaternionf trackerSoftRot[2]; //Software-calculated
 	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
 	extern bool isDriverPresent;
 	extern bool isKinectDrawn;
@@ -232,7 +232,7 @@ namespace KinectSettings
 	extern std::string KVRversion;
 	extern glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose, mElPose,
 	                 lastPose[3][2];
-	extern glm::quat left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
+	extern Eigen::Quaternionf left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
 
 	void sendipc();
 
