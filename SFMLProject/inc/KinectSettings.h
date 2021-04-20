@@ -12,6 +12,7 @@
 #include <Eigen/Geometry>
 #include "KinectJoint.h"
 #include <PSMoveClient_CAPI.h>
+#include <EigenGLHelpers.h>
 
 enum KinectVersion
 {
@@ -31,12 +32,22 @@ enum footRotationFilterOption
 	k_EnableOrientationFilter_WithoutYaw,
 	///don't rotate foots in +y
 	k_EnableOrientationFilter_HeadOrientation,
-	///use headset orientation for foots
-	k_HipTrackerOrientation,
+	///use headset orientation for feet
+	
+	/*
+	 * UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
+	*/
+
+	//k_HipTrackerOrientation,
 	///use the kinect/vive/owotrack hip yaw instead of head
-	k_HipTrackerOrientationMixed,
+	//k_HipTrackerOrientationMixed,
 	///same as previous but keep orientation filter for pitch/roll
-	k_EnableOrientationFilter_Software,
+
+	/*
+	 * UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
+	*/
+	
+	k_EnableOrientationFilter_Software
 	///use headset orientation for foots
 };
 
@@ -77,6 +88,9 @@ static struct posFilter
 	positionalFilterOption filterOption;
 } positionFilterOption;
 
+// Ancient things left from the ArduVR
+// BELOW
+
 enum controllersTrackingOption
 {
 	k_PSMoveFull,
@@ -87,6 +101,9 @@ static struct trackingOpt
 {
 	controllersTrackingOption trackingOption;
 } controllersTrackingOption_s;
+
+// UP
+// Ancient things left from the ArduVR
 
 enum bodyTrackingOption
 {
@@ -99,11 +116,17 @@ static struct bodyTrackingOpt
 	bodyTrackingOption trackingOption;
 } bodyTrackingOption_s;
 
+// Ancient things left from the .7
+// BELOW
+
 enum headTrackingOption
 {
 	k_PSMoveTracking,
 	k_KinectTracking
 };
+
+// UP
+// Ancient things left from the .7
 
 static struct headTrackingOpt
 {
