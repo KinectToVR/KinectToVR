@@ -461,8 +461,25 @@ void processLoop(KinectHandlerBase& kinect)
 	boost::thread* ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
 
+	// Start a new test
+	KinectSettings::latencyTestPending = true;
+	LOG(INFO) << "Starting a latency test...";
+	int framenumber = 3500, checks = 0; // Run a new test "right away"
+
 	while (renderWindow.isOpen() && SFMLsettings::keepRunning)
 	{
+		if (framenumber >= 500 && checks < 15)
+		{
+			framenumber = 0;
+			checks++;
+			
+			// Start a new test
+			KinectSettings::latencyTestPending = true;
+			LOG(INFO) << "+500 frames have passed since the last check.";
+			LOG(INFO) << "Starting a latency test...";
+		}
+		else framenumber++;
+
 		if (!KinectSettings::isDriverPresent)
 		{
 			//Update driver status
