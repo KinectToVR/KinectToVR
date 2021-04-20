@@ -599,6 +599,46 @@ void processLoop(KinectHandlerBase& kinect)
 				confirmCalibrationData.bState = triggerDown;
 			}
 			// -------------------------
+
+
+			///**********************************************************/
+
+			//vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
+			//
+			//for (vr::TrackedDeviceIndex_t index = 0; index < vr::k_unMaxTrackedDeviceCount; index++) {
+			//	
+			//	if (index != vr::k_unTrackedDeviceIndexInvalid && index != 0) {
+			//		
+			//		m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 
+			//			0, devicePose, vr::k_unMaxTrackedDeviceCount);
+
+			//		if (devicePose[index].bPoseIsValid)
+			//		{
+			//			if (m_VRSystem->GetTrackedDeviceClass(index) == vr::TrackedDeviceClass_GenericTracker)
+			//			{
+			//				m_VRSystem->GetTrackedDeviceClass(index);
+
+			//				char pch_value[1024] = { 0 };
+			//				m_VRSystem->GetStringTrackedDeviceProperty(index, vr::Prop_ControllerType_String, pch_value, sizeof pch_value);
+
+			//				// L, R, W
+			//				if (std::string(pch_value) == "vive_tracker_left_foot")
+			//					KinectSettings::trackerIndex[0] = index;
+			//				if (std::string(pch_value) == "vive_tracker_right_foot")
+			//					KinectSettings::trackerIndex[1] = index;
+			//				if (std::string(pch_value) == "vive_tracker_waist")
+			//					KinectSettings::trackerIndex[2] = index;
+
+			//				LOG(INFO) <<
+			//					devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[0][3] << ' ' <<
+			//					devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[1][3] << ' ' <<
+			//					devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[2][3] << ' ';
+			//			}
+			//		}
+			//	}
+			//}
+
+			///**********************************************************/
 		}
 
 		for (auto& device_ptr : v_deviceHandlers)
