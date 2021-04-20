@@ -190,18 +190,21 @@ EVRInitError BodyTracker::Activate(TrackedDeviceIndex_t index)
 		VRSettings()->SetString(k_pch_Trackers_Section, std::string("/devices/KinectToVR/" + _serial).c_str(),
 		                        "TrackerRole_LeftFoot");
 		m_serial = "LHR-CB9AD1T2";
+		VRProperties()->SetStringProperty(_props, Prop_ControllerType_String, "vive_tracker_left_foot");
 	}
 	if (dest == "RFOOT")
 	{
 		VRSettings()->SetString(k_pch_Trackers_Section, std::string("/devices/KinectToVR/" + _serial).c_str(),
 		                        "TrackerRole_RightFoot");
 		m_serial = "LHR-CB1441A7";
+		VRProperties()->SetStringProperty(_props, Prop_ControllerType_String, "vive_tracker_right_foot");
 	}
 	if (dest == "HIP")
 	{
 		VRSettings()->SetString(k_pch_Trackers_Section, std::string("/devices/KinectToVR/" + _serial).c_str(),
 		                        "TrackerRole_Waist");
 		m_serial = "LHR-CB11ABEC";
+		VRProperties()->SetStringProperty(_props, Prop_ControllerType_String, "vive_tracker_waist");
 	}
 
 	// Get the properties handle for our controller
