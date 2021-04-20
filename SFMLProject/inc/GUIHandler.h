@@ -33,6 +33,7 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/memory.hpp>
 #include <cereal/access.hpp>
+#include "EigenGLHelpers.h"
 
 struct TempTrackerData
 {
@@ -1995,8 +1996,17 @@ public:
 		coptbox->AppendItem("Disable Feet Rotation");
 		coptbox->AppendItem("Disable Feet Yaw (+Y)");
 		coptbox->AppendItem("Use Head Orientation");
-		coptbox->AppendItem("Use Tracker Orientation");
-		coptbox->AppendItem("Mixed Tracker Orientation");
+
+		/*
+		* UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
+		*/
+
+		//coptbox->AppendItem("Use Tracker Orientation");
+		//coptbox->AppendItem("Mixed Tracker Orientation");
+
+		/*
+		* UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
+		*/
 		
 		// Only if we're using kinect v1
 		if(KinectSettings::kinectVersion == 1)
@@ -2714,6 +2724,10 @@ public:
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
 								KinectSettings::calibration_trackers_yaw = glm::degrees(yawtmp);
+
+								// TODO: Check if it's not the opposite
+								KinectSettings::calibration_kinect_pitch = pitchtmp; // This one's in radians
+								
 								if (!KinectSettings::isCalibrating) break;
 							}
 
@@ -2737,9 +2751,7 @@ public:
 							settings.rcR_matT = KinectSettings::calibration_rotation;
 							settings.rcT_matT = KinectSettings::calibration_translation;
 							settings.tryawst = glm::degrees(yawtmp);
-							
-							KinectSettings::calibration_kinect_pitch = eulerAngles(KinectSettings::left_tracker_rot).x;
-							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
+							settings.kinpitchst = pitchtmp;
 						}
 
 						KinectSettings::matrixes_calibrated = true;
@@ -2780,20 +2792,31 @@ public:
 							if (!KinectSettings::isCalibrating) break;
 							vr::DriverPose_t ispose;
 							vr::HmdVector3d_t ihpose;
+							
+							// Tell the user to move somewhere else, ! means WE WANT IT
+							for (auto i = 4; i >= 0; i--)
+							{
+								TrackersCalibButton->SetLabel(
+									std::string(
+										"[Time left: " + boost::lexical_cast<std::string>(i) + "s]     "
+										"Point " + boost::lexical_cast<std::string>(ipoint) +
+										": Move somewhere else! "
+										"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
+									c_str());
+								std::this_thread::sleep_for(std::chrono::seconds(1));
+								if (!KinectSettings::isCalibrating) break;
+							}
+							if (!KinectSettings::isCalibrating) break;
 
-							std::this_thread::sleep_for(std::chrono::seconds(3));
-
-							TrackersCalibButton->SetLabel(
-								std::string(
-									"Get ready to calibrate: Point " + boost::lexical_cast<std::string>(ipoint) + "").
-								c_str());
-							std::this_thread::sleep_for(std::chrono::seconds(1));
+							// NEW Stand still for 3 seconds, lil' idiot-proofing
 							for (auto i = 3; i >= 0; i--)
 							{
 								TrackersCalibButton->SetLabel(
 									std::string(
+										"[Time left: " + boost::lexical_cast<std::string>(i) + "s]     "
 										"Point " + boost::lexical_cast<std::string>(ipoint) +
-										": Stand somewhere... Time left: " + boost::lexical_cast<std::string>(i) + "s").
+										": Please stand still!"
+										"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
 									c_str());
 								std::this_thread::sleep_for(std::chrono::seconds(1));
 								if (!KinectSettings::isCalibrating) break;
@@ -2822,10 +2845,13 @@ public:
 							ispose.vecPosition[2] = out(2);
 
 							for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::kinect_m_positions[0].v[i];
+
+							// Tell we got it? May be removed TODO: TODO:
 							TrackersCalibButton->SetLabel(
-								std::string("Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "")
+								std::string("Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "!")
 								.c_str());
-							std::this_thread::sleep_for(std::chrono::seconds(2));
+							std::this_thread::sleep_for(std::chrono::seconds(1));
+							// Tell we got it? May be removed TODO: TODO:
 
 							spose.push_back(ispose);
 							hpose.push_back(ihpose);
@@ -2872,6 +2898,7 @@ public:
 							err = err.cwiseProduct(err);
 							const float rmse = std::sqrt(err.sum() / static_cast<float>(3));
 
+							// Used in Korejan's algo for checking results
 							/*if (rmse < 0.01f)
 								std::cout << "\nEverything looks good!\n";
 							else
@@ -2879,6 +2906,7 @@ public:
 
 							std::cout << "\nOrginal points\n" << B << "\nMy result\n" << B2 << '\n';
 
+							// Used in Korejan's algo for checking results
 							/*Eigen::Matrix<float, 3, 1> xht;
 							xht << 0, 0, 3;
 							Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
@@ -2888,9 +2916,133 @@ public:
 
 							settings.rcR_matT = ret_R;
 							settings.rcT_matT = ret_t;
+							
+							/*
+							 * A little explaination what's going on in applying Korejan's transforms...
+							 *
+							 * So then, what is colwise and what does it do?
+							 * https://eigen.tuxfamily.org/dox/group__TutorialReductionsVisitorsBroadcasting -> Broadcasting
+							 * Since points are columns and poses are in rows,
+							 * we need to "rotate" it to add poses to X,Y,Z
+							 * and not X,X,X... ERROR WRONG TYPE
+							 *
+							 * Lower, transpose is just ^-1 or inverse() in glm.
+							 * Anyway, if you don't get something, please read eigen's docs,
+							 * and if you still don't, repeat it until you do...
+							 */
+
+							 /* NEW Try to "compute" lookAt kinect yaw ourselves */
+
+							// Assuming that if a point is at 1,0,3,
+							// in relative to the tracking device, then
+							// the tracking device should be at -(1,0,3)
+							// which would be -1,0,-3, I guess...?
+
+							// Calibration origin is 0 this time,
+							// soooo the kinect's pose is just retrived trans
+
+							// Then, what is kinpitch or kinect_pitch?
+							// Assuming the kinect is looking at us from the up,
+							// it's a bit tilted towards the floor.
+							// When it looks up for a human body,
+							// you're going to be shorter and tilted too...
+							// I'm not fixing being shorter but tilting is going to be fixed
+							// inside the calibration itself.
+							// The next thing is rotation, trackers are going to break
+							// if they're upside-down, sice we're using bad old
+							// euler angles and not quats (for some things at least)
+							// then we're gonna just flip them a bit...
+							// Or actually offset them by a certain angle.
+
+							Eigen::Vector3f KinectPoseInSVR = ret_t;
+							
+							// calculate direction vectors
+							Eigen::Vector3f up(0, 1, 0),
+								KinectDirectionVector(
+									KinectPoseInSVR.x(),
+									KinectPoseInSVR.y(),
+									KinectPoseInSVR.z());
+
+							// Here's the SVR's home position
+							Eigen::Vector3f SVRHomePos(
+								KinectSettings::trackingOriginPosition.v[0],
+								KinectSettings::trackingOriginPosition.v[1] - 1.1f, // At knees level, assuming you're about 1.8m
+								KinectSettings::trackingOriginPosition.v[2]);
+
+							
+							// Calculate the quaternion
+							auto // Matrix https://stackoverflow.com/questions/21761909/eigen-convert-matrix3d-rotation-to-quaternion
+								KinectDirectionRotMat(EigenUtils::lookAt(KinectDirectionVector, SVRHomePos, up));
+
+
+							// https://stackoverflow.com/questions/60758298/eigenmatrixdouble-4-4-to-eigenquaterniond
+							Eigen::Vector3f
+								KinectDirectionEigenEuler =
+								KinectDirectionRotMat.topLeftCorner<3, 3>().eulerAngles(0, 1, 2);
+
+							/*
+							 * OKAY IT KINDA WORKS
+							 * although, it seems like: [YAW, DEG]
+							 *      true       eigen
+							 *		  0			 180 ///
+							 *		  90		 90
+							 *		  180		 0
+							 *		  181		 -1
+							 *		  270		 -90
+							 *		  359		 -179
+							 *		  360		 180 ///
+							 *
+							 * knowing that, we can subtract a 180 from the first + half,
+							 * and make it positive, aaand make the second - part positive,
+							 * and add 180deg later. Just look at #Make it 0-360
+							 */
+							
+							Eigen::Vector3f
+								KinectDirectionEigenEulerDegrees = KinectDirectionEigenEuler * 180 / M_PI;
+
+							LOG(INFO) << "GOT ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
+							LOG(INFO) << KinectDirectionEigenEulerDegrees.x();
+							LOG(INFO) << KinectDirectionEigenEulerDegrees.y();
+							LOG(INFO) << KinectDirectionEigenEulerDegrees.z();
+
+							///////// Make it 0-360
+
+							float RetrievedYaw = KinectDirectionEigenEulerDegrees.y();
+							
+							if (RetrievedYaw < 180.f && RetrievedYaw > 0.f)
+								RetrievedYaw = abs(RetrievedYaw - 180.f);  // hack, although kinda working
+
+							if (RetrievedYaw < 0.f && RetrievedYaw > -180.f)
+								RetrievedYaw = abs(RetrievedYaw) + 180.f; // Another hack, but kinda working: look upper
+							
+							///////// Make it 0-360
+							
+							LOG(INFO) << "GOT FIXED ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
+							LOG(INFO) << KinectDirectionEigenEulerDegrees.x();
+							LOG(INFO) << RetrievedYaw;
+							LOG(INFO) << KinectDirectionEigenEulerDegrees.z();
+
+							// Save it to settings
+
+							// Save our retrieved yaw (this one's in degrees)
+							KinectSettings::calibration_trackers_yaw = RetrievedYaw; // Use fixed one
+							settings.tryawst = KinectSettings::calibration_trackers_yaw;
+
+							// Pitch may require some tweaks, before it was about 180deg
+							KinectSettings::calibration_kinect_pitch = 
+								glm::radians(KinectDirectionEigenEulerDegrees.x()); // We're using radsians
+							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
+
+							// In maualcalib it's hips position, although here it's gonna be 0
+							KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
+							settings.caliborigin = KinectSettings::calibration_origin;
+							
+							/* NEW Try to "compute" lookAt kinect yaw ourselves */
+							
 						}
 
-						TrackersCalibButton->SetLabel(
+						// Grab the yaw (now it's calculated with a lookAt)
+						/*TrackersCalibButton->SetLabel(
 							std::string("Prepare to calibration: Tracker Orientation").c_str());
 						std::this_thread::sleep_for(std::chrono::seconds(1));
 						for (auto i = 3; i >= 0; i--)
@@ -2901,7 +3053,9 @@ public:
 									"Tracker Orientation: Look at Kinect... Time left: " + boost::lexical_cast<
 										std::string>(i) + "s").c_str());
 							std::this_thread::sleep_for(std::chrono::seconds(1));
-						}
+						}*/
+
+						// Just the last thing to go back if we're somehow not sure
 						if (!KinectSettings::isCalibrating)
 						{
 							KinectSettings::calibration_origin = settings.caliborigin;
@@ -2912,7 +3066,8 @@ public:
 							KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
 						}
 
-						if (KinectSettings::isCalibrating)
+						// Grab the yaw (now it's calculated with a lookAt)
+						/*if (KinectSettings::isCalibrating)
 						{
 							vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(
 								vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
@@ -2934,12 +3089,15 @@ public:
 							KinectSettings::calibration_trackers_yaw = glm::degrees(yaw);
 							settings.tryawst = glm::degrees(yaw);
 
+							LOG(INFO) << "GOT REAL LOOKATKINECT ORIENTATION YAW: " << glm::degrees(yaw);
+							LOG(INFO) << "GOT REAL LOOKATKINECT ORIENTATION PITCH: " << glm::degrees(eulerAngles(KinectSettings::left_tracker_rot).x);
+
 							KinectSettings::calibration_kinect_pitch = eulerAngles(KinectSettings::left_tracker_rot).x;
 							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
 
 							KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
 							settings.caliborigin = KinectSettings::calibration_origin;
-						}
+						}*/
 
 						KinectSettings::matrixes_calibrated = true;
 						settings.rtcalib = true;
