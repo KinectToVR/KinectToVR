@@ -19,6 +19,7 @@ namespace KinectSettings
 {
 	std::wstring const CFG_NAME(L"KinectToVR.cfg");
 	std::string KVRversion = "0.8.1 EX";
+	vr::TrackedDeviceIndex_t trackerIndex[3] = { vr::k_unTrackedDeviceIndexInvalid }; // Trackers' indexes
 	int kinectVersion = -1;
 	bool psmbuttons[5][10];
 	bool isKinectDrawn = false;
