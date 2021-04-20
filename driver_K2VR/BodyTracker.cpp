@@ -262,11 +262,10 @@ EVRInitError BodyTracker::Activate(TrackedDeviceIndex_t index)
 	l_registeredType.append(m_serial);
 	VRProperties()->SetStringProperty(_props, Prop_RegisteredDeviceType_String, l_registeredType.c_str());
 	VRProperties()->SetStringProperty(_props, Prop_InputProfilePath_String, "{htc}/input/vive_tracker_profile.json");
-	VRProperties()->SetBoolProperty(_props, Prop_Identifiable_Bool, false);
-	VRProperties()->SetBoolProperty(_props, Prop_Firmware_RemindUpdate_Bool, false);
+	//VRProperties()->SetBoolProperty(_props, Prop_Identifiable_Bool, false);
+	//VRProperties()->SetBoolProperty(_props, Prop_Firmware_RemindUpdate_Bool, false);
 	VRProperties()->SetInt32Property(_props, Prop_ControllerRoleHint_Int32, TrackedControllerRole_Invalid);
-	VRProperties()->SetStringProperty(_props, Prop_ControllerType_String, "vive_tracker_handed");
-	VRProperties()->SetInt32Property(_props, Prop_ControllerHandSelectionPriority_Int32, -1);
+	//VRProperties()->SetInt32Property(_props, Prop_ControllerHandSelectionPriority_Int32, -1);
 
 	VRProperties()->SetStringProperty(_props, Prop_NamedIconPathDeviceOff_String, "{htc}/icons/tracker_status_off.png");
 	VRProperties()->SetStringProperty(_props, Prop_NamedIconPathDeviceSearching_String,
