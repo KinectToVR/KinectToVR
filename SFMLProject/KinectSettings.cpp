@@ -168,7 +168,7 @@ namespace KinectSettings
 		};
 
 		int n = 3, m = 1; // Number of measurements & statements
-		double dt = 1.0 / 30, t[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+		double dt = 1.0 / 30, t[3][3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
 		Eigen::MatrixXd A(n, n), C(m, n), Q(n, n), R(m, m), P(n, n);
 
 		A << 1, dt, 0, 0, 1, dt, 0, 0, 1;
@@ -205,23 +205,28 @@ namespace KinectSettings
 		{
 			auto loop_start_time = std::chrono::high_resolution_clock::now();
 
+			// RAW poses/oris are ones provided by kinect,
+			// without anything modified
+
+			// If we're using PSMS, let's just replace everything right away
 			if (positional_tracking_option == k_PSMoveFullTracking)
 			{
 				left_foot_raw_pose = .01f * glm::vec3(left_foot_psmove.Pose.Position.x, left_foot_psmove.Pose.Position.y,
-				                             left_foot_psmove.Pose.Position.z);
+					left_foot_psmove.Pose.Position.z);
 				right_foot_raw_pose = .01f * glm::vec3(right_foot_psmove.Pose.Position.x, right_foot_psmove.Pose.Position.y,
-				                             right_foot_psmove.Pose.Position.z);
+					right_foot_psmove.Pose.Position.z);
 				waist_raw_pose = .01f * glm::vec3(waist_psmove.Pose.Position.x, waist_psmove.Pose.Position.y,
-				                            waist_psmove.Pose.Position.z);
+					waist_psmove.Pose.Position.z);
 
-				left_foot_raw_ori = glm::quat(left_foot_psmove.Pose.Orientation.w, left_foot_psmove.Pose.Orientation.x,
-				                     left_foot_psmove.Pose.Orientation.y, left_foot_psmove.Pose.Orientation.z);
-				right_foot_raw_ori = glm::quat(right_foot_psmove.Pose.Orientation.w, right_foot_psmove.Pose.Orientation.x,
-				                     right_foot_psmove.Pose.Orientation.y, right_foot_psmove.Pose.Orientation.z);
-				waist_raw_ori = glm::quat(waist_psmove.Pose.Orientation.w, waist_psmove.Pose.Orientation.x,
-				                    waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
+				left_foot_raw_ori = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w, left_foot_psmove.Pose.Orientation.x,
+					left_foot_psmove.Pose.Orientation.y, left_foot_psmove.Pose.Orientation.z);
+				right_foot_raw_ori = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w, right_foot_psmove.Pose.Orientation.x,
+					right_foot_psmove.Pose.Orientation.y, right_foot_psmove.Pose.Orientation.z);
+				waist_raw_ori = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w, waist_psmove.Pose.Orientation.x,
+					waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
 			}
 
+			// Update poses for interfacing
 			kinect_m_positions[2].v[0] = waist_raw_pose.x;
 			kinect_m_positions[2].v[1] = waist_raw_pose.y;
 			kinect_m_positions[2].v[2] = waist_raw_pose.z;
@@ -232,14 +237,17 @@ namespace KinectSettings
 			kinect_m_positions[0].v[1] = head_position.y;
 			kinect_m_positions[0].v[2] = head_position.z;
 
-			const glm::vec3 posePrev[3] = {left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose};
-			const glm::vec3 poseLast[3] = {lastPose[0][0], lastPose[1][0], lastPose[2][0]};
+			/*****************************************************************************************/
+			// Filters
+			/*****************************************************************************************/
+			const glm::vec3 posePrev[3] = { left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose };
+			const glm::vec3 poseLast[3] = { lastPose[0][0], lastPose[1][0], lastPose[2][0] };
 			const glm::vec3 poseLerp[3] = {
 				mix(posePrev[0], poseLast[0], 0.3f),
 				mix(posePrev[1], poseLast[1], 0.3f),
 				mix(posePrev[2], poseLast[2], 0.3f)
 			};
-			glm::vec3 poseFiltered[3] = {glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)};
+			glm::vec3 poseFiltered[3] = { glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) };
 
 			if (posOption == k_DisablePositionFilter)
 			{
@@ -256,14 +264,14 @@ namespace KinectSettings
 			else if (posOption == k_EnablePositionFilter_LowPass)
 			{
 				poseFiltered[0] = glm::vec3(lowPassFilter[0][0].update(left_foot_raw_pose.x),
-				                            lowPassFilter[0][1].update(left_foot_raw_pose.y),
-				                            lowPassFilter[0][2].update(left_foot_raw_pose.z));
+					lowPassFilter[0][1].update(left_foot_raw_pose.y),
+					lowPassFilter[0][2].update(left_foot_raw_pose.z));
 				poseFiltered[1] = glm::vec3(lowPassFilter[1][0].update(right_foot_raw_pose.x),
-				                            lowPassFilter[1][1].update(right_foot_raw_pose.y),
-				                            lowPassFilter[1][2].update(right_foot_raw_pose.z));
+					lowPassFilter[1][1].update(right_foot_raw_pose.y),
+					lowPassFilter[1][2].update(right_foot_raw_pose.z));
 				poseFiltered[2] = glm::vec3(lowPassFilter[2][0].update(waist_raw_pose.x),
-				                            lowPassFilter[2][1].update(waist_raw_pose.y),
-				                            lowPassFilter[2][2].update(waist_raw_pose.z));
+					lowPassFilter[2][1].update(waist_raw_pose.y),
+					lowPassFilter[2][2].update(waist_raw_pose.z));
 			}
 			else if (posOption == k_EnablePositionFilter_Kalman)
 			{
