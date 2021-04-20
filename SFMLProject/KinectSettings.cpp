@@ -362,22 +362,26 @@ namespace KinectSettings
 
 
 			if (left_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter left foot move with select button
-				move_ori_offset[0] = glm::quat(left_foot_psmove.Pose.Orientation.w,
-				                              left_foot_psmove.Pose.Orientation.x, left_foot_psmove.Pose.Orientation.y,
-				                              left_foot_psmove.Pose.Orientation.z);
+				move_ori_offset[0] = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
+					left_foot_psmove.Pose.Orientation.x, left_foot_psmove.Pose.Orientation.y,
+					left_foot_psmove.Pose.Orientation.z);
 
 			if (right_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter right foot move with select button
-				move_ori_offset[1] = glm::quat(right_foot_psmove.Pose.Orientation.w,
-				                              right_foot_psmove.Pose.Orientation.x, right_foot_psmove.Pose.Orientation.y,
-				                              right_foot_psmove.Pose.Orientation.z);
+				move_ori_offset[1] = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w,
+					right_foot_psmove.Pose.Orientation.x, right_foot_psmove.Pose.Orientation.y,
+					right_foot_psmove.Pose.Orientation.z);
 
 			if (waist_psmove.SelectButton == PSMButtonState_DOWN) //recenter waist move with select button
-				move_ori_offset[2] = glm::quat(waist_psmove.Pose.Orientation.w,
-				                              waist_psmove.Pose.Orientation.x, waist_psmove.Pose.Orientation.y,
-				                              waist_psmove.Pose.Orientation.z);
+				move_ori_offset[2] = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w,
+					waist_psmove.Pose.Orientation.x, waist_psmove.Pose.Orientation.y,
+					waist_psmove.Pose.Orientation.z);
+
+			/*****************************************************************************************/
+			// Resetting PSMoves orientations
+			/*****************************************************************************************/
 
 			using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
-			const float yaw = hmdYaw * 180 / M_PI; //get current headset yaw (RAD->DEG)
+			const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG)
 			const float facing = yaw - calibration_trackers_yaw; //get facing to kinect; 
 
 			// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
