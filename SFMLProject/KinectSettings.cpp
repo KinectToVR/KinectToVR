@@ -49,7 +49,7 @@ namespace KinectSettings
 	bool isCalibrating = false;
 
 	PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
-	bool isGripPressed[2] = {false, false}, isTriggerPressed[2] = {false, false}; //0L, 1R
+	bool isGripPressed[2] = { false, false }, isTriggerPressed[2] = { false, false }; //0L, 1R
 	bool initialised = false, isKinectPSMS = false;
 	bool userChangingZero = false;
 	bool legacy = false;
@@ -85,9 +85,9 @@ namespace KinectSettings
 	}
 
 	glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose, mElPose,
-	          lastPose[3][2];
-	glm::quat left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
-	glm::quat trackerSoftRot[2];
+		lastPose[3][2];
+	Eigen::Quaternionf left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
+	Eigen::Quaternionf trackerSoftRot[2];
 	vr::HmdQuaternion_t hmdRot;
 
 	const int kinectV2Height = 1920;
@@ -102,26 +102,26 @@ namespace KinectSettings
 	int rightFootPlayspaceMovementButton = 0;
 	int psmmigi, psmhidari, psmyobu, psmatama;
 	float hmdYaw = 0;
-	float conID[2] = {0, 1};
+	float conID[2] = { 0, 1 };
 
-	vr::HmdVector3d_t hmdPosition = {0, 0, 0};
-	vr::HmdQuaternion_t hmdRotation = {0, 0, 0, 0};
+	vr::HmdVector3d_t hmdPosition = { 0, 0, 0 };
+	vr::HmdQuaternion_t hmdRotation = { 0, 0, 0, 0 };
 	vr::HmdMatrix34_t hmdAbsoluteTracking = {};
 	extern vr::HmdMatrix34_t trackingOrigin = {};
-	extern vr::HmdVector3d_t trackingOriginPosition = {0, 0, 0};
-	vr::HmdVector3d_t secondaryTrackingOriginOffset = {0};
-	vr::HmdQuaternion_t kinectRepRotation{0, 0, 0, 0}; //TEMP
-	vr::HmdVector3d_t kinectRadRotation{0, 0, 0};
-	vr::HmdVector3d_t kinectRepPosition{0, 0, 0};
-	vr::HmdVector3d_t manual_offsets[2][3] = {{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
-	vr::HmdVector3d_t hoffsets{0, 0, 0};
-	vr::HmdVector3d_t huoffsets{0, 0, 0};
-	vr::HmdVector3d_t kinect_tracker_offsets{0, 0, 0};
+	extern vr::HmdVector3d_t trackingOriginPosition = { 0, 0, 0 };
+	vr::HmdVector3d_t secondaryTrackingOriginOffset = { 0 };
+	vr::HmdQuaternion_t kinectRepRotation{ 0, 0, 0, 0 }; //TEMP
+	vr::HmdVector3d_t kinectRadRotation{ 0, 0, 0 };
+	vr::HmdVector3d_t kinectRepPosition{ 0, 0, 0 };
+	vr::HmdVector3d_t manual_offsets[2][3] = { {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}} };
+	vr::HmdVector3d_t hoffsets{ 0, 0, 0 };
+	vr::HmdVector3d_t huoffsets{ 0, 0, 0 };
+	vr::HmdVector3d_t kinect_tracker_offsets{ 0, 0, 0 };
 	float hroffset = 0;
 	float troffset = 0;
 	Eigen::Vector3f calibration_origin;
 	vr::TrackedDevicePose_t controllersPose[2];
-	vr::HmdVector3d_t hauoffset{0, 0, 0}, mauoffset{0, 0, 0};
+	vr::HmdVector3d_t hauoffset{ 0, 0, 0 }, mauoffset{ 0, 0, 0 };
 	Eigen::Matrix<float, 3, 3> calibration_rotation;
 	Eigen::Matrix<float, 3, 1> calibration_translation;
 	bool ismatrixcalibrated = false;
@@ -131,9 +131,9 @@ namespace KinectSettings
 	bool jcalib;
 	int cpoints = 3;
 
-	vr::HmdQuaternion_t hmdquat{1, 0, 0, 0};
+	vr::HmdQuaternion_t hmdquat{ 1, 0, 0, 0 };
 
-	vr::HmdVector3d_t kinect_m_positions[3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	vr::HmdVector3d_t kinect_m_positions[3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
 
 	bool headtracked = false;
 	bool sensorConfigChanged = true; // First time used, it's config has changed internally
@@ -144,16 +144,20 @@ namespace KinectSettings
 	void updateKinectQuaternion()
 	{
 		kinectRepRotation = vrmath::quaternionFromYawPitchRoll(kinectRadRotation.v[1], kinectRadRotation.v[0],
-		                                                       kinectRadRotation.v[2]);
+			kinectRadRotation.v[2]);
 	}
 
 	//first is cutoff in hz (multiplied per 2PI) and second is our framerate about 100 fps
 	bool flip;
 	PSMQuatf offset[2];
 	Eigen::Quaternionf quatf[2];
-	glm::quat move_ori_offset[3] = {glm::quat(1,0,0,0),glm::quat(1,0,0,0),glm::quat(1,0,0,0)};
-	glm::vec3 joy[2] = {glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)};
-	glm::quat left_tracker_rot, right_tracker_rot, waist_tracker_rot;
+	glm::vec3 joy[2] = { glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) };
+
+	Eigen::Quaternionf move_ori_offset[3] = {
+		Eigen::Quaternionf(1,0,0,0),
+		Eigen::Quaternionf(1,0,0,0),
+		Eigen::Quaternionf(1,0,0,0) },
+		left_tracker_rot, right_tracker_rot, waist_tracker_rot;
 
 	void sendipc()
 	{
