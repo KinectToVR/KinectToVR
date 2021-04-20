@@ -500,6 +500,9 @@ static bool flip = false;
 
 void KinectV2Handler::updateSkeletalFilters()
 {
+
+	// Just for testing, should be removed //
+	// TODO: TODO: TODO: TODO: TODO: //
 	for (int i = 0; i < BODY_COUNT; i++)
 	{
 		if (kinectBodies[i])
@@ -518,7 +521,9 @@ void KinectV2Handler::updateSkeletalFilters()
 			break;
 		}
 	}
-
+	// TODO: TODO: TODO: TODO: TODO: //
+	// Just for testing, should be removed //
+	
 	KinectSettings::head_position = glm::vec3(
 		joints[JointType_Head].Position.X,
 		joints[JointType_Head].Position.Y,
@@ -669,8 +674,8 @@ void KinectV2Handler::updateSkeletalFilters()
 	mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
 	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);*/
 
-	KinectSettings::trackerSoftRot[0] = hFootRotF;
-	KinectSettings::trackerSoftRot[1] = mFootRotF;
+	//K/inectSettings::trackerSoftRot[0] = hFootRotF;
+	//K/inectSettings::trackerSoftRot[1] = mFootRotF;
 
 	/***********************************************************************************************/
 
@@ -690,32 +695,30 @@ void KinectV2Handler::updateSkeletalFilters()
 	); */
 
 	//hips are ok
-	glm::quat hipsRotF = glm::quat(
+	Eigen::Quaternionf kinect_waist_raw_ori = Eigen::Quaternionf(
 		jointOrientationsF[2].Orientation.w,
 		jointOrientationsF[2].Orientation.x,
 		jointOrientationsF[2].Orientation.y,
 		jointOrientationsF[2].Orientation.z
 	);
-
-
-	// Check for identity / equality
+	
+	// Check for identity / equality to quat_zero
 
 	/*if (hFootRotF != glm::quat(1, 0, 0, 0) &&
 		hFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
-	KinectSettings::left_foot_raw_ori = hFootRotF;
+	//K/inectSettings::left_foot_raw_ori = hFootRotF;
 
 	/*if (mFootRotF != glm::quat(1, 0, 0, 0) &&
 		mFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
-	KinectSettings::right_foot_raw_ori = mFootRotF;
+	//K/inectSettings::right_foot_raw_ori = mFootRotF;
 
 	//hips are ok
-	if (hipsRotF != glm::quat(1, 0, 0, 0) &&
-		hipsRotF != inverse(glm::quat(1, 0, 0, 0)))
-		KinectSettings::waist_raw_ori = hipsRotF;
-
-
-	// Update last pose for interpolation
-
+	if (kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
+		kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
+		KinectSettings::waist_raw_ori = kinect_waist_raw_ori;
+	
+	// Update last pose for the interpolation algo
+	
 	KinectSettings::lastPose[0][0] = glm::vec3(
 		joints[JointType_AnkleLeft].Position.X,
 		joints[JointType_AnkleLeft].Position.Y,
