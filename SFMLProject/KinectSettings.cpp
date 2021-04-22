@@ -464,8 +464,8 @@ namespace KinectSettings
 
 				// If we're fully supporting the standard orientation option,
 				// to remove blocking, we'll check if the kinect version is v2 / is PSMS
-				if (feet_rotation_option == k_EnableOrientationFilter && kinectVersion == 1 ||
-					feet_rotation_option == k_EnableOrientationFilter && positional_tracking_option == k_PSMoveFullTracking)
+				if (feet_rotation_option == k_EnableOrientationFilter && 
+					(kinectVersion == 1 || positional_tracking_option == k_PSMoveFullTracking))
 				{
 					if (positional_tracking_option == k_KinectFullTracking)
 					{
