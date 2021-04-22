@@ -745,6 +745,27 @@ void KinectV1Handler::updateSkeletalData()
 		/***********************************************************************************************/
 
 		/***********************************************************************************************/
+		// Add an offset
+		/***********************************************************************************************/
+
+		// The tuning quat
+		Eigen::Quaternionf
+			tuneQuaternion_first = Eigen::Quaternionf(1, 0, 0, 0);
+
+		// Now adjust some values like playspace yaw and pitch, additional rotations
+		tuneQuaternion_first =
+			EigenUtils::EulersToQuat(
+				Eigen::Vector3f(
+					M_PI / 3,
+					0.f,
+					0.f
+				));
+		
+		// Apply the fine-tuning to global variable
+		knee_ankleLeftOrientationQuaternion = tuneQuaternion_first * knee_ankleLeftOrientationQuaternion;
+		knee_ankleLeftOrientationQuaternion = tuneQuaternion_first * knee_ankleLeftOrientationQuaternion;
+
+		/***********************************************************************************************/
 		// Add the results
 		/***********************************************************************************************/
 
@@ -802,6 +823,17 @@ void KinectV1Handler::updateSkeletalData()
 		/***********************************************************************************************/
 		// Add the results / Push to global
 		/***********************************************************************************************/
+
+
+
+		
+		KinectSettings::trackerSoftRot[0] = Eigen::Quaternionf(1, 0, 0, 0);
+		KinectSettings::trackerSoftRot[1] = Eigen::Quaternionf(1, 0, 0, 0);
+		
+		//KinectSettings::left_foot_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
+		//KinectSettings::right_foot_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
+		//KinectSettings::waist_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
+		
 		
 		//hFootRotF = glm::vec3(
 		//	-tibiaRotX[0].x - M_PI / 3,
