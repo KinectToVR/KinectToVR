@@ -643,63 +643,70 @@ namespace KinectSettings
 				if (positional_tracking_option == k_KinectFullTracking)
 				{
 					// Construct an offset quaternion with the calibration yaw
-					Eigen::Quaternionf yawOffsetQuaternion =
-						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, glm::radians(calibration_trackers_yaw), 0.f));
+					Eigen::Quaternionf
+						yawOffsetQuaternion =
+						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, glm::radians(calibration_trackers_yaw), 0.f)),
 
-					// Construct an offset quaternion with the pitch offset
-					Eigen::Quaternionf rollOffsetQuaternion =
-						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, 0.f, M_PI)); // Whole PI will flip them around (180deg)
+						yawFlipQuaternion =
+						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f)); // Just turn around the yaw
+
+					//TODO:
+					//// Construct an offset quaternion with the pitch offset
+					//Eigen::Quaternionf rollOffsetQuaternion =
+					//	EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, 0.f, M_PI)); // Whole PI will flip them around (180deg)
+					//TODO:
 
 					// Temporary holder for the quaternion to begin
 					Eigen::Quaternionf temp_orientation[3] = {
 						left_tracker_rot,
 						right_tracker_rot,
 						waist_tracker_rot }; // L, R, W
-
-					// Apply to everything, even to one without yaw
-					// it'll make the tracker face the kinect
-					if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
-						temp_orientation[0] = yawOffsetQuaternion * left_tracker_rot;
-						temp_orientation[1] = yawOffsetQuaternion * right_tracker_rot;
-					}
-					// Apply to hip tracker too
-					if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
-						temp_orientation[2] = yawOffsetQuaternion * waist_tracker_rot;
-
+					
+					/*
+					 * Apply additional things here that have to be in eulers
+					 * AND be the last to be applied.
+					 * For example there are: flip yaw, calibration pitch...
+					 * AND are connected with joints' orientations as they are,
+					 * not with the headori ones.
+					 */
+					
 					if (flip)
 					{
-						// Disable pitch in flip mode,
+						// Optionally disable pitch in flip mode,
 						// if you want not to, just set it to true
-						bool pitchOn = false;
+						bool pitchOn = true;
 						double pitchOffOffset = 0.0;
 
 						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
-							////////TODO: temp_orientation[0] = rollOffsetQuaternion * temp_orientation[0];
-							////////TODO: temp_orientation[1] = rollOffsetQuaternion * temp_orientation[1];
 
 							// Remove the pitch angle
 							// Grab original orientations and make them euler angles
 							Eigen::Vector3f left_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[0]);
 							Eigen::Vector3f right_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[1]);
 
-							if (feet_rotation_option == k_EnableOrientationFilter_Software)
-								pitchOffOffset = M_PI / 2.0;
+							//TODO:
+							//if (feet_rotation_option == k_EnableOrientationFilter_Software)
+							//	pitchOffOffset = M_PI / 2.0;
+							//TODO:
 
 							// Remove pitch from eulers and apply to the parent
 							left_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
-									pitchOn ? left_ori_with_yaw.x() : pitchOffOffset, // Disable the pitch
+									pitchOn ? left_ori_with_yaw.x() - M_PI / 3.0 : pitchOffOffset, // Disable the pitch
 									left_ori_with_yaw.y(),
-									left_ori_with_yaw.z()));
+									-left_ori_with_yaw.z()));
 
 							right_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
-									pitchOn ? left_ori_with_yaw.x() : pitchOffOffset, // Disable the pitch
-									left_ori_with_yaw.y(),
-									right_ori_with_yaw.z()));
+									pitchOn ? right_ori_with_yaw.x() - M_PI / 3.0 : pitchOffOffset, // Disable the pitch
+									right_ori_with_yaw.y(),
+									-right_ori_with_yaw.z()));
+
+							// Apply the turn-around flip quaternion
+							right_tracker_rot = yawFlipQuaternion * right_tracker_rot;
+							left_tracker_rot = yawFlipQuaternion * left_tracker_rot;
 						}
 						if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation) {
-							////////TODO: temp_orientation[2] = rollOffsetQuaternion * temp_orientation[2];
 
 							// Remove the pitch angle
 							// Grab original orientations and make them euler angles
@@ -708,13 +715,37 @@ namespace KinectSettings
 							// Remove pitch from eulers and apply to the parent
 							waist_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
-									pitchOn ? waist_ori_with_yaw.x() : 0.f, // Disable the pitch
+									pitchOn ? waist_ori_with_yaw.x() : pitchOffOffset, // Disable the pitch
 									waist_ori_with_yaw.y(),
-									waist_ori_with_yaw.z()));
+									-waist_ori_with_yaw.z()));
+							
+							// Apply the turn-around flip quaternion
+							waist_tracker_rot = yawFlipQuaternion * waist_tracker_rot;
 						}
+
+						// Apply to everything, even to one without yaw
+						// it'll make the tracker face the kinect
+						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
+							temp_orientation[0] = yawOffsetQuaternion * left_tracker_rot;
+							temp_orientation[1] = yawOffsetQuaternion * right_tracker_rot;
+						}
+						// Apply to hip tracker too
+						if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
+							temp_orientation[2] = yawOffsetQuaternion * waist_tracker_rot;
 					}
 					else
 					{
+						// Apply to everything, even to one without yaw
+						// it'll make the tracker face the kinect
+						// Duplicated because it may be modified later
+						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
+							temp_orientation[0] = yawOffsetQuaternion * left_tracker_rot;
+							temp_orientation[1] = yawOffsetQuaternion * right_tracker_rot;
+						}
+						// Apply to hip tracker too
+						if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
+							temp_orientation[2] = yawOffsetQuaternion * waist_tracker_rot;
+
 						left_tracker_rot = temp_orientation[0];
 						right_tracker_rot = temp_orientation[1];
 						waist_tracker_rot = temp_orientation[2];
