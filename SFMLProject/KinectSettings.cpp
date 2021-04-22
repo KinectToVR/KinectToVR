@@ -605,44 +605,7 @@ namespace KinectSettings
 				// Modify the orientation, depending on the currently applied option
 				/*****************************************************************************************/
 
-
-
-
-
-
-
-
-				/*
-				 * UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
-				 */
-				 //else if (feet_rotation_option == k_HipTrackerOrientationMixed)
-				 //{
-				 //	if (positional_tracking_option == k_KinectFullTracking)
-				 //	{
-				 //		// create quats from the orientation filter and hip direction
-				 //		glm::quat l_quat = glm::vec3(left_foot_raw_pose.x, waist_raw_pose.y, left_foot_raw_pose.x);
-				 //		glm::quat r_quat = glm::vec3(right_foot_raw_pose.x, waist_raw_pose.y, right_foot_raw_pose.x);
-				 //		if (!flip)
-				 //		{
-				 //			left_tracker_rot = l_quat;
-				 //			right_tracker_rot = r_quat;
-				 //		}
-				 //		else
-				 //		{
-				 //			right_tracker_rot = inverse(l_quat);
-				 //			left_tracker_rot = inverse(r_quat);
-				 //		}
-				 //	}
-				 //}
-				 /*
-				  * UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
-				  */
-
-				  /*******************************************************/
-
-				  /*******************************************************/
-
-
+				
 				/*****************************************************************************************/
 				// Modify the orientation, add the manually-applied offset
 				/*****************************************************************************************/
@@ -773,27 +736,27 @@ namespace KinectSettings
 				// Modify the orientation, add the calibration pitch value (Kinect perspective, even if artificial)
 				/*****************************************************************************************/
 
-				// Apply only if calibrated and only if using kinect for everything
-				if (matrixes_calibrated && positional_tracking_option == k_KinectFullTracking && flip)
-				{
-					// Construct an offset quaternion with the calibration pitch (Note: already in radians)
-					Eigen::Quaternionf tunePitchQuaternion =
-						EigenUtils::EulersToQuat(Eigen::Vector3f(calibration_kinect_pitch, 0.f, 0.f));
+				//// Apply only if calibrated and only if using kinect for everything
+				//if (matrixes_calibrated && positional_tracking_option == k_KinectFullTracking && flip)
+				//{
+				//	// Construct an offset quaternion with the calibration pitch (Note: already in radians)
+				//	Eigen::Quaternionf tunePitchQuaternion =
+				//		EigenUtils::EulersToQuat(Eigen::Vector3f(calibration_kinect_pitch, 0.f, 0.f));
 
-					// Only these two, math-based should do it on its own
-					if (feet_rotation_option == k_EnableOrientationFilter ||
-						feet_rotation_option == k_EnableOrientationFilter_WithoutYaw) {
+				//	// Only these two, math-based should do it on its own
+				//	if (feet_rotation_option == k_EnableOrientationFilter ||
+				//		feet_rotation_option == k_EnableOrientationFilter_WithoutYaw) {
 
-						// Don't run on v2, it's using the math-based
-						if (kinectVersion == 1) {
-							left_tracker_rot = tunePitchQuaternion * left_tracker_rot;
-							right_tracker_rot = tunePitchQuaternion * right_tracker_rot;
-						}
-					}
-					// Do the same for waist tracker if wanted
-					if (hips_rotation_option == k_EnableHipsOrientationFilter)
-						waist_tracker_rot = tunePitchQuaternion * waist_tracker_rot;
-				}
+				//		// Don't run on v2, it's using the math-based
+				//		if (kinectVersion == 1) {
+				//			left_tracker_rot = tunePitchQuaternion * left_tracker_rot;
+				//			right_tracker_rot = tunePitchQuaternion * right_tracker_rot;
+				//		}
+				//	}
+				//	// Do the same for waist tracker if wanted
+				//	if (hips_rotation_option == k_EnableHipsOrientationFilter)
+				//		waist_tracker_rot = tunePitchQuaternion * waist_tracker_rot;
+				//}
 
 				/*****************************************************************************************/
 				// Modify the orientation, add the calibration pitch value (Kinect perspective, even if artificial)
