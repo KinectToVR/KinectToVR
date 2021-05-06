@@ -511,13 +511,15 @@ static auto Eigen360FixDeg(const T& _arg)
 	return arg;
 }
 
+Eigen::Quaternionf yawFilteringQuaternion[2] = { Eigen::Quaternionf(1,0,0,0) }; // L, R
+
 void KinectV1Handler::updateSkeletalData()
 {
 	if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0)
 	{
 		NUI_TRANSFORM_SMOOTH_PARAMETERS params;
 		NUI_SKELETON_FRAME bakFrame = skeletonFrame;
-		NUI_SKELETON_POSITION_TRACKING_STATE jointStates[NUI_SKELETON_POSITION_COUNT];
+		NUI_SKELETON_POSITION_TRACKING_STATE jointStates[NUI_SKELETON_POSITION_COUNT] = { NUI_SKELETON_POSITION_TRACKED };
 		Vector4 bakJointPositions[20];
 
 		/*
@@ -644,7 +646,7 @@ void KinectV1Handler::updateSkeletalData()
 		// https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)
 
 		params.fSmoothing = .5f; // In meters? MS docs...
-		params.fCorrection = .2f;
+		params.fCorrection = .05f;
 		params.fPrediction = .25f;
 		params.fJitterRadius = .15f; // In meters? MS docs...
 		params.fMaxDeviationRadius = .11f;
@@ -679,7 +681,7 @@ void KinectV1Handler::updateSkeletalData()
 		
 		// Position vectors for needed points
 		// 10+ to make all positives, just in case
-		Eigen::Vector3f up(0, 1, 0), forward(0, 0, 1), // forward cuz zero quat in steamvr means just forward
+		Eigen::Vector3f up(0, 1, 0), forward(0, 0, 1), backward(0, 0, -1), // forward cuz zero quat in steamvr means just forward
 			ankleLeftPose(
 				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
 				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
@@ -720,16 +722,59 @@ void KinectV1Handler::updateSkeletalData()
 
 		// Calculate euler yaw foot orientation, we'll need it later
 		Eigen::Vector3f
-			footLeftRawOrientation = EigenUtils::DirectionQuat(ankleLeftPose, footLeftPose, forward).toRotationMatrix().eulerAngles(0, 1, 2),
-			footRightRawOrientation = EigenUtils::DirectionQuat(ankleRightPose, footRightPose, forward).toRotationMatrix().eulerAngles(0, 1, 2);
+			footLeftRawOrientation = EigenUtils::DirectionQuat(
+				Eigen::Vector3f(ankleLeftPose.x(), 0.f, ankleLeftPose.z()),
+				Eigen::Vector3f(footLeftPose.x(), 0.f, footLeftPose.z()),
+				forward).toRotationMatrix().eulerAngles(0, 1, 2),
 		
+			footRightRawOrientation = EigenUtils::DirectionQuat(
+				Eigen::Vector3f(ankleRightPose.x(), 0.f, ankleRightPose.z()),
+				Eigen::Vector3f(footRightPose.x(), 0.f, footRightPose.z()),
+				forward).toRotationMatrix().eulerAngles(0, 1, 2);
 
+		// Flip the yaw around, without reversing it -> we need it basing to 0
+		// (what an irony that we actually need to reverse it...)
+		footLeftRawOrientation.y() *= -1.f; footLeftRawOrientation.y() += M_PI;
+		footRightRawOrientation.y() *= -1.f; footRightRawOrientation.y() += M_PI;
+
+		// Make the yaw less sensitive
+		// Decided to go for radians for the read-ability
+		// (Although my code is shit anyway, and there'll be none in the end)
+		float lsFixedYaw[2] = {
+			glm::degrees(footLeftRawOrientation.y()),
+			glm::degrees(footRightRawOrientation.y())
+		}; // L, R
+
+		// Left
+		if(lsFixedYaw[0] > 180.f && lsFixedYaw[0] < 360.f)
+			lsFixedYaw[0] = 360.f - abs(lsFixedYaw[0] - 360.f) * .5f;
+		else if (lsFixedYaw[0] < 180.f && lsFixedYaw[0] > 0.f)
+			lsFixedYaw[0] *= .5f;
+		
+		// Right
+		if (lsFixedYaw[1] > 180.f && lsFixedYaw[1] < 360.f)
+			lsFixedYaw[1] = 360.f - abs(lsFixedYaw[1] - 360.f) * .5f;
+		else if (lsFixedYaw[1] < 180.f && lsFixedYaw[1] > 0.f)
+			lsFixedYaw[1] *= .5f;
+		
+		// Apply to the base
+		footLeftRawOrientation.y() = glm::radians(lsFixedYaw[0]); // Back to the RAD format
+		footRightRawOrientation.y() = glm::radians(lsFixedYaw[1]);
+		
 		// Construct a helpful offsetting quaternion from the stuff we got
-		// Yaw is pointing down soooo we have to reverse it
+		// It's made like Quat->Eulers->Quat because we may need to adjust some things on-to-go
 		Eigen::Quaternionf
-			leftFootYawOffsetQuaternion = EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, -footLeftRawOrientation.y(), 0.f)),
-			rightFootYawOffsetQuaternion = EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, -footRightRawOrientation.y(), 0.f));
+			leftFootYawOffsetQuaternion = EigenUtils::EulersToQuat(footLeftRawOrientation), // There is no X and Z anyway
+			rightFootYawOffsetQuaternion = EigenUtils::EulersToQuat(footRightRawOrientation);
+		
+		// Smooth a bit with a slerp
+		yawFilteringQuaternion[0] = yawFilteringQuaternion[0].slerp(.25f, leftFootYawOffsetQuaternion);
+		yawFilteringQuaternion[1] = yawFilteringQuaternion[1].slerp(.25f, rightFootYawOffsetQuaternion);
 
+		// Apply to the base
+		leftFootYawOffsetQuaternion = yawFilteringQuaternion[0];
+		rightFootYawOffsetQuaternion = yawFilteringQuaternion[1];
+		
 		/***********************************************************************************************/
 		// Calculate orientations with lookAt
 		/***********************************************************************************************/
@@ -753,17 +798,39 @@ void KinectV1Handler::updateSkeletalData()
 			tuneQuaternion_first = Eigen::Quaternionf(1, 0, 0, 0);
 
 		// Now adjust some values like playspace yaw and pitch, additional rotations
+		// -> they're facing purely down and Z / Y are flipped
 		tuneQuaternion_first =
 			EigenUtils::EulersToQuat(
 				Eigen::Vector3f(
-					M_PI / 3,
+					M_PI / 5.f,
 					0.f,
 					0.f
 				));
 		
 		// Apply the fine-tuning to global variable
 		knee_ankleLeftOrientationQuaternion = tuneQuaternion_first * knee_ankleLeftOrientationQuaternion;
-		knee_ankleLeftOrientationQuaternion = tuneQuaternion_first * knee_ankleLeftOrientationQuaternion;
+		knee_ankleRightOrientationQuaternion = tuneQuaternion_first * knee_ankleRightOrientationQuaternion;
+		
+		/***********************************************************************************************/
+		// Mirror 2 missed axes
+		/***********************************************************************************************/
+
+		// Grab original orientations and make them euler angles
+		Eigen::Vector3f left_knee_ori_full = EigenUtils::QuatToEulers(knee_ankleLeftOrientationQuaternion);
+		Eigen::Vector3f right_knee_ori_full = EigenUtils::QuatToEulers(knee_ankleRightOrientationQuaternion);
+
+		// Try to fix yaw and roll mismatch, caused by XYZ XZY mismatch
+		knee_ankleLeftOrientationQuaternion = EigenUtils::EulersToQuat(
+			Eigen::Vector3f(
+				left_knee_ori_full.x() - M_PI / 1.6f,
+				0.0, // left_knee_ori_full.z(), // actually 0.0 but okay
+				-left_knee_ori_full.y()));
+
+		knee_ankleRightOrientationQuaternion = EigenUtils::EulersToQuat(
+			Eigen::Vector3f(
+				right_knee_ori_full.x() - M_PI / 1.6f,
+				0.0, // right_knee_ori_full.z(), // actually 0.0 but okay
+				-right_knee_ori_full.y()));
 
 		/***********************************************************************************************/
 		// Add the results
@@ -779,7 +846,10 @@ void KinectV1Handler::updateSkeletalData()
 			calculatedLeftFootOrientation = knee_ankleLeftOrientationQuaternion;
 			calculatedRightFootOrientation = knee_ankleRightOrientationQuaternion;
 		}
-		
+
+		//calculatedLeftFootOrientation = leftFootYawOffsetQuaternion;
+		//calculatedRightFootOrientation = rightFootYawOffsetQuaternion;
+
 		/***********************************************************************************************/
 		// Add the results / Push to global / Apply fine-tuning
 		/***********************************************************************************************/
@@ -817,8 +887,8 @@ void KinectV1Handler::updateSkeletalData()
 
 		// Additionally slerp for smoother orientation,
 		// @see https://eigen.tuxfamily.org/dox/classEigen_1_1QuaternionBase.html
-		KinectSettings::trackerSoftRot[0] = KinectSettings::trackerSoftRot[0].slerp(0.5, calculatedLeftFootOrientation);
-		KinectSettings::trackerSoftRot[1] = KinectSettings::trackerSoftRot[1].slerp(0.5, calculatedRightFootOrientation);
+		KinectSettings::trackerSoftRot[0] = KinectSettings::trackerSoftRot[0].slerp(0.37, calculatedLeftFootOrientation);
+		KinectSettings::trackerSoftRot[1] = KinectSettings::trackerSoftRot[1].slerp(0.37, calculatedRightFootOrientation);
 		
 		/***********************************************************************************************/
 		// Add the results / Push to global
@@ -827,8 +897,8 @@ void KinectV1Handler::updateSkeletalData()
 
 
 		
-		KinectSettings::trackerSoftRot[0] = Eigen::Quaternionf(1, 0, 0, 0);
-		KinectSettings::trackerSoftRot[1] = Eigen::Quaternionf(1, 0, 0, 0);
+		//KinectSettings::trackerSoftRot[0] = Eigen::Quaternionf(1, 0, 0, 0);
+		//KinectSettings::trackerSoftRot[1] = Eigen::Quaternionf(1, 0, 0, 0);
 		
 		//KinectSettings::left_foot_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
 		//KinectSettings::right_foot_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
