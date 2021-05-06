@@ -534,8 +534,8 @@ namespace KinectSettings
 						}
 						else
 						{
-							left_tracker_rot = left_tracker_rot_wyaw.inverse();
-							right_tracker_rot = right_tracker_rot_wyaw.inverse();
+							right_tracker_rot = left_tracker_rot_wyaw.inverse();
+							left_tracker_rot = right_tracker_rot_wyaw.inverse();
 						}
 					}
 					else if (positional_tracking_option == k_PSMoveFullTracking)
