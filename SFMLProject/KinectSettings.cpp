@@ -774,6 +774,11 @@ namespace KinectSettings
 						// Apply to hip tracker too
 						if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
 							temp_orientation[2] = yawOffsetQuaternion * waist_tracker_rot;
+
+						// Apply to the base
+						left_tracker_rot = temp_orientation[0];
+						right_tracker_rot = temp_orientation[1];
+						waist_tracker_rot = temp_orientation[2];
 					}
 					else
 					{
