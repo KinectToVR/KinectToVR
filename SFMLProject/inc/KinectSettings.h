@@ -48,7 +48,7 @@ enum footRotationFilterOption
 	*/
 	
 	k_EnableOrientationFilter_Software
-	///use headset orientation for foots
+	///use calculated orientation for feet
 };
 
 enum hipsRotationFilterOption
