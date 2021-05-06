@@ -464,11 +464,12 @@ void processLoop(KinectHandlerBase& kinect)
 	// Start a new test
 	KinectSettings::latencyTestPending = true;
 	LOG(INFO) << "Starting a latency test...";
+	LOG(INFO) << "Trackers may jump or go somewhere for a while, please don't panic.";
 	int framenumber = 3500, checks = 0; // Run a new test "right away"
 
 	while (renderWindow.isOpen() && SFMLsettings::keepRunning)
 	{
-		if (framenumber >= 500 && checks < 15)
+		if (framenumber >= 500 && checks < 5)
 		{
 			framenumber = 0;
 			checks++;
