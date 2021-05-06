@@ -54,7 +54,7 @@ int main(int argc, char* argv[])
 	KinectSettings::rightFootJointWithRotation = KVR::KinectJointType::AnkleRight;
 	KinectSettings::leftFootJointWithoutRotation = KVR::KinectJointType::FootLeft;
 	KinectSettings::rightFootJointWithoutRotation = KVR::KinectJointType::FootRight;
-
+	
 	processLoop(kinect);
 	
 	return 0;
