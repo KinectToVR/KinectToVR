@@ -709,7 +709,15 @@ namespace KinectSettings
 						// Optionally disable pitch in flip mode,
 						// if you want not to, just set it to true
 						bool pitchOn = true;
-						double pitchOffOffset = 0.0;
+						float pitchOffOffset = 0.0, // May be applied when pitch is off
+							pitchShift = 0.f;
+
+						if (feet_rotation_option == k_EnableOrientationFilter ||
+							feet_rotation_option == k_EnableOrientationFilter_WithoutYaw)
+							pitchShift = M_PI / 3.f; // Normal offset
+
+						else if (feet_rotation_option == k_EnableOrientationFilter_Software)
+							pitchShift = M_PI / 6.f; // Special offset (if any), 0.f to nullify
 
 						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
 
@@ -726,13 +734,13 @@ namespace KinectSettings
 							// Remove pitch from eulers and apply to the parent
 							left_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
-									pitchOn ? left_ori_with_yaw.x() - M_PI / 3.0 : pitchOffOffset, // Disable the pitch
+									pitchOn ? left_ori_with_yaw.x() - pitchShift : pitchOffOffset, // Disable the pitch
 									left_ori_with_yaw.y(),
 									-left_ori_with_yaw.z()));
 
 							right_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
-									pitchOn ? right_ori_with_yaw.x() - M_PI / 3.0 : pitchOffOffset, // Disable the pitch
+									pitchOn ? right_ori_with_yaw.x() - pitchShift : pitchOffOffset, // Disable the pitch
 									right_ori_with_yaw.y(),
 									-right_ori_with_yaw.z()));
 
@@ -756,8 +764,8 @@ namespace KinectSettings
 							// Apply the turn-around flip quaternion
 							waist_tracker_rot = yawFlipQuaternion * waist_tracker_rot;
 						}
-
-						// Apply to everything, even to one without yaw
+						
+						// Apply to everything, even to the one without yaw
 						// it'll make the tracker face the kinect
 						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation) {
 							temp_orientation[0] = yawOffsetQuaternion * left_tracker_rot;
