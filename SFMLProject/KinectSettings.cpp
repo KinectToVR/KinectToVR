@@ -243,9 +243,9 @@ namespace KinectSettings
 			const glm::vec3 posePrev[3] = { left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose };
 			const glm::vec3 poseLast[3] = { lastPose[0][0], lastPose[1][0], lastPose[2][0] };
 			const glm::vec3 poseLerp[3] = {
-				mix(posePrev[0], poseLast[0], 0.3f),
-				mix(posePrev[1], poseLast[1], 0.3f),
-				mix(posePrev[2], poseLast[2], 0.3f)
+				mix(posePrev[0], poseLast[0], 0.17f),
+				mix(posePrev[1], poseLast[1], 0.17f),
+				mix(posePrev[2], poseLast[2], 0.17f)
 			};
 			glm::vec3 poseFiltered[3] = { glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) };
 
