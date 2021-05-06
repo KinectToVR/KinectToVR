@@ -381,9 +381,9 @@ namespace KinectSettings
 			/*****************************************************************************************/
 
 			using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
-			const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG)
-			const float facing = yaw - calibration_trackers_yaw; //get facing to kinect; 
-
+			const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG) format: 0+360
+			const float facing = yaw - calibration_trackers_yaw; //get facing to kinect;
+			
 			// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
 			//       
 			//             FRONT                 Front is at 0deg
@@ -413,16 +413,15 @@ namespace KinectSettings
 				flip = false;
 			else
 			{
-				// Presumably shouldn't be else if,
-				// although right now it's already a bit glitchy
-				if (facing <= 25 && facing >= -25 || //if we use -180+180
+				// GUIHandler.h #3040, angle is 0-360deg
+				if (//facing <= 25 && facing >= -25 || //if we use -180+180
 					(facing <= 25 && facing >= 0 || facing >= 345 && facing <= 360)) //if we use 0+360
 					flip = false;
-				if (facing <= -155 && facing >= -205 || //if we use -180+180
+				if (//facing <= -155 && facing >= -205 || //if we use -180+180
 					facing >= 155 && facing <= 205) //if we use 0+360
 					flip = true;
 			}
-
+			
 
 			/*****************************************************************************************/
 			// Compose the string to send to driver
