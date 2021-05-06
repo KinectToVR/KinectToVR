@@ -503,29 +503,64 @@ namespace KinectSettings
 
 				// If we're discarding yaw from our results, PSMS supported too
 				// to remove blocking, we'll check if the kinect version is v2 / is PSMS
-				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw && kinectVersion == 1 ||
-					feet_rotation_option == k_EnableOrientationFilter_WithoutYaw && positional_tracking_option == k_PSMoveFullTracking)
+				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw && 
+					(kinectVersion == 1 || positional_tracking_option == k_PSMoveFullTracking))
 				{
 					if (positional_tracking_option == k_KinectFullTracking)
 					{
 						// Grab original orientations and make them euler angles
 						Eigen::Vector3f left_ori_with_yaw = EigenUtils::QuatToEulers(left_foot_raw_ori);
 						Eigen::Vector3f right_ori_with_yaw = EigenUtils::QuatToEulers(right_foot_raw_ori);
-
+						
 						// Remove yaw from eulers
+						Eigen::Vector3f
+							left_tracker_rot_wyaw_vector =
+							Eigen::Vector3f(
+								left_ori_with_yaw.x(),
+								0.f, // Disable the yaw
+								left_ori_with_yaw.z()),
+
+							right_tracker_rot_wyaw_vector =
+							Eigen::Vector3f(
+								right_ori_with_yaw.x(),
+								0.f, // Disable the yaw
+								right_ori_with_yaw.z());
+
+
+						// Kind of a solution for flipping at too big X.
+						// Found out during testing,
+						// no other known mathematical reason (maybe except gimbal lock)
+						
+						/****************************************************/
+
+						if(left_tracker_rot_wyaw_vector.x() <= 1.f
+							&& left_tracker_rot_wyaw_vector.x() >= 0
+							&& (left_tracker_rot_wyaw_vector.z() >= 1.f
+								|| left_tracker_rot_wyaw_vector.z() <= -1.f))
+
+							left_tracker_rot_wyaw_vector.y() += M_PI;
+						
+						/****************************************************/
+
+						if (right_tracker_rot_wyaw_vector.x() <= 1.f
+							&& right_tracker_rot_wyaw_vector.x() >= 0
+
+							&& (right_tracker_rot_wyaw_vector.z() >= 1.f
+								|| right_tracker_rot_wyaw_vector.z() <= -1.f))
+
+							right_tracker_rot_wyaw_vector.y() += M_PI;
+
+						/****************************************************/
+						
+						// Apply to the base
 						Eigen::Quaternionf
 							left_tracker_rot_wyaw = EigenUtils::EulersToQuat(
-								Eigen::Vector3f(
-									left_ori_with_yaw.x(),
-									0.f, // Disable the yaw
-									left_ori_with_yaw.z())),
+								left_tracker_rot_wyaw_vector),
 
 							right_tracker_rot_wyaw = EigenUtils::EulersToQuat(
-								Eigen::Vector3f(
-									right_ori_with_yaw.x(),
-									0.f, // Disable the yaw
-									right_ori_with_yaw.z()));
-
+								right_tracker_rot_wyaw_vector);
+						
+						
 						// If we're in flip mode, reverse and swap additionally
 						if (!flip)
 						{
