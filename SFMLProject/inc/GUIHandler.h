@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -2759,8 +2759,8 @@ public:
 
 						TrackersCalibButton->SetLabel(
 							std::string(!KinectSettings::isCalibrating
-								            ? "Calibration aborted! Hit me to re-calibrate!"
-								            : "Done! Hit me to re-calibrate!").c_str());
+								            ? "Calibration aborted! Hit me 2 times to re-calibrate!"
+								            : "Done! Hit me 2 times to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
 
 						saveSettings();
