@@ -432,7 +432,7 @@ bool KinectV1Handler::initKinect()
 	*/
 	kinectSensor->NuiImageStreamOpen(
 		NUI_IMAGE_TYPE_DEPTH_AND_PLAYER_INDEX, //Depth Camera or RGB Camera?
-		NUI_IMAGE_RESOLUTION_320x240, //Image Resolution
+		NUI_IMAGE_RESOLUTION_640x480, //Image Resolution
 		0, //Image stream flags, e.g. near mode
 		2, //Number of frames to buffer
 		nullptr, //Event handle
