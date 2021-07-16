@@ -1,19 +1,18 @@
 #pragma once
 #include "stdafx.h"
 
-#include "KinectTrackedDevice.h"
-
-
 #include <string>
 #include <vector>
-#include <vrinputemulator.h>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <glew.h>
+#include <openvr.h>
 
 #include <opencv2/opencv.hpp>
 
 
 #include <windows.h>
+
+#include "KinectSettings.h"
 
 class IKinectHandler
 {
@@ -34,14 +33,7 @@ public:
 	virtual void drawKinectData(sf::RenderWindow& win) = 0; // Houses the below draw functions with a check
 	virtual void drawKinectImageData(sf::RenderWindow& win) = 0;
 	virtual void drawTrackedSkeletons(sf::RenderWindow& win) = 0;
-
-	virtual bool putRGBDataIntoMatrix(cv::Mat& image) = 0;
-
-	virtual void zeroAllTracking(vr::IVRSystem* & m_sys) = 0;
-	virtual void updateTrackersWithSkeletonPosition(
-		std::vector<KVR::KinectTrackedDevice>& trackers
-	) = 0;
-
+	
 	bool isInitialised() { return initialised; }
 	bool isZeroed() { return zeroed; }
 

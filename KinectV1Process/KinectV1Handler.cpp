@@ -215,115 +215,6 @@ void KinectV1Handler::drawTrackedSkeletons(sf::RenderWindow& drawingWindow)
 	}
 };
 
-//Consider moving this tracking stuff into a seperate class
-void KinectV1Handler::zeroAllTracking(vr::IVRSystem*& m_sys)
-{
-	// Holdover from previous implementation
-	for (int i = 0; i < NUI_SKELETON_COUNT; ++i)
-	{
-		NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
-
-		if (NUI_SKELETON_TRACKED == trackingState)
-		{
-			//KinectSettings::hmdZero = getHMDPosition(m_sys);
-
-			setKinectToVRMultiplier(i);
-			zeroed = true;
-			break;
-		}
-	}
-}
-
-void KinectV1Handler::updateTrackersWithSkeletonPosition(
-	std::vector<KVR::KinectTrackedDevice>& trackers)
-{
-	for (KVR::KinectTrackedDevice& device : trackers)
-	{
-		if (device.isSensor())
-		{
-			device.update(KinectSettings::kinectRepPosition, {0, 0, 0}, KinectSettings::kinectRepRotation);
-		}
-		else
-		{
-			vr::HmdVector3d_t jointPosition{0, 0, 0};
-			vr::HmdQuaternion_t jointRotation{0, 0, 0, 0};
-			if (getFilteredJoint(device, jointPosition, jointRotation))
-			{
-				device.update(trackedPositionVROffset, jointPosition, jointRotation);
-			}
-		}
-	}
-}
-
-bool KinectV1Handler::getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position,
-                                       vr::HmdQuaternion_t& rotation)
-{
-	for (int i = 0; i < NUI_SKELETON_COUNT; ++i)
-	{
-		NUI_SKELETON_TRACKING_STATE trackingState = skeletonFrame.SkeletonData[i].eTrackingState;
-
-		if (trackingState == NUI_SKELETON_TRACKED)
-		{
-			// If we can't find either of these joints, exit
-			if (jointsUntracked(device.joint0, device.joint1, skeletonFrame.SkeletonData[i]))
-			{
-				return false;
-			}
-
-			// Don't track if both points are inferred
-			bool ignoreInferredJoints = true;
-			if (ignoreInferredJoints && jointsInferred(device.joint0, device.joint1, skeletonFrame.SkeletonData[i]))
-			{
-				return false;
-			}
-
-			{
-				float jointX = jointPositions[convertJoint(device.joint0)].x;
-				float jointY = jointPositions[convertJoint(device.joint0)].y;
-				float jointZ = jointPositions[convertJoint(device.joint0)].z;
-				position = vr::HmdVector3d_t{jointX, jointY, jointZ};
-
-				//Rotation - Need to seperate into function
-				Vector4 kRotation = {0, 0, 0, 1};
-				switch (device.rotationFilterOption)
-				{
-				case KVR::JointRotationFilterOption::Unfiltered:
-					kRotation = boneOrientations[convertJoint(device.joint0)].absoluteRotation.rotationQuaternion;
-					break;
-				case KVR::JointRotationFilterOption::Filtered:
-					kRotation = rotFilter.GetFilteredJoints()[convertJoint(device.joint0)];
-					break;
-				case KVR::JointRotationFilterOption::HeadLook:
-					{
-						// Ew
-						auto q = KinectSettings::hmdRotation;
-						//Isolate Yaw
-						float yaw = atan2(2 * q.w * q.y + 2 * q.x * q.z,
-						                  +q.w * q.w + q.x * q.x - q.z * q.z - q.y * q.y);
-
-						auto kq = vrmath::quaternionFromRotationY(yaw);
-						kRotation.w = kq.w;
-						kRotation.x = kq.x;
-						kRotation.y = kq.y;
-						kRotation.z = kq.z;
-					}
-					break;
-				default:
-					LOG(ERROR) << "JOINT ROTATION OPTION UNDEFINED IN DEVICE " << device.deviceId;
-					break;
-				}
-				rotation.w = kRotation.w;
-				rotation.x = kRotation.x;
-				rotation.y = kRotation.y;
-				rotation.z = kRotation.z;
-
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 NUI_SKELETON_POSITION_INDEX KinectV1Handler::convertJoint(KVR::KinectJoint joint)
 {
 	using namespace KVR;
@@ -645,11 +536,11 @@ void KinectV1Handler::updateSkeletalData()
 		// Just for testing, may be zeroed //
 		// https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)
 
-		params.fSmoothing = .5f; // In meters? MS docs...
-		params.fCorrection = .05f;
-		params.fPrediction = .25f;
-		params.fJitterRadius = .15f; // In meters? MS docs...
-		params.fMaxDeviationRadius = .11f;
+		params.fSmoothing = .25f; // In meters? MS docs...
+		params.fCorrection = .25f;
+		params.fPrediction = .15f;
+		params.fJitterRadius = .1f; // In meters? MS docs...
+		params.fMaxDeviationRadius = .2f;
 
 		// Just for testing, may be zeroed //
 		

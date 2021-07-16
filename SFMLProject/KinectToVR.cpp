@@ -5,13 +5,7 @@
 
 #include "KinectSettings.h"
 #include "VRController.h"
-#include "GamepadController.h"
 #include "GUIHandler.h"
-#include "ManualCalibrator.h"
-#include "TrackingMethod.h"
-#include "SkeletonTracker.h"
-#include "IMU_PositionMethod.h"
-#include "IMU_RotationMethod.h"
 #include "VRDeviceHandler.h"
 #include "PSMoveHandler.h"
 #include "DeviceHandler.h"
@@ -162,22 +156,6 @@ void updateFilePath()
 	LOG(INFO) << "File Directory Path Set to " << filePathString;
 }
 
-void attemptInitialiseDebugDisplay(sf::Font& font, sf::Text& debugText)
-{
-	// Global Debug Font
-#if _DEBUG
-	auto fontFileName = "arial.ttf";
-	LOG(DEBUG) << "Attemping Debug Font Load: " << fontFileName << '\n';
-	font.loadFromFile(fontFileName);
-	debugText.setFont(font);
-#endif
-	debugText.setString("");
-	debugText.setCharacterSize(40);
-	debugText.setFillColor(sf::Color::Red);
-
-	debugText.setString(SFMLsettings::debugDisplayTextStream.str());
-}
-
 vr::HmdQuaternion_t kinectQuaternionFromRads()
 {
 	return vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1],
@@ -185,13 +163,12 @@ vr::HmdQuaternion_t kinectQuaternionFromRads()
 	                                          KinectSettings::kinectRadRotation.v[2]);
 }
 
-void updateTrackerInitGuiSignals(GUIHandler& guiRef, std::vector<KinectTrackedDevice>& v_trackers,
+void updateTrackerInitGuiSignals(GUIHandler& guiRef,
                                  vr::IVRSystem*& m_VRsystem)
 {
 	if constexpr (true)
 	{
-		guiRef.setTrackerButtonSignals(v_trackers, m_VRsystem);
-		guiRef.updateEmuStatusLabelSuccess();
+		guiRef.setTrackerButtonSignals(m_VRsystem);
 	}
 	else
 	{
@@ -322,7 +299,6 @@ void processLoop(KinectHandlerBase& kinect)
 	sf::Font font;
 	sf::Text debugText;
 	// Global Debug Font
-	attemptInitialiseDebugDisplay(font, debugText);
 
 	//Initialise Kinect
 	KinectSettings::kinectRepRotation = kinectQuaternionFromRads();
@@ -342,14 +318,10 @@ void processLoop(KinectHandlerBase& kinect)
 
 	//Clear driver memory
 	boost::interprocess::shared_memory_object::remove("K2ServerDriverSHM");
-
-	//Initialise InputEmu and Trackers
-	std::vector<KinectTrackedDevice> v_trackers{};
-
+	
 	VRcontroller rightController(vr::TrackedControllerRole_RightHand);
 	VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
-
-
+	
 	LOG(INFO) << "Attempting connection to vrsystem.... "; // DEBUG
 	vr::EVRInitError eError = vr::VRInitError_None;
 	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
@@ -384,7 +356,7 @@ void processLoop(KinectHandlerBase& kinect)
 			KinectSettings::svrhmdyaw << "RAD";
 
 		guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
-		updateTrackerInitGuiSignals(guiRef, v_trackers, m_VRSystem);
+		updateTrackerInitGuiSignals(guiRef, m_VRSystem);
 		setTrackerRolesInVRSettings();
 		//VRInput::initialiseVRInput();
 
@@ -394,16 +366,7 @@ void processLoop(KinectHandlerBase& kinect)
 		// Todo: implement binding system
 		guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
 	}
-	// Function pointer for the currently selected calibration method, which can be swapped out for the others
-	// Only one calibration method can be active at a time
-	std::function<void
-			(double deltaT,
-			 KinectHandlerBase& kinect,
-			 vr::VRActionHandle_t& h_horizontalPos,
-			 vr::VRActionHandle_t& h_verticalPos,
-			 vr::VRActionHandle_t& h_confirmPos,
-			 GUIHandler& guiRef)>
-		currentCalibrationMethod = ManualCalibrator::Calibrate;
+
 	guiRef.updateVRStatusLabel(eError);
 	
 	//Update driver status
@@ -412,32 +375,9 @@ void processLoop(KinectHandlerBase& kinect)
 	/************************************************/
 
 	KinectSettings::userChangingZero = true;
-
-	//Default tracking methods
-	std::vector<std::unique_ptr<TrackingMethod>> v_trackingMethods;
-	guiRef.setTrackingMethodsReference(v_trackingMethods);
-
-	SkeletonTracker mainSkeletalTracker;
 	if (kinect.kVersion != KinectVersion::INVALID)
-	{
-		mainSkeletalTracker.initialise();
 		kinect.initialiseSkeleton();
-		v_trackingMethods.push_back(std::make_unique<SkeletonTracker>(mainSkeletalTracker));
-	}
-
-	IMU_PositionMethod posMethod;
-	v_trackingMethods.push_back(std::make_unique<IMU_PositionMethod>(posMethod));
-
-	IMU_RotationMethod rotMethod;
-	v_trackingMethods.push_back(std::make_unique<IMU_RotationMethod>(rotMethod));
-
-	VRDeviceHandler vrDeviceHandler(m_VRSystem);
-	if (eError == vr::VRInitError_None)
-		vrDeviceHandler.initialise();
-
-	std::vector<std::unique_ptr<DeviceHandler>> v_deviceHandlers;
-	v_deviceHandlers.push_back(std::make_unique<VRDeviceHandler>(vrDeviceHandler));
-	guiRef.setDeviceHandlersReference(v_deviceHandlers);
+	
 	guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
 
 	// Select backed up or first (we may switch from KV1 to KV2, keeping config)
@@ -658,12 +598,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 			///**********************************************************/
 		}
-
-		for (auto& device_ptr : v_deviceHandlers)
-		{
-			if (device_ptr->active) device_ptr->run();
-		}
-
+		
 		renderWindow.clear(); //////////////////////////////////////////////////////
 
 		// Update Kinect Status
@@ -677,28 +612,7 @@ void processLoop(KinectHandlerBase& kinect)
 		if (kinect.isInitialised())
 		{
 			kinect.update();
-			if (KinectSettings::adjustingKinectRepresentationPos
-				|| KinectSettings::adjustingKinectRepresentationRot)
-				currentCalibrationMethod(
-					deltaT,
-					kinect,
-					VRInput::moveHorizontallyHandle,
-					VRInput::moveVerticallyHandle,
-					VRInput::confirmCalibrationHandle,
-					guiRef);
-
-			//kinect.updateTrackersWithSkeletonPosition(v_trackers);
-
-			for (auto& method_ptr : v_trackingMethods)
-			{
-				method_ptr->update(kinect, v_trackers);
-				method_ptr->updateTrackers(kinect, v_trackers);
-			}
-			for (auto& tracker : v_trackers)
-			{
-				tracker.update();
-			}
-
+			
 			//renderWindow.clear();
 			kinect.drawKinectData(renderWindow);
 		}
@@ -797,14 +711,7 @@ void processLoop(KinectHandlerBase& kinect)
 		//End Frame
 		renderWindow.display();
 	}
-	for (auto& device_ptr : v_deviceHandlers)
-	{
-		device_ptr->shutdown();
-	}
-	for (KinectTrackedDevice d : v_trackers)
-	{
-		d.destroy();
-	}
+
 	KinectSettings::writeKinectSettings();
 	VirtualHips::saveSettings();
 

@@ -2,9 +2,6 @@
 #include "stdafx.h"
 #include <vector>
 
-#include "KinectTrackedDevice.h"
-#include "TrackedDeviceInputData.h"
-
 static const uint32_t k_invalidTrackerID = 80808080;
 
 struct TrackerIDs

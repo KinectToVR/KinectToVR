@@ -13,7 +13,7 @@
 
 #include <Windows.h>
 #include <codecvt>
-#include <openvr_math.h>
+#include <openvr_types.h>
 
 namespace KinectSettings
 {

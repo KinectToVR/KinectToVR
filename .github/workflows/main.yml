@@ -60,18 +60,9 @@ jobs:
             Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\KinectSDK-v2.0_1409-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20" -Wait -NoNewWindow
         }
 
-    - name: NuGet Restore KinectToVR
+    - name: Restore NuGet Packages
       run: nuget.exe restore KinectToVR.sln
 
-    - name: NuGet Restore InputEmulator
-      run: nuget.exe restore external/inputemulator/VRInputEmulator.sln
-
-    - name: Build InputEmulator
-      id: run_msbuild_ovrie
-      run: |
-        cd external/inputemulator/
-        msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0" "/t:lib_vrinputemulator"
-        
     - name: Build KinectToVR
       id: run_msbuild_k2vr
       run: msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"

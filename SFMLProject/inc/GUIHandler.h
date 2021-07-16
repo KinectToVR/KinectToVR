@@ -5,12 +5,9 @@
 #include <atlbase.h>
 #include "KinectSettings.h"
 #include "KinectHandlerBase.h"
-#include "KinectTrackedDevice.h"
 #include "KinectJoint.h"
-#include "ColorTracker.h"
 #include "VRHelper.h"
 #include <TlHelp32.h>
-#include "TrackingMethod.h"
 #include "DeviceHandler.h"
 #include "PSMoveHandler.h"
 #include "VRDeviceHandler.h"
@@ -48,10 +45,8 @@ struct TempTrackerData
 	uint32_t rotationGlobalDeviceId = 0;
 	std::string rotDeviceName = "INVALID";
 	std::string rotDeviceSerial = "INVALID";
-
-	KVR::KinectDeviceRole role = KVR::KinectDeviceRole::Unassigned;
+	
 	bool isController = false;
-
 	friend class cereal::access;
 
 	template <class Archive>
@@ -70,30 +65,6 @@ struct TempTrackerData
 	}
 };
 
-struct TempTracker
-{
-	sfg::RadioButton::Ptr radioButton = sfg::RadioButton::Create("");
-	int GUID = 404;
-
-	KVR::JointPositionTrackingOption positionTrackingOption = KVR::JointPositionTrackingOption::Skeleton;
-
-	KVR::JointRotationTrackingOption rotationTrackingOption = KVR::JointRotationTrackingOption::Skeleton;
-
-	TempTrackerData data;
-};
-
-struct serialTest
-{
-	int butt;
-
-	template <class Archive>
-	void serialize(Archive& archive,
-	               serialTest& t)
-	{
-		archive(butt);
-	}
-};
-
 class GUIHandler
 {
 	
@@ -108,12 +79,10 @@ public:
 	sfg::ComboBox::Ptr contrackingselectbox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr bodytrackingselectbox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr headtrackingselectbox = sfg::ComboBox::Create();
-
-	sfg::ComboBox::Ptr psmoveboxa = sfg::ComboBox::Create();
-
-	sfg::ComboBox::Ptr psmoveboxhi = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr psmoveboxmi = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr psmoveboxyo = sfg::ComboBox::Create();
+	
+	sfg::ComboBox::Ptr psmovebox_left = sfg::ComboBox::Create();
+	sfg::ComboBox::Ptr psmovebox_right = sfg::ComboBox::Create();
+	sfg::ComboBox::Ptr psmovebox_waist = sfg::ComboBox::Create();
 	sfg::Box::Ptr psmidbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Box::Ptr psmidbox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Spawn Trackers");
@@ -136,16 +105,12 @@ public:
 		setLineWrapping();
 		packElementsIntoMainBox();
 		packElementsIntoAdvTrackerBox();
-		packElementsIntoTrackingMethodBox();
 		packElementsIntoCalibrationBox();
-		packElementsIntoVirtualHipsBox();
 		setRequisitions();
 
 		mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
 		mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Offsets "));
 		mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Options "));
-		//mainNotebook->AppendPage(controllersBox, sfg::Label::Create(" Controllers "));
-		//mainNotebook->AppendPage(virtualHipsBox, sfg::Label::Create(" Head Tracking "));
 
 		guiWindow->Add(mainNotebook);
 		guiDesktop.Add(guiWindow);
@@ -230,107 +195,7 @@ public:
 	{
 		KinectPosButton->SetActive(KinectSettings::adjustingKinectRepresentationPos);
 	}
-
-	bool trackerConfigExists()
-	{
-		// NOTE: Does not necessarily mean that it is valid
-		/*std::ifstream is(KVR::fileToDirPath(KVR::trackerConfig));
-		return !is.fail();*/
-	}
-
-	void saveLastSpawnedTrackers(std::vector<TempTracker> v_trackers)
-	{
-		//std::vector<TempTrackerData> v_trackerData;
-		//for (TempTracker& t : v_trackers) {
-		//    v_trackerData.push_back(t.data);
-		//}
-		//std::ofstream os(KVR::fileToDirPath(KVR::trackerConfig));
-		//if (os.fail()) {
-		//    //FAIL!!!
-		//    LOG(ERROR) << "ERROR: COULD NOT WRITE TO TRACKER CONFIG FILE\n";
-		//}
-		//else {
-		//    cereal::JSONOutputArchive archive(os);
-		//    LOG(INFO) << "Attempted to save last tracker settings to file";
-		//    try {
-		//        archive(
-		//            CEREAL_NVP(v_trackerData)
-		//        );
-		//    }
-		//    catch (cereal::RapidJSONException e) {
-		//        LOG(ERROR) << "CONFIG FILE SAVE JSON ERROR: " << e.what();
-		//    }
-
-		//}
-	}
-
-	bool retrieveLastSpawnedTrackers()
-	{
-		//std::ifstream is(KVR::fileToDirPath(KVR::trackerConfig));
-
-		//LOG(INFO) << "Attempted to load last set of spawned trackers at " << KVR::fileToDirPath(KVR::trackerConfig);
-
-		//std::vector<TempTrackerData> v_trackerData;
-		////CHECK IF VALID
-		//if (is.fail()) {
-		//    error_trackerCfgNotFound(KVR::trackerConfig);
-		//    return false;
-		//}
-		//else {
-		//    LOG(INFO) << KVR::trackerConfig << " load attempted!";
-		//    try {
-		//        cereal::JSONInputArchive archive(is);
-		//        archive(CEREAL_NVP(v_trackerData));
-		//    }
-		//    catch (cereal::Exception e) {
-		//        LOG(ERROR) << KVR::trackerConfig << "TRACKER FILE LOAD JSON ERROR: " << e.what();
-		//    }
-		//}
-		//if (v_trackerData.size() == 0) {
-		//    error_trackerCfgEmpty(KVR::trackerConfig);
-		//    return false;
-		//}
-		//for (TempTrackerData& data : v_trackerData) {
-		//    if (!addUserTrackerToList(data)) {
-		//        error_lastTrackersRespawnFailure();
-		//        return false;
-		//    }
-		//}
-		return true;
-	}
-
-	void error_lastTrackersRespawnFailure()
-	{
-		LOG(ERROR) << "Attempted to respawn trackers, but at least one was invalid!";
-		auto message = L"ERROR: INVALID TRACKERS DETECTED IN CFG: "
-			+ SFMLsettings::fileDirectoryPath
-			+ L"\n No trackers will be spawned"
-			+ L"\n Refer to K2VR.log, to see what went wrong";
-		auto result = MessageBox(nullptr, message.c_str(), L"ERROR!!!", MB_OK + MB_ICONWARNING);
-	}
-
-	void error_trackerCfgNotFound(std::wstring& trackerConfig)
-	{
-		//FAIL!!!!
-		LOG(ERROR) << "ERROR: COULD NOT OPEN " << trackerConfig << " FILE";
-		// Does not need to create config file - as the vector is empty anyway
-		LOG(ERROR) << "ERROR: Can't find last used custom tracker file!";
-		auto message = L"WARNING: NO lastTrackers.cfg DETECTED: "
-			+ SFMLsettings::fileDirectoryPath
-			+ L"\n No trackers will be added to the menu";
-		auto result = MessageBox(nullptr, message.c_str(), L"WARNING!!!", MB_OK + MB_ICONWARNING);
-	}
-
-	void error_trackerCfgEmpty(std::wstring& trackerConfig)
-	{
-		LOG(ERROR) << "WARNING: " << trackerConfig << " FILE IS EMPTY OF TRACKERS";
-
-		auto message = L"WARNING: No trackers were found in file at all! "
-			+ SFMLsettings::fileDirectoryPath
-			+ L"\n No trackers will be added to the menu";
-		auto result = MessageBox(nullptr, message.c_str(), L"WARNING!!!", MB_OK + MB_ICONWARNING);
-	}
-
+	
 	void connectPSMoveHandlerGUIEvents()
 	{
 		if (psMoveHandler.active)
@@ -351,7 +216,6 @@ public:
 			if (!psMoveHandler.active)
 				return;
 			psMoveHandler.shutdown();
-			updateDeviceLists();
 			PSMoveHandlerLabel->SetText("Status: Disconnected!");
 		});
 	}
@@ -375,7 +239,6 @@ public:
 				addedToVector = true;
 				PSMoveHandlerLabel->SetText("Status: Connected!");
 			}
-			updateDeviceLists();
 		}
 		else
 		{
@@ -404,122 +267,12 @@ public:
 				}
 			});
 		}
-		EnableGamepadButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			if (EnableGamepadButton->IsActive())
-			{
-				SFMLsettings::usingGamepad = true;
-			}
-			else
-			{
-				SFMLsettings::usingGamepad = false;
-			}
-		});
-
+		
 		ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([]
 		{
 			KinectSettings::isSkeletonDrawn = !KinectSettings::isSkeletonDrawn;
 		});
-
-		KinectRotButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			if (KinectRotButton->IsActive())
-			{
-				KinectSettings::adjustingKinectRepresentationRot = true;
-			}
-			else
-				KinectSettings::adjustingKinectRepresentationRot = false;
-		});
-		KinectPosButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			if (KinectPosButton->IsActive())
-			{
-				KinectSettings::adjustingKinectRepresentationPos = true;
-			}
-			else
-				KinectSettings::adjustingKinectRepresentationPos = false;
-		});
-		IgnoreInferredCheckButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			if (IgnoreInferredCheckButton->IsActive())
-			{
-				KinectSettings::ignoreInferredPositions = true;
-				// No longer stops updating trackers when Kinect isn't sure about a position
-			}
-			else
-			{
-				KinectSettings::ignoreInferredPositions = false;
-			}
-		});
-
-		showJointDevicesButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			kinectJointDevicesHiddenFromList = !showJointDevicesButton->IsActive();
-			updateDeviceLists();
-		});
-		refreshDeviceListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			updateDeviceLists();
-		});
-		identifyPosDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			if (PositionDeviceList->GetItemCount())
-			{
-				auto globalIndex = selectedPositionDeviceIndex();
-				auto d = TrackingPoolManager::getDeviceData(globalIndex);
-				if (d.parentHandler)
-				{
-					d.parentHandler->identify(globalIndex, identifyPosDeviceButton->IsActive());
-				}
-				else
-					LOG(ERROR) << "Attempted to identify a device with no valid parent handler bound";
-			}
-		});
-		identifyRotDeviceButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			if (RotationDeviceList->GetItemCount())
-			{
-				auto globalIndex = selectedRotationDeviceIndex();
-				auto d = TrackingPoolManager::getDeviceData(globalIndex);
-
-				if (d.parentHandler)
-				{
-					d.parentHandler->identify(globalIndex, identifyRotDeviceButton->IsActive());
-				}
-				else
-					LOG(ERROR) << "Attempted to identify a device with no valid parent handler bound";
-			}
-		});
-
-		PositionDeviceList->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-		{
-			// QOL Change to make selecting trackers easier
-			if (userSelectedDeviceRotIndex)
-			{
-				// Don't auto change
-			}
-			else
-			{
-				RotationDeviceList->SelectItem(PositionDeviceList->GetSelectedItem());
-				userSelectedDeviceRotIndex = false;
-				userSelectedDevicePosIndex = true;
-			}
-		});
-		RotationDeviceList->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-		{
-			// QOL Change to make selecting trackers easier
-			if (userSelectedDevicePosIndex)
-			{
-				// Don't auto change
-			}
-			else
-			{
-				PositionDeviceList->SelectItem(RotationDeviceList->GetSelectedItem());
-				userSelectedDevicePosIndex = false;
-				userSelectedDeviceRotIndex = true;
-			}
-		});
-
+		
 		psmovebox->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
 			KinectSettings::psmh = psmovebox->GetSelectedItem();
@@ -534,310 +287,29 @@ public:
 			KinectSettings::flashnow[1] = true;
 		});
 
-		psmoveboxhi->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
+		psmovebox_left->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
-			KinectSettings::psmhidari = psmoveboxhi->GetSelectedItem();
-			KinectSettings::flashnow[0] = psmoveboxhi->GetSelectedItem();
+			KinectSettings::psmhidari = psmovebox_left->GetSelectedItem();
+			KinectSettings::flashnow[0] = psmovebox_left->GetSelectedItem();
 			KinectSettings::flashnow[1] = true;
 		});
-		psmoveboxmi->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
+		psmovebox_right->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
-			KinectSettings::psmmigi = psmoveboxmi->GetSelectedItem();
-			KinectSettings::flashnow[0] = psmoveboxmi->GetSelectedItem();
+			KinectSettings::psmmigi = psmovebox_right->GetSelectedItem();
+			KinectSettings::flashnow[0] = psmovebox_right->GetSelectedItem();
 			KinectSettings::flashnow[1] = true;
 		});
-		psmoveboxyo->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
+		psmovebox_waist->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
-			KinectSettings::psmyobu = psmoveboxyo->GetSelectedItem();
-			KinectSettings::flashnow[0] = psmoveboxyo->GetSelectedItem();
+			KinectSettings::psmyobu = psmovebox_waist->GetSelectedItem();
+			KinectSettings::flashnow[0] = psmovebox_waist->GetSelectedItem();
 			KinectSettings::flashnow[1] = true;
 		});
-		psmoveboxa->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-		{
-			KinectSettings::psmatama = psmoveboxa->GetSelectedItem();
-			KinectSettings::flashnow[0] = psmoveboxa->GetSelectedItem();
-			KinectSettings::flashnow[1] = true;
-		});
-
-		AddHandControllersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			//Add a left and right hand tracker as a controller
-			addTrackerToList(KVR::KinectJointType::HandLeft, KVR::KinectDeviceRole::LeftHand, true);
-			addTrackerToList(KVR::KinectJointType::HandRight, KVR::KinectDeviceRole::RightHand, true);
-		});
-		AddLowerTrackersToList->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			addTrackerToList(KVR::KinectJointType::AnkleLeft, KVR::KinectDeviceRole::LeftFoot, false);
-			addTrackerToList(KVR::KinectJointType::AnkleRight, KVR::KinectDeviceRole::RightFoot, false);
-			addTrackerToList(KVR::KinectJointType::SpineBase, KVR::KinectDeviceRole::Hip, false);
-		});
-		AddTrackerToListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			addUserTrackerToList();
-			userSelectedDeviceRotIndex = false;
-			userSelectedDevicePosIndex = false;
-		});
-		RemoveTrackerFromListButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			int i = 0;
-			for (; i < TrackersToBeInitialised.size(); ++i)
-			{
-				if (TrackersToBeInitialised[i].radioButton->IsActive())
-				{
-					TrackersToBeInitialised[i].radioButton->Show(false);
-					TrackersToBeInitialised.erase(TrackersToBeInitialised.begin() + i);
-					break;
-				}
-			}
-			//updateTempTrackerIDs();
-			//updateTempTrackerButtonGroups();
-		});
-
+		
 		connectPSMoveHandlerGUIEvents();
-
-		HipScale->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-			{
-				// Update the Global hip offset
-				KinectSettings::hipRoleHeightAdjust = HipScale->GetValue();
-			}
-		);
 		setCalibrationSignal();
 	}
-
-	void setColorTrackerSignals(ColorTracker& colorTracker)
-	{
-		InitiateColorTrackingButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &colorTracker]
-		{
-			colorTracker.initialise();
-		});
-		DestroyColorTrackingButton->GetSignal(sfg::Button::OnMouseLeftPress).Connect([this, &colorTracker]
-		{
-			colorTracker.terminate();
-		});
-	}
-
-	int selectedPositionDeviceIndex()
-	{
-		int posIndex = PositionDeviceList->GetSelectedItem();
-		if (kinectJointDevicesHiddenFromList && TrackingPoolManager::trackerIdInKinectRange(posIndex))
-			posIndex += KVR::KinectJointCount;
-		// Really need to find a less hacky way to do this - as without it, when the kinect joints are hidden,
-		// selecting a PSMove (ID of 25) would still use the kinect joint because it's technically the 0th item in the list
-		return posIndex;
-	}
-
-	int selectedRotationDeviceIndex()
-	{
-		int rotIndex = RotationDeviceList->GetSelectedItem();
-		if (kinectJointDevicesHiddenFromList && TrackingPoolManager::trackerIdInKinectRange(rotIndex))
-			rotIndex += KVR::KinectJointCount;
-		// Really need to find a less hacky way to do this - as without it, when the kinect joints are hidden,
-		// selecting a PSMove (ID of 25) would still use the kinect joint because it's technically the 0th item in the list
-		return rotIndex;
-	}
-
-	void addUserTrackerToList()
-	{
-		TempTracker temp;
-		temp.GUID = TrackersToBeInitialised.size();
-		temp.data.isController = IsControllerButton->IsActive();
-
-		// Obtain Position Information
-		int posIndex = selectedPositionDeviceIndex();
-		if (posIndex < 0 || posIndex == k_invalidTrackerID) return;
-		KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
-
-		temp.data.positionGlobalDeviceId = posIndex;
-		temp.positionTrackingOption = posData.positionTrackingOption;
-		temp.data.posDeviceName = posData.deviceName;
-		temp.data.posDeviceSerial = posData.serial;
-
-		// Obtain Rotation Information
-		int rotIndex = selectedRotationDeviceIndex();
-		if (rotIndex < 0 || rotIndex == k_invalidTrackerID) return;
-		KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
-
-		temp.data.rotationGlobalDeviceId = rotIndex;
-		temp.rotationTrackingOption = rotData.rotationTrackingOption;
-		temp.data.rotDeviceName = rotData.deviceName;
-		temp.data.rotDeviceSerial = rotData.serial;
-
-		temp.data.role = static_cast<KVR::KinectDeviceRole>(RolesList->GetSelectedItem());
-		updateTrackerLists(temp);
-	}
-
-	bool validatedTrackerData(TempTrackerData& data)
-	{
-		// Verify that data is correct
-
-		// Index bound checks to prevent array access errors
-		bool posMismatched = false;
-		bool rotMismatched = false;
-		if (data.positionGlobalDeviceId >= TrackingPoolManager::count())
-		{
-			// INVALID POS ID
-			LOG(WARNING) << "POSITION ID " << data.positionGlobalDeviceId << " GREATER THAN THE SIZE OF TRACKING POOL";
-			posMismatched = true;
-		}
-		if (data.rotationGlobalDeviceId >= TrackingPoolManager::count())
-		{
-			// INVALID ROT ID
-			LOG(WARNING) << "ROTATION ID " << data.rotationGlobalDeviceId << " GREATER THAN THE SIZE OF TRACKING POOL";
-			rotMismatched = true;
-		}
-
-		KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(data.positionGlobalDeviceId);
-		KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(data.rotationGlobalDeviceId);
-
-		// Mismatched Device Index Checks
-		if (data.posDeviceName != posData.deviceName)
-		{
-			// POTENTIALLY MISMATCHED DEVICE
-			LOG(WARNING) << "POTENTIALLY MISMATCHED POS DEVICE NAME, EXPECTED " << data.posDeviceName <<
-				" AND RECEIVED " << posData.deviceName;
-
-			// If serial is also wrong, panic
-			if (data.posDeviceSerial != posData.serial)
-			{
-				LOG(ERROR) << "MISMATCHED POS DEVICE SERIAL, EXPECTED " << data.posDeviceSerial << " AND RECEIVED " <<
-					posData.serial;
-				posMismatched = true;
-			}
-		}
-		if (data.rotDeviceName != rotData.deviceName)
-		{
-			// POTENTIALLY MISMATCHED DEVICE
-			LOG(WARNING) << "POTENTIALLY MISMATCHED ROT DEVICE NAME, EXPECTED " << data.rotDeviceName <<
-				" AND RECEIVED " << rotData.deviceName;
-
-			// If serial is also wrong, panic
-			if (data.rotDeviceSerial != rotData.serial)
-			{
-				LOG(ERROR) << "MISMATCHED ROT DEVICE SERIAL, EXPECTED " << data.rotDeviceSerial << " AND RECEIVED " <<
-					rotData.serial;
-				rotMismatched = true;
-			}
-		}
-
-		// If incorrect, search for device
-		if (posMismatched)
-		{
-			LOG(INFO) << "Attempting to find Pos ID from device info...";
-			uint32_t potentialNewID = TrackingPoolManager::locateGlobalDeviceID(data.posDeviceSerial);
-			if (potentialNewID != k_invalidTrackerID)
-			{
-				LOG(INFO) << "Replacement Pos ID successfully found!";
-				posMismatched = false;
-				data.positionGlobalDeviceId = potentialNewID;
-			}
-			else
-			{
-				LOG(ERROR) << "Could not relocate pos device ID to spawn!";
-			}
-		}
-		if (rotMismatched)
-		{
-			LOG(INFO) << "Attempting to find Rot ID from device info...";
-			uint32_t potentialNewID = TrackingPoolManager::locateGlobalDeviceID(data.rotDeviceSerial);
-			if (potentialNewID != k_invalidTrackerID)
-			{
-				LOG(INFO) << "Replacement Rot ID successfully found!";
-				rotMismatched = false;
-				data.rotationGlobalDeviceId = potentialNewID;
-			}
-			else
-			{
-				LOG(ERROR) << "Could not relocate rot device ID to spawn!";
-			}
-		}
-
-		bool failed = rotMismatched || posMismatched;
-		// If could not be found, produce warning to cancel
-		if (failed)
-		{
-			return false;
-		}
-		return true;
-	}
-
-	bool addUserTrackerToList(TempTrackerData& data)
-	{
-		bool dataIsValid = validatedTrackerData(data);
-		if (!dataIsValid)
-			return false;
-
-		TempTracker temp;
-		temp.data = data;
-		temp.GUID = TrackersToBeInitialised.size();
-
-		KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(data.positionGlobalDeviceId);
-		KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(data.rotationGlobalDeviceId);
-
-		temp.positionTrackingOption = posData.positionTrackingOption;
-		temp.rotationTrackingOption = rotData.rotationTrackingOption;
-
-		updateTrackerLists(temp);
-
-		return true;
-	}
-
-	void addTrackerToList(KVR::KinectJointType joint, KVR::KinectDeviceRole role, bool isController)
-	{
-		TempTracker temp;
-		temp.GUID = TrackersToBeInitialised.size();
-		temp.data.isController = isController;
-		// Obtain Position Information
-		int posIndex = TrackingPoolManager::globalDeviceIDFromJoint(joint);
-		if (posIndex < 0 || posIndex == k_invalidTrackerID) return;
-		KVR::TrackedDeviceInputData posData = TrackingPoolManager::getDeviceData(posIndex);
-
-		temp.data.positionGlobalDeviceId = posIndex;
-		temp.positionTrackingOption = posData.positionTrackingOption;
-		temp.data.posDeviceName = posData.deviceName;
-		temp.data.posDeviceSerial = posData.serial;
-
-		// Obtain Rotation Information
-		int rotIndex = TrackingPoolManager::globalDeviceIDFromJoint(joint);
-		if (rotIndex < 0 || rotIndex == k_invalidTrackerID) return;
-		KVR::TrackedDeviceInputData rotData = TrackingPoolManager::getDeviceData(rotIndex);
-
-		temp.data.rotationGlobalDeviceId = rotIndex;
-		temp.rotationTrackingOption = rotData.rotationTrackingOption;
-		temp.data.rotDeviceName = rotData.deviceName;
-		temp.data.rotDeviceSerial = rotData.serial;
-		temp.data.role = role;
-
-		updateTrackerLists(temp);
-	}
-
-	void updateTrackerLists(TempTracker& temp)
-	{
-		// Display a radio button menu where selecting each button selects that tracker
-		// Displays the joint of each tracker and (Tracker)/(Controller)
-		std::stringstream roleStrStream;
-		if (temp.data.isController)
-			roleStrStream << " (Tracked Controller) ";
-		else
-			roleStrStream << " (Tracker) ";
-		roleStrStream << "(Role: " << KVR::KinectDeviceRoleName[static_cast<int>(temp.data.role)] << ") ";
-		std::string posName = TrackingPoolManager::deviceGuiString(temp.data.positionGlobalDeviceId);
-		std::string rotName = TrackingPoolManager::deviceGuiString(temp.data.rotationGlobalDeviceId);
-		std::string finalTrackerName = "Position: " + posName + " | Rotation: " + rotName + " | " + roleStrStream.str();
-
-		LOG(INFO) << "Adding tracker to list :: " << finalTrackerName;
-
-		temp.radioButton = sfg::RadioButton::Create(finalTrackerName);
-		if (TrackersToBeInitialised.size())
-		{
-			auto group = TrackersToBeInitialised.back().radioButton->GetGroup();
-			temp.radioButton->SetGroup(group);
-		}
-
-		TrackerList->Pack(temp.radioButton);
-
-		TrackersToBeInitialised.push_back(temp);
-	}
-
+	
 	void refreshCalibrationMenuValues()
 	{
 		using namespace KinectSettings;
@@ -1032,10 +504,9 @@ public:
 	{
 		psmovebox->Clear();
 		psmovebox1->Clear();
-		psmoveboxhi->Clear();
-		psmoveboxmi->Clear();
-		psmoveboxyo->Clear();
-		psmoveboxa->Clear();
+		psmovebox_left->Clear();
+		psmovebox_right->Clear();
+		psmovebox_waist->Clear();
 
 		KinectSettings::psmindexidpsm[0].clear();
 		KinectSettings::psmindexidpsm[1].clear();
@@ -1046,10 +517,9 @@ public:
 			{
 				psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 				psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-				psmoveboxhi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-				psmoveboxmi->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-				psmoveboxyo->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-				psmoveboxa->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+				psmovebox_left->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+				psmovebox_right->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
+				psmovebox_waist->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 
 				KinectSettings::psmindexidpsm[0].push_back(psmovebox->GetItemCount() - 1);
 				KinectSettings::psmindexidpsm[1].push_back(i);
@@ -1065,25 +535,20 @@ public:
 			psmovebox1->SelectItem(1);
 			KinectSettings::psmm = 1;
 		}
-		if (psmoveboxhi->GetItemCount() >= 1)
+		if (psmovebox_left->GetItemCount() >= 1)
 		{
-			psmoveboxhi->SelectItem(0);
+			psmovebox_left->SelectItem(0);
 			KinectSettings::psmhidari = 0;
 		}
-		if (psmoveboxmi->GetItemCount() >= 2)
+		if (psmovebox_right->GetItemCount() >= 2)
 		{
-			psmoveboxmi->SelectItem(1);
+			psmovebox_right->SelectItem(1);
 			KinectSettings::psmmigi = 1;
 		}
-		if (psmoveboxyo->GetItemCount() >= 3)
+		if (psmovebox_waist->GetItemCount() >= 3)
 		{
-			psmoveboxyo->SelectItem(2);
+			psmovebox_waist->SelectItem(2);
 			KinectSettings::psmyobu = 2;
-		}
-		if (psmoveboxa->GetItemCount() >= 1)
-		{
-			psmoveboxa->SelectItem(0);
-			KinectSettings::psmatama = 0;
 		}
 	}
 
@@ -1108,46 +573,7 @@ public:
 		{
 			refreshpsms();
 		});
-
-		refreshcomports->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			wchar_t lpTargetPath[5000];
-			comportbox1->Clear();
-			comportbox2->Clear();
-
-			for (int i = 0; i < 255; i++) // checking ports from COM0 to COM255
-			{
-				std::wstring str = L"COM" + std::to_wstring(i); // converting to COM0, COM1, COM2
-				DWORD res = QueryDosDevice(str.c_str(), lpTargetPath, 5000);
-
-				// Test the return value and error if any
-				if (res != 0) //QueryDosDevice returns zero if it didn't find an object
-				{
-					comportbox1->AppendItem(str);
-					comportbox2->AppendItem(str);
-					//std::cout << str << ": " << lpTargetPath << std::endl;
-				}
-				if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
-				{
-				}
-			}
-
-			comportbox1->SelectItem(0);
-			comportbox2->SelectItem(1);
-		});
-	}
-
-	void spawnAndConnectTracker(vrinputemulator::VRInputEmulator& inputE,
-	                            std::vector<KVR::KinectTrackedDevice>& v_trackers, TempTracker t_tracker)
-	{
-		KVR::KinectTrackedDevice device(inputE, t_tracker.data.positionGlobalDeviceId,
-		                                t_tracker.data.rotationGlobalDeviceId, t_tracker.data.role);
-		device.positionTrackingOption = t_tracker.positionTrackingOption;
-		device.rotationTrackingOption = t_tracker.rotationTrackingOption;
-		device.customModelName = TrackingPoolManager::getDeviceData(t_tracker.data.positionGlobalDeviceId).
-			customModelName;
-		device.init(inputE);
-		v_trackers.push_back(device);
+		
 	}
 
 	std::wstring s2ws(const std::string& s)
@@ -1191,37 +617,10 @@ public:
 		}
 	}
 
-	void setTrackerButtonSignals(std::vector<KVR::KinectTrackedDevice>& v_trackers, vr::IVRSystem*& m_VRSystem)
+	void setTrackerButtonSignals(vr::IVRSystem*& m_VRSystem)
 	{
-		calibrateOffsetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers, &m_VRSystem]
-		{
-			// WARNING, SUPER HACKY!!!
-			// Spawn device which sets it's vec position to 0
-			vr::DriverPose_t pose = defaultReadyDriverPose();
 
-			pose.vecPosition[0] = 0;
-			pose.vecPosition[1] = 0;
-			pose.vecPosition[2] = 0;
-			pose.vecWorldFromDriverTranslation[0] -= KinectSettings::trackingOriginPosition.v[0];
-			pose.vecWorldFromDriverTranslation[1] -= KinectSettings::trackingOriginPosition.v[1];
-			pose.vecWorldFromDriverTranslation[2] -= KinectSettings::trackingOriginPosition.v[2];
-			v_trackers[0].nextUpdatePoseIsSet = false;
-			v_trackers[0].setPoseForNextUpdate(pose, true);
-			// Get it's VR ID
-			//auto info = inputE.getVirtualDeviceInfo(0);
-			//uint32_t vrID = info.openvrDeviceId;
-			// Get it's absolute tracking, set the secondary offset to that
-
-			//v_trackers[0].update(pose);
-
-			//vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
-			//m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 0, devicePose, vr::k_unMaxTrackedDeviceCount);
-
-			//KinectSettings::secondaryTrackingOriginOffset = GetVRPositionFromMatrix(devicePose[vrID].mDeviceToAbsoluteTracking);
-			//LOG(INFO) << "SET THE SECONDARY OFFSET TO " << KinectSettings::secondaryTrackingOriginOffset.v[0] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[1] << ", " << KinectSettings::secondaryTrackingOriginOffset.v[2];
-		});
-
-		TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
+		TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
 		{
 			if (!KinectSettings::initialised)
 			{
@@ -1265,303 +664,7 @@ public:
 
 		//Initialise trackers if $(Conditions)
 		ping_InitTrackers();
-
-		//if (VirtualHips::settings.astarth)
-		//{
-		//	KinectSettings::headtracked = true;
-		//	HeadTrackingStartButton->SetLabel("Head Tracking Started");
-		//	HeadTrackingStartButton->Show(false);
-		//	HeadTrackingCalibButton->Show(true);
-		//	AutoStartHeadTracking->Show(true);
-
-		//	std::thread* hedo_of = new std::thread([]()
-		//	{
-		//		while (true)
-		//		{
-		//			HANDLE pipeAtama = CreateFile(
-		//				TEXT("\\\\.\\pipe\\LogPipeOf"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-		//				nullptr);
-
-		//			DWORD Written;
-
-		//			std::string AtamaS = [&]()-> std::string
-		//			{
-		//				std::stringstream S;
-		//				S << "X" << 10000 * (KinectSettings::huoffsets.v[0]) <<
-		//					"/Y" << 10000 * (KinectSettings::huoffsets.v[1]) <<
-		//					"/Z" << 10000 * (KinectSettings::huoffsets.v[2]) <<
-		//					"/R" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
-
-		//				return S.str();
-		//			}();
-
-		//			char AtamaD[1024];
-		//			strcpy_s(AtamaD, AtamaS.c_str());
-
-		//			WriteFile(pipeAtama, AtamaD, sizeof(AtamaD), &Written, nullptr);
-		//			CloseHandle(pipeAtama);
-
-		//			std::this_thread::sleep_for(std::chrono::milliseconds(370));
-		//		}
-		//	});
-		//}
-
-		//if (VirtualHips::settings.astarta)
-		//{
-		//	/*
-		//	comportbox1->Clear();
-		//	comportbox1->AppendItem(VirtualHips::settings.comph);
-		//	comportbox1->SelectItem(0);
-
-		//	comportbox2->Clear();
-		//	comportbox2->AppendItem(VirtualHips::settings.compm);
-		//	comportbox2->SelectItem(0);*/
-
-		//	std::thread* activate = new std::thread([]
-		//	{
-		//		try
-		//		{
-		//			using namespace boost::asio;
-		//			using ip::tcp;
-		//			using std::string;
-
-		//			io_service io_service;
-		//			//socket creation
-		//			tcp::socket socket(io_service);
-		//			//connection
-		//			socket.connect(tcp::endpoint(ip::address::from_string("127.0.0.1"), 5741));
-		//			// request/message from client
-
-		//			const string msg = "Hello from Client!\n";
-		//			boost::system::error_code error;
-		//			boost::asio::write(socket, buffer(msg), error);
-		//			if (!error)
-		//			{
-		//				LOG(INFO) << "Client sent message!";
-		//			}
-		//			else
-		//			{
-		//				LOG(INFO) << "(Ignore) send failed: " << error.message();
-		//			}
-
-		//			// getting response from server
-		//			streambuf receive_buffer;
-		//			boost::asio::read(socket, receive_buffer, transfer_all(), error);
-		//			if (error && error != error::eof)
-		//			{
-		//				LOG(INFO) << "(Ignore) receive failed: " << error.message();
-		//			}
-		//			else
-		//			{
-		//				const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
-		//			}
-		//		}
-		//		catch (boost::exception const& e)
-		//		{
-		//		}
-		//		catch (std::exception e)
-		//		{
-		//		}
-		//	});
-
-		//	//ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(VirtualHips::settings.comph).c_str(), NULL, SW_HIDE);
-		//	//ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(VirtualHips::settings.compm).c_str(), NULL, SW_HIDE);
-
-		//	stopControllers->SetState(sfg::Widget::State::NORMAL);
-		//	startControllers->SetState(sfg::Widget::State::INSENSITIVE);
-		//	//comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
-		//	//comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
-		//	//refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
-		//}
-
-		TrackerLastInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
-		{
-			if (!retrieveLastSpawnedTrackers())
-			{
-				return; // Don't actually spawn the trackers, as they will likely crash
-			}
-			TrackerLastInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-			spawnDefaultLowerBodyTrackers();
-
-			showPostTrackerInitUI();
-
-			TrackerInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-			TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
-		});
-
-		SetJointsToFootRotationButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
-		{
-			using namespace KinectSettings;
-			leftFootJointWithRotation = KVR::KinectJointType::FootLeft;
-			rightFootJointWithRotation = KVR::KinectJointType::FootRight;
-			leftFootJointWithoutRotation = KVR::KinectJointType::AnkleLeft;
-			rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
-			for (KVR::KinectTrackedDevice& d : v_trackers)
-			{
-				if (d.role == KVR::KinectDeviceRole::LeftFoot)
-				{
-					d.joint0 = leftFootJointWithRotation;
-					d.joint1 = leftFootJointWithoutRotation;
-				}
-				if (d.role == KVR::KinectDeviceRole::RightFoot)
-				{
-					d.joint0 = rightFootJointWithRotation;
-					d.joint1 = rightFootJointWithoutRotation;
-				}
-			}
-		});
-		SetJointsToAnkleRotationButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
-		{
-			using namespace KinectSettings;
-			leftFootJointWithRotation = KVR::KinectJointType::AnkleLeft;
-			rightFootJointWithRotation = KVR::KinectJointType::AnkleRight;
-			leftFootJointWithoutRotation = KVR::KinectJointType::FootLeft;
-			rightFootJointWithoutRotation = KVR::KinectJointType::FootRight;
-			for (KVR::KinectTrackedDevice& d : v_trackers)
-			{
-				if (d.role == KVR::KinectDeviceRole::LeftFoot)
-				{
-					d.joint0 = leftFootJointWithRotation;
-					d.joint1 = leftFootJointWithoutRotation;
-				}
-				if (d.role == KVR::KinectDeviceRole::RightFoot)
-				{
-					d.joint0 = rightFootJointWithRotation;
-					d.joint1 = rightFootJointWithoutRotation;
-				}
-			}
-		});
-
-		SetAllJointsRotUnfiltered->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
-		{
-			for (KVR::KinectTrackedDevice& d : v_trackers)
-			{
-				if (d.isSensor())
-				{
-				}
-				else
-				{
-					d.rotationFilterOption = KVR::JointRotationFilterOption::Unfiltered;
-				}
-			}
-		});
-		SetAllJointsRotFiltered->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
-		{
-			for (KVR::KinectTrackedDevice& d : v_trackers)
-			{
-				if (d.isSensor())
-				{
-				}
-				else
-				{
-					d.rotationFilterOption = KVR::JointRotationFilterOption::Filtered;
-				}
-			}
-		});
-		SetAllJointsRotHead->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &v_trackers]
-		{
-			for (KVR::KinectTrackedDevice& d : v_trackers)
-			{
-				if (d.isSensor())
-				{
-				}
-				else
-				{
-					d.rotationFilterOption = KVR::JointRotationFilterOption::HeadLook;
-				}
-			}
-		});
-
-		using namespace VirtualHips;
-
-		HeadTrackingStartButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
-			{
-				KinectSettings::headtracked = true;
-				HeadTrackingStartButton->SetLabel("Head Tracking Started");
-				HeadTrackingStartButton->Show(false);
-				HeadTrackingCalibButton->Show(true);
-				AutoStartHeadTracking->Show(true);
-
-				std::thread* hedo_of = new std::thread([]()
-				{
-					while (true)
-					{
-						HANDLE pipeAtama = CreateFile(
-							TEXT("\\\\.\\pipe\\LogPipeOf"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-							nullptr);
-
-						DWORD Written;
-
-						std::string AtamaS = [&]()-> std::string
-						{
-							std::stringstream S;
-							S << "X" << 10000 * (KinectSettings::huoffsets.v[0]) <<
-								"/Y" << 10000 * (KinectSettings::huoffsets.v[1]) <<
-								"/Z" << 10000 * (KinectSettings::huoffsets.v[2]) <<
-								"/R" << 10000 * (0) << "/"; //DEPRECATED: GLM_ROTATE SCREWED UP WITH > 99
-
-							return S.str();
-						}();
-
-						char AtamaD[1024];
-						strcpy_s(AtamaD, AtamaS.c_str());
-
-						WriteFile(pipeAtama, AtamaD, sizeof(AtamaD), &Written, nullptr);
-						CloseHandle(pipeAtama);
-					}
-				});
-			}
-		);
-
-		HeadTrackingCalibButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
-			{
-				KinectSettings::headtracked = true;
-
-				vr::EVRInitError error;
-				vr::TrackedDevicePose_t trackedDevicePose;
-				std::this_thread::sleep_for(std::chrono::milliseconds(2000));
-
-				vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
-				double yaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2],
-					trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]);
-			
-				if (yaw < 0.0)
-				{
-					yaw = 2 * M_PI + yaw;
-				}
-
-				/*svrposes.qRotation = quaternion;
-	
-				KinectSettings::hmdquat = quaternion;*/
-
-				//glm::vec3 hmdrot = glm::eulerAngles(glm::quat(svrposes.qRotation.w, svrposes.qRotation.x, svrposes.qRotation.y, svrposes.qRotation.z));
-
-				KinectSettings::hroffset = glm::degrees(yaw);
-				DegreeButton->SetValue(static_cast<float>(glm::degrees(yaw)));
-				settings.hmdegree = glm::degrees(yaw);
-
-				/*glm::vec3 fixedpos = glm::rotateY(glm::vec4(
-					glm::vec3(svrposes[0].vecPosition[0], svrposes[0].vecPosition[1], svrposes[0].vecPosition[2]), 1),
-					glm::f32(glm::radians(KinectSettings::hroffset)));*/
-
-				/*glm::vec3 fixedpos = glm::rotateY(glm::vec4(
-					glm::vec3(KinectSettings::kinect_m_positions[0].v[0], KinectSettings::kinect_m_positions[0].v[1], KinectSettings::kinect_m_positions[0].v[2]), 1),
-					glm::f32(glm::radians(KinectSettings::hroffset)));*/
-
-				//glm::vec3 diff = glm::vec3(
-				//    KinectSettings::kinect_m_positions[0].v[0] - fixedpos.x,
-				//    KinectSettings::kinect_m_positions[0].v[1] - fixedpos.y,
-				//    KinectSettings::kinect_m_positions[0].v[2] - fixedpos.z);
-
-				//KinectSettings::hoffsets.v[0] = -svrposes[0].vecPosition[0];
-				//KinectSettings::hoffsets.v[1] = 0.f;// -KinectSettings::kinect_m_positions[0].v[1];
-				//KinectSettings::hoffsets.v[2] = -svrposes[0].vecPosition[2];
-
-				//HeadTrackingCalibButton->SetLabel(std::string("Calibrate: Look at Kinect and stand still").c_str());
-
-				saveSettings();
-			}
-		);
+		
 	}
 
 	void updateTrackerInitButtonLabelFail()
@@ -1737,12 +840,6 @@ public:
 
 	void setLineWrapping()
 	{
-		InferredLabel->SetLineWrap(true);
-		InferredLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
-
-		InstructionsLabel->SetLineWrap(true);
-		InstructionsLabel->SetRequisition(sf::Vector2f(600.f, 50.f));
-
 		CalibrationSettingsLabel->SetLineWrap(true);
 		CalibrationSettingsLabel->SetRequisition(sf::Vector2f(600.f, 20.f));
 	}
@@ -1753,7 +850,6 @@ public:
 		mainGUIBox->Pack(KinectStatusLabel);
 		mainGUIBox->Pack(DriverStatusLabel);
 		mainGUIBox->Pack(SteamVRStatusLabel);
-		mainGUIBox->Pack(InputEmulatorStatusLabel);
 
 		auto fontSizeBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 		fontSizeBox->Pack(FontSizeScaleLabel);
@@ -1805,138 +901,7 @@ public:
 		//mainGUIBox->Pack(InferredLabel);
 		//mainGUIBox->Pack(IgnoreInferredCheckButton);
 	}
-
-	void refreshcom()
-	{
-		wchar_t lpTargetPath[5000];
-		comportbox1->Clear();
-		comportbox2->Clear();
-
-		for (int i = 0; i < 255; i++) // checking ports from COM0 to COM255
-		{
-			std::wstring str = L"COM" + std::to_wstring(i); // converting to COM0, COM1, COM2
-			DWORD res = QueryDosDevice(str.c_str(), lpTargetPath, 5000);
-
-			// Test the return value and error if any
-			if (res != 0) //QueryDosDevice returns zero if it didn't find an object
-			{
-				comportbox1->AppendItem(str);
-				comportbox2->AppendItem(str);
-				//std::cout << str << ": " << lpTargetPath << std::endl;
-			}
-			if (GetLastError() == ERROR_INSUFFICIENT_BUFFER)
-			{
-			}
-		}
-
-		comportbox1->SelectItem(0);
-		comportbox2->SelectItem(1);
-	}
-
-	void setHipScaleBox()
-	{
-		auto HipLabel = sfg::Label::Create("Vertical Hip Adjustment (metres)");
-		HipScale->SetDigits(3);
-
-		HipScaleBox->Pack(HipLabel, false, false);
-		HipScaleBox->Pack(HipScale);
-		mainGUIBox->Pack(HipScaleBox);
-	}
-
-	void packElementsIntoTrackingMethodBox()
-	{
-		//trackingMethodBox->Pack(InitiateColorTrackingButton);
-		//trackingMethodBox->Pack(DestroyColorTrackingButton);
-
-		sfg::Box::Ptr horbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-
-		horbox->Pack(startControllers);
-		horbox->Pack(stopControllers);
-		controllersBox->Pack(horbox);
-
-		sfg::Box::Ptr toptbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-		toptbox->Pack(sfg::Label::Create("Choose configuration for controllers tracking"));
-		toptbox->Pack(contrackingselectbox);
-
-		controllersBox->Pack(toptbox);
-		contrackingselectbox->AppendItem("Full PSMove setup");
-		contrackingselectbox->AppendItem("PSMove + Kinect tracking");
-		contrackingselectbox->SelectItem(VirtualHips::settings.conOption);
-
-		stopControllers->SetState(sfg::Widget::State::INSENSITIVE);
-		startControllers->SetState(sfg::Widget::State::NORMAL);
-
-		auto offsets = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto xhoffset = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto yhoffset = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto zhoffset = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto xhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto yhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto zhoffset1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto controllersid = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.5f);
-		auto hidaricon = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.5f);
-		auto migicon = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.5f);
-		auto refreshcon = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.5f);
-
-		hidaricon->Pack(sfg::Label::Create("Left Controller ID"));
-		hidaricon->Pack(psmovebox);
-		migicon->Pack(sfg::Label::Create("Right Controller ID"));
-		migicon->Pack(psmovebox1);
-		refreshcon->Pack(refreshpsmovesbuton);
-
-		controllersid->Pack(hidaricon);
-		controllersid->Pack(migicon);
-		controllersid->Pack(refreshcon);
-		controllersBox->Pack(controllersid);
-
-		auto xoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-		xoffset->Pack(sfg::Label::Create("X Offset (meters)"));
-		xoffset->Pack(sfg::Label::Create(" "));
-		xhoffset->Pack(sfg::Label::Create("Left-Con"));
-		xhoffset->Pack(sfg::Label::Create("Right-Con"));
-		xhoffset1->Pack(arduhx);
-		xhoffset1->Pack(ardumx);
-		xoffset->Pack(xhoffset);
-		xoffset->Pack(xhoffset1);
-		xoffset->Pack(sfg::Label::Create(" "));
-
-		auto yoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-		yoffset->Pack(sfg::Label::Create("Y Offset (meters)"));
-		yoffset->Pack(sfg::Label::Create(" "));
-		yhoffset->Pack(sfg::Label::Create("Left-Con"));
-		yhoffset->Pack(sfg::Label::Create("Right-Con"));
-		yhoffset1->Pack(arduhy);
-		yhoffset1->Pack(ardumy);
-		yoffset->Pack(yhoffset);
-		yoffset->Pack(yhoffset1);
-		yoffset->Pack(sfg::Label::Create(" "));
-
-		auto zoffset = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-		zoffset->Pack(sfg::Label::Create("Z Offset (meters)"));
-		zoffset->Pack(sfg::Label::Create(" "));
-		zhoffset->Pack(sfg::Label::Create("Left-Con"));
-		zhoffset->Pack(sfg::Label::Create("Right-Con"));
-		zhoffset1->Pack(arduhz);
-		zhoffset1->Pack(ardumz);
-		zoffset->Pack(zhoffset);
-		zoffset->Pack(zhoffset1);
-		zoffset->Pack(sfg::Label::Create(" "));
-
-		offsets->Pack(xoffset);
-		offsets->Pack(yoffset);
-		offsets->Pack(zoffset);
-
-		controllersBox->Pack(sfg::Label::Create(" "));
-		controllersBox->Pack(offsets);
-		controllersBox->Pack(AutoStartControllers);
-	}
-
-	void updateDeviceLists()
-	{
-		setDeviceListItems(PositionDeviceList);
-		setDeviceListItems(RotationDeviceList);
-	}
-
+	
 	void packElementsIntoAdvTrackerBox()
 	{
 		// Only if we're using psms
@@ -1968,13 +933,13 @@ public:
 		sfg::Box::Ptr psmhipsidbox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 
 		psmleftidbox->Pack(sfg::Label::Create("Left Foot tracker PSMove ID"));
-		psmleftidbox->Pack(psmoveboxhi);
+		psmleftidbox->Pack(psmovebox_left);
 
 		psmrightidbox->Pack(sfg::Label::Create("Right Foot tracker PSMove ID"));
-		psmrightidbox->Pack(psmoveboxmi);
+		psmrightidbox->Pack(psmovebox_right);
 
 		psmhipsidbox->Pack(sfg::Label::Create("Hips tracker PSMove ID"));
-		psmhipsidbox->Pack(psmoveboxyo);
+		psmhipsidbox->Pack(psmovebox_waist);
 
 		psmidbox->Pack(psmleftidbox);
 		psmidbox->Pack(psmrightidbox);
@@ -2133,43 +1098,7 @@ public:
 
 		calibrationBox->Pack(verticalBox);
 	}
-
-	void setBonesListItems()
-	{
-		using namespace KVR;
-		for (int i = 0; i < KinectJointCount; ++i)
-		{
-			BonesList->AppendItem(KinectJointName[i]);
-		}
-		// Set as default - to prevent garbage additions
-		BonesList->SelectItem(0);
-	}
-
-	void setDeviceListItems(sfg::ComboBox::Ptr comboBox)
-	{
-		comboBox->Clear();
-		for (int i = 0; i < TrackingPoolManager::count(); ++i)
-		{
-			if (kinectJointDevicesHiddenFromList && TrackingPoolManager::trackerIdInKinectRange(i))
-			{
-				continue;
-			}
-			comboBox->AppendItem(TrackingPoolManager::deviceGuiString(i));
-		}
-		// Set as default - to prevent garbage additions
-		comboBox->SelectItem(0);
-	}
-
-	void setRolesListItems(sfg::ComboBox::Ptr comboBox)
-	{
-		for (int i = 0; i < static_cast<int>(KVR::KinectDeviceRole::Count); ++i)
-		{
-			comboBox->AppendItem(KVR::KinectDeviceRoleName[i]);
-		}
-		// Set as default - to prevent garbage additions
-		comboBox->SelectItem(0);
-	}
-
+	
 	void updateKinectStatusLabel(KinectHandlerBase& kinect)
 	{
 		HRESULT status = kinect.getStatusResult();
@@ -2204,17 +1133,7 @@ public:
 			lastKinectStatus = status;
 		}
 	}
-
-	void updateEmuStatusLabelError(vrinputemulator::vrinputemulator_connectionerror e)
-	{
-		//InputEmulatorStatusLabel->SetText("Input Emu Status: NOT Connected! Error " + std::to_string(e.errorcode) + " " + e.what() + "\n\n Is SteamVR open and InputEmulator installed?");
-	}
-
-	void updateEmuStatusLabelSuccess()
-	{
-		//InputEmulatorStatusLabel->SetText("Input Emu Status: Success!");
-	}
-
+	
 	void updateVRStatusLabel(vr::EVRInitError eError)
 	{
 		if (eError == vr::VRInitError_None)
@@ -2224,17 +1143,7 @@ public:
 				"SteamVR Status: ERROR " + std::to_string(eError) +
 				"\nPlease restart K2VR with SteamVR successfully running!");
 	}
-
-	void setTrackingMethodsReference(std::vector<std::unique_ptr<TrackingMethod>>& ref)
-	{
-		v_trackingMethodsRef = &ref;
-	}
-
-	void setDeviceHandlersReference(std::vector<std::unique_ptr<DeviceHandler>>& ref)
-	{
-		v_deviceHandlersRef = &ref;
-	}
-
+	
 	void updateWithNewWindowSize(sf::Vector2f size)
 	{
 		guiWindow->SetAllocation(sf::FloatRect(0.f, 0.f, .4f * size.x, .4f * size.y));
@@ -2316,29 +1225,6 @@ public:
 		VirtualHipHeightFromHMDButton->SetDigits(2);
 		DegreeButton->SetDigits(2);
 		TDegreeButton->SetDigits(0);
-		VirtualHipSittingThreshold->SetDigits(2);
-		VirtualHipLyingThreshold->SetDigits(2);
-
-		arduhx->SetDigits(2);
-		arduhy->SetDigits(2);
-		arduhz->SetDigits(2);
-
-		ardumx->SetDigits(2);
-		ardumy->SetDigits(2);
-		ardumz->SetDigits(2);
-
-		VirtualHipUseHMDYawButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			settings.followHmdYawRotation = (VirtualHipUseHMDYawButton->IsActive());
-		});
-		VirtualHipUseHMDPitchButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			settings.followHmdPitchRotation = (VirtualHipUseHMDPitchButton->IsActive());
-		});
-		VirtualHipUseHMDRollButton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-		{
-			settings.followHmdRollRotation = (VirtualHipUseHMDRollButton->IsActive());
-		});
 
 		VirtualHipLockToHeadButton->GetSignal(sfg::RadioButton::OnToggle).Connect([this]
 			{
@@ -2363,137 +1249,7 @@ public:
 				AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: NO");
 			}
 		});
-
-		AutoStartKinectToVR->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			settings.astartk = !settings.astartk;
-			if (settings.astartk)
-			{
-				AutoStartKinectToVR->SetLabel("Launch K2 automatically with SteamVR CURRENT: YES");
-			}
-			else
-			{
-				AutoStartKinectToVR->SetLabel("Launch K2 automatically with SteamVR CURRENT: NO");
-			}
-		});
-
-		AutoStartHeadTracking->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			settings.astarth = !settings.astarth;
-			if (settings.astarth)
-			{
-				AutoStartHeadTracking->SetLabel("Start head tracking on launch CURRENT: YES");
-			}
-			else
-			{
-				AutoStartHeadTracking->SetLabel("Start head tracking on launch CURRENT: NO");
-			}
-		});
-
-		AutoStartControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			settings.astarta = !settings.astarta;
-			if (settings.astarta)
-			{
-				AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: YES");
-			}
-			else
-			{
-				AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: NO");
-			}
-		});
-
-		startControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			KinectSettings::conActivated = true;
-
-			std::thread* activate = new std::thread([]
-			{
-				try
-				{
-					using namespace boost::asio;
-					using ip::tcp;
-					using std::string;
-
-					io_service io_service;
-					//socket creation
-					tcp::socket socket(io_service);
-					//connection
-					socket.connect(tcp::endpoint(ip::address::from_string("127.0.0.1"), 5741));
-					// request/message from client
-
-					const string msg = "Hello from Client!\n";
-					boost::system::error_code error;
-					boost::asio::write(socket, buffer(msg), error);
-					if (!error)
-					{
-						LOG(INFO) << "Client sent message!";
-					}
-					else
-					{
-						LOG(INFO) << "(Ignore) send failed: " << error.message();
-					}
-
-					// getting response from server
-					streambuf receive_buffer;
-					boost::asio::read(socket, receive_buffer, transfer_all(), error);
-					if (error && error != error::eof)
-					{
-						LOG(INFO) << "(Ignore) receive failed: " << error.message();
-					}
-					else
-					{
-						const char* data = boost::asio::buffer_cast<const char*>(receive_buffer.data());
-					}
-				}
-				catch (boost::exception const& e)
-				{
-				}
-				catch (std::exception e)
-				{
-				}
-			});
-
-			std::thread* pscon = new std::thread([this]
-			{
-				while (true)
-				{
-					vr::HmdVector3d_t mpose = psMoveHandler.getMovePosition(0);
-					vr::HmdVector3d_t hpose = psMoveHandler.getMovePosition(1);
-
-					vr::HmdQuaternion_t mrotation = psMoveHandler.getMoveOrientation(0);
-					vr::HmdQuaternion_t hrotation = psMoveHandler.getMoveOrientation(1);
-				}
-			});
-
-			/*ShellExecute(NULL, _T("open"), _T("avr_hhost.exe"), s2ws(comportbox1->GetSelectedText()).c_str(), NULL, SW_HIDE);
-			ShellExecute(NULL, _T("open"), _T("avr_mhost.exe"), s2ws(comportbox2->GetSelectedText()).c_str(), NULL, SW_HIDE);*/
-
-			//settings.comph = comportbox1->GetSelectedText();
-			//settings.compm = comportbox2->GetSelectedText();
-
-			saveSettings();
-			stopControllers->SetState(sfg::Widget::State::NORMAL);
-			startControllers->SetState(sfg::Widget::State::INSENSITIVE);
-			//comportbox1->SetState(sfg::Widget::State::INSENSITIVE);
-			//comportbox2->SetState(sfg::Widget::State::INSENSITIVE);
-			//refreshcomports->SetState(sfg::Widget::State::INSENSITIVE);
-		});
-
-		stopControllers->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-		{
-			//killProcessByName("avr_hhost.exe");
-			//killProcessByName("avr_mhost.exe");
-
-			KinectSettings::conActivated = false;
-
-			stopControllers->SetState(sfg::Widget::State::INSENSITIVE);
-			startControllers->SetState(sfg::Widget::State::NORMAL);
-			//comportbox1->SetState(sfg::Widget::State::NORMAL);
-			//comportbox2->SetState(sfg::Widget::State::NORMAL);
-			//refreshcomports->SetState(sfg::Widget::State::NORMAL);
-		});
-
+		
 		if (settings.astartt)
 		{
 			AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: YES");
@@ -2502,82 +1258,14 @@ public:
 		{
 			AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: NO");
 		}
-		if (settings.astartk)
-		{
-			AutoStartKinectToVR->SetLabel("Launch K2 automatically with SteamVR CURRENT: YES");
-		}
-		else
-		{
-			AutoStartKinectToVR->SetLabel("Launch K2 automatically with SteamVR CURRENT: NO");
-		}
-		if (settings.astarth)
-		{
-			AutoStartHeadTracking->SetLabel("Start head tracking on launch CURRENT: YES");
-		}
-		else
-		{
-			AutoStartHeadTracking->SetLabel("Start head tracking on launch CURRENT: NO");
-		}
-		if (settings.astarta)
-		{
-			AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: YES");
-		}
-		else
-		{
-			AutoStartControllers->SetLabel("Start Controllers on launch CURRENT: NO");
-		}
-
+		
 		VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
 				settings.heightFromHMD = VirtualHipHeightFromHMDButton->GetValue();
 				KinectSettings::huoffsets.v[0] = VirtualHipHeightFromHMDButton->GetValue();
 			}
 		);
-
-		arduhx->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-			{
-				settings.hauoffset_s(0) = arduhx->GetValue();
-				KinectSettings::hauoffset.v[0] = arduhx->GetValue();
-				saveSettings();
-			}
-		);
-		arduhy->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-			{
-				settings.hauoffset_s(1) = arduhy->GetValue();
-				KinectSettings::hauoffset.v[1] = arduhy->GetValue();
-				saveSettings();
-			}
-		);
-		arduhz->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-			{
-				settings.hauoffset_s(2) = arduhz->GetValue();
-				KinectSettings::hauoffset.v[2] = arduhz->GetValue();
-				saveSettings();
-			}
-		);
-
-		ardumx->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-			{
-				settings.mauoffset_s(0) = ardumx->GetValue();
-				KinectSettings::mauoffset.v[0] = ardumx->GetValue();
-				saveSettings();
-			}
-		);
-		ardumy->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-			{
-				settings.mauoffset_s(1) = ardumy->GetValue();
-				KinectSettings::mauoffset.v[1] = ardumy->GetValue();
-				saveSettings();
-			}
-		);
-		ardumz->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-			{
-				settings.mauoffset_s(2) = ardumz->GetValue();
-				KinectSettings::mauoffset.v[2] = ardumz->GetValue();
-				saveSettings();
-			}
-		);
-
+		
 		DegreeButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
 				settings.hmdegree = DegreeButton->GetValue();
@@ -2594,19 +1282,7 @@ public:
 		{
 			settings.positionFollowsHMDLean = (VirtualHipFollowHMDLean->IsActive());
 		});
-
-		VirtualHipSittingThreshold->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-		{
-			settings.sittingMaxHeightThreshold = VirtualHipSittingThreshold->GetValue();
-			KinectSettings::huoffsets.v[1] = VirtualHipSittingThreshold->GetValue();
-		});
-
-		VirtualHipLyingThreshold->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
-		{
-			settings.lyingMaxHeightThreshold = VirtualHipLyingThreshold->GetValue();
-			KinectSettings::huoffsets.v[2] = VirtualHipLyingThreshold->GetValue();
-		});
-
+		
 		VirtualHipConfigSaveButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
 			{
 				saveSettings();
@@ -3155,123 +1831,13 @@ public:
 			}
 		);
 	}
-
-	void loadVirtualHipSettingsIntoGUIElements()
-	{
-		// Retrieve the values from config
-		using namespace VirtualHips;
-		retrieveSettings();
-
-		VirtualHipUseHMDYawButton->SetActive(settings.followHmdYawRotation);
-		VirtualHipUseHMDPitchButton->SetActive(settings.followHmdPitchRotation);
-		VirtualHipUseHMDRollButton->SetActive(settings.followHmdRollRotation);
-
-		VirtualHipLockToHeadButton->SetActive(!settings.positionAccountsForFootTrackers);
-
-		VirtualHipHeightFromHMDButton->SetValue(settings.heightFromHMD);
-		DegreeButton->SetValue(settings.hmdegree);
-		TDegreeButton->SetValue(settings.tdegree);
-
-		arduhx->SetValue(settings.hauoffset_s(0));
-		arduhy->SetValue(settings.hauoffset_s(1));
-		arduhz->SetValue(settings.hauoffset_s(2));
-
-		ardumx->SetValue(settings.mauoffset_s(0));
-		ardumy->SetValue(settings.mauoffset_s(1));
-		ardumz->SetValue(settings.mauoffset_s(2));
-
-		VirtualHipFollowHMDLean->SetActive(settings.positionFollowsHMDLean);
-
-		VirtualHipSittingThreshold->SetValue(settings.sittingMaxHeightThreshold);
-		VirtualHipLyingThreshold->SetValue(settings.lyingMaxHeightThreshold);
-	}
-
-	// Virtual Hips Menu
-	void packElementsIntoVirtualHipsBox()
-	{
-		loadVirtualHipSettingsIntoGUIElements();
-		setVirtualHipsBoxSignals();
-
-		virtualHipsBox->SetSpacing(0.5f);
-
-		auto modeTitleBox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-		modeTitleBox1->Pack(sfg::Label::Create("Offsets are working only when Head Tracking is activated"));
-
-		virtualHipsBox->Pack(modeTitleBox1);
-
-		sfg::Box::Ptr selectoptionbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-		selectoptionbox->Pack(sfg::Label::Create("Choose tracking option for HMD (Position only)"));
-		selectoptionbox->Pack(headtrackingselectbox);
-		virtualHipsBox->Pack(selectoptionbox);
-
-		headtrackingselectbox->AppendItem("PSMove head tracking");
-		headtrackingselectbox->AppendItem("Kinect head tracking");
-		headtrackingselectbox->SelectItem(VirtualHips::settings.headTrackingOption);
-
-		psmidbox1->Pack(sfg::Label::Create("Head PSMove ID"));
-		psmidbox1->Pack(psmoveboxa);
-		psmidbox1->Pack(refreshpsmovesbuton11);
-
-		virtualHipsBox->Pack(psmidbox1);
-
-		auto modeTitleBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-		auto standingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-		modeTitleBox->Pack(sfg::Label::Create("X Offset (meters)"));
-		standingBox->Pack(VirtualHipHeightFromHMDButton);
-		standingBox->Pack(sfg::Label::Create(" "));
-
-		auto sittingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-		modeTitleBox->Pack(sfg::Label::Create("Y Offsets (meters)"));
-		sittingBox->Pack(VirtualHipSittingThreshold);
-		sittingBox->Pack(sfg::Label::Create(" "));
-
-		auto lyingBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-		modeTitleBox->Pack(sfg::Label::Create("Z Offset (meters)"));
-		lyingBox->Pack(VirtualHipLyingThreshold);
-		lyingBox->Pack(sfg::Label::Create(" "));
-
-		auto modeTitleBox10 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-		auto standingBox10 = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
-		modeTitleBox10->Pack(sfg::Label::Create("World Offset (degrees)"));
-		modeTitleBox10->Pack(DegreeButton);
-
-		auto modeBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-		modeBox->Pack(standingBox);
-		modeBox->Pack(sittingBox);
-		modeBox->Pack(lyingBox);
-
-		virtualHipsBox->Pack(modeTitleBox);
-		virtualHipsBox->Pack(modeBox);
-
-		virtualHipsBox->Pack(modeTitleBox10);
-
-		virtualHipsBox->Pack(sfg::Label::Create(" "));
-		virtualHipsBox->Pack(VirtualHipConfigSaveButton);
-		virtualHipsBox->Pack(sfg::Label::Create(""));
-		virtualHipsBox->Pack(sfg::Label::Create(""));
-		virtualHipsBox->Pack(HeadTrackingStartButton);
-		virtualHipsBox->Pack(sfg::Label::Create(""));
-		virtualHipsBox->Pack(sfg::Label::Create(""));
-
-		auto nicebox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-
-		HeadTrackingCalibButton->Show(false);
-		nicebox->Pack(HeadTrackingCalibButton);
-
-		nicebox->Pack(AutoStartHeadTracking);
-		AutoStartHeadTracking->Show(false);
-
-		virtualHipsBox->Pack(nicebox);
-	}
-
+	
 private:
 	sf::Font mainGUIFont;
 	sfg::SFGUI sfguiRef;
 	sfg::Window::Ptr guiWindow = sfg::Window::Create();
 	sfg::Notebook::Ptr mainNotebook = sfg::Notebook::Create();
-
 	std::vector<std::unique_ptr<DeviceHandler>>* v_deviceHandlersRef;
-	std::vector<std::unique_ptr<TrackingMethod>>* v_trackingMethodsRef;
 
 	// All the device handlers
 	PSMoveHandler psMoveHandler;
@@ -3283,12 +1849,7 @@ private:
 	sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 	sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-	sfg::Box::Ptr controllersBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-	sfg::Box::Ptr virtualHipsBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-
-	sfg::ComboBox::Ptr comportbox1 = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr comportbox2 = sfg::ComboBox::Create();
-
+	
 	sfg::Adjustment::Ptr fontSizeAdjustment = sfg::Adjustment::Create();
 	sfg::Label::Ptr FontSizeScaleLabel = sfg::Label::Create("(WARNING, LAGS ON CHANGE) Font Size: ");
 	sfg::SpinButton::Ptr FontSizeScale = sfg::SpinButton::Create(
@@ -3300,7 +1861,6 @@ private:
 	//Statuses
 	sfg::Label::Ptr KinectStatusLabel = sfg::Label::Create();
 	sfg::Label::Ptr SteamVRStatusLabel = sfg::Label::Create();
-	sfg::Label::Ptr InputEmulatorStatusLabel = sfg::Label::Create();
 
 	sfg::Button::Ptr reconKinectButton = sfg::Button::Create("Reconnect Kinect");
 	sfg::Button::Ptr refreshpsmovesbuton = sfg::Button::Create("Refresh");
@@ -3312,15 +1872,8 @@ private:
 
 	sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
 	sfg::Button::Ptr AutoStartTrackers = sfg::Button::Create("Initialise trackers automatically");
-	sfg::Button::Ptr AutoStartHeadTracking = sfg::Button::Create("Start head tracking on launch");
-	sfg::Button::Ptr AutoStartKinectToVR = sfg::Button::Create("Launch K2 automatically with SteamVR");
-	sfg::Button::Ptr AutoStartControllers = sfg::Button::Create("Start Controllers with SteamVR");
 	sfg::Box::Ptr horcombox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-
-	sfg::Button::Ptr refreshcomports = sfg::Button::Create("Refresh");
-	sfg::Button::Ptr startControllers = sfg::Button::Create("Re/Initialise Controllers controllers");
-	sfg::Button::Ptr stopControllers = sfg::Button::Create("Stop Polling input for controllers");
-
+	
 	//Zeroing
 	sfg::Label::Ptr KinectRotLabel = sfg::Label::Create(
 		"Calibrate the rotation of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
@@ -3332,30 +1885,10 @@ private:
 	sfg::CheckButton::Ptr KinectPosButton = sfg::CheckButton::Create("Enable Kinect Position Calibration");
 
 	// Controllers
-	sfg::CheckButton::Ptr EnableGamepadButton = sfg::CheckButton::Create("Enable Gamepad Calibration Controls");
 	sfg::Label::Ptr ReconControllersLabel = sfg::Label::Create(
 		"If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.");
 	sfg::Button::Ptr ReconControllersButton = sfg::Button::Create("Reconnect VR Controllers");
-
-	sfg::Label::Ptr InferredLabel = sfg::Label::Create(
-		"Checking this stops the trackers if it's not absolutely 100% sure where they are. Leaving this disabled may cause better tracking in poorly lit environments, but at the cost of slight jerks aside sometimes.");
-	sfg::CheckButton::Ptr IgnoreInferredCheckButton = sfg::CheckButton::Create("Disable Raw Positional Tracking");
-
-	sfg::Button::Ptr SetJointsToFootRotationButton = sfg::Button::Create("Enable (buggy) foot rotation for 360 Kinect");
-	sfg::Button::Ptr SetJointsToAnkleRotationButton = sfg::Button::Create(
-		"Disable (buggy) foot rotation for 360 Kinect");
-
-	sfg::Button::Ptr SetAllJointsRotUnfiltered = sfg::Button::Create(
-		"Disable rotation smoothing for ALL joints (Rotation smoothing is in development!!!)");
-	sfg::Button::Ptr SetAllJointsRotFiltered = sfg::Button::Create(
-		"Enable rotation smoothing for ALL joints (Rotation smoothing is in development!!!)");
-	sfg::Button::Ptr SetAllJointsRotHead = sfg::Button::Create(
-		"Use Head orientation for ALL joints - may fix issues with jumping trackers at cost of limited rotation");
-
-	sfg::Label::Ptr InstructionsLabel = sfg::Label::Create(
-		"Stand in front of the Kinect sensor.\n If the trackers don't update, then try crouching slightly until they move.\n\n Calibration: The arrow represents the position and rotation of the Kinect - match it as closely to real life as possible for the trackers to line up.\n\n The arrow pos/rot is set with the thumbsticks on the controllers, and confirmed with the trigger.");
-	//Blegh - There has to be a better way than this, maybe serialization?
-
+	
 	sfg::Label::Ptr CalibrationSettingsLabel = sfg::Label::Create(
 		"This tab allows you to (manually) offset every one of your trackers. It will aeffect real calibration values, but it will not change them directly.\nYou may need it for example when your right foot will be upper than left, etc.\nRotation is in degrees and position is declared in meters.");
 	sfg::Label::Ptr CalibrationrPosLabel = sfg::Label::Create("Right Foot Position x, y, z");
@@ -3407,7 +1940,6 @@ private:
 		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][2].v[2], -360.f, 360.f, .01f, .2f));
 
 	sfg::Button::Ptr CalibrationSaveButton = sfg::Button::Create("Save Calibration Values");
-
 	sfg::Button::Ptr ActivateVRSceneTypeButton = sfg::Button::Create("Show K2VR in the VR Bindings Menu!");
 
 	//Adv Trackers
@@ -3438,9 +1970,7 @@ private:
 	sfg::CheckButton::Ptr IsControllerButton = sfg::CheckButton::Create("Controller");
 	sfg::Button::Ptr AddTrackerToListButton = sfg::Button::Create("Add");
 	sfg::Button::Ptr RemoveTrackerFromListButton = sfg::Button::Create("Remove");
-
-	std::vector<TempTracker> TrackersToBeInitialised;
-
+	
 	//Tracking Method Box
 	sfg::Button::Ptr InitiateColorTrackingButton = sfg::Button::Create("Start Color Tracker");
 	sfg::Button::Ptr DestroyColorTrackingButton = sfg::Button::Create("Destroy Color Tracker");
@@ -3462,32 +1992,12 @@ private:
 	sfg::SpinButton::Ptr VirtualHipHeightFromHMDButton = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
 	sfg::CheckButton::Ptr VirtualHipFollowHMDLean = sfg::CheckButton::Create("Follow HMD Lean");
-
-	sfg::SpinButton::Ptr arduhx = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
-	sfg::SpinButton::Ptr arduhy = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
-	sfg::SpinButton::Ptr arduhz = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
-
-	sfg::SpinButton::Ptr ardumx = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
-	sfg::SpinButton::Ptr ardumy = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
-	sfg::SpinButton::Ptr ardumz = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
-
+	
 	sfg::SpinButton::Ptr DegreeButton = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -360.f, 360.f, 0.01f));
 	sfg::SpinButton::Ptr TDegreeButton = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, 2, 11, 1.f));
-
-	sfg::SpinButton::Ptr VirtualHipSittingThreshold = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.sittingMaxHeightThreshold, -1000.f, 1000.f, 0.01f));
-
-	sfg::SpinButton::Ptr VirtualHipLyingThreshold = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.lyingMaxHeightThreshold, -1000.f, 1000.f, 0.01f));
-
+	
 	sfg::Button::Ptr VirtualHipConfigSaveButton = sfg::Button::Create("Save Settings");
 	sfg::Button::Ptr TrackersConfigSaveButton = sfg::Button::Create("Save Settings");
 
@@ -3504,22 +2014,14 @@ private:
 
 	void showPostTrackerInitUI(bool show = true)
 	{
-		InstructionsLabel->Show(show);
 		KinectRotLabel->Show(show);
 		KinectRotButton->Show(show);
 		KinectPosLabel->Show(show);
 		KinectPosButton->Show(show);
 		ReconControllersLabel->Show(show);
 		ReconControllersButton->Show(show);
-		InferredLabel->Show(show);
-		IgnoreInferredCheckButton->Show(show);
-		SetAllJointsRotUnfiltered->Show(show);
 		HipScale->Show(show);
 		HipScaleBox->Show(show);
-		SetAllJointsRotHead->Show(show);
-		SetAllJointsRotFiltered->Show(show);
-		SetJointsToAnkleRotationButton->Show(show);
-		SetJointsToFootRotationButton->Show(show);
 		calibrateOffsetButton->Show(show);
 
 		//calibrationBox->Show(show);
