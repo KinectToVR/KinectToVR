@@ -513,22 +513,6 @@ void KinectV1Handler::updateSkeletalData()
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.y,
 			boneOrientations[convertJoint(KVR::KinectJointType::SpineBase)].absoluteRotation.rotationQuaternion.z);
 
-		KinectSettings::lastPose[0][0] = glm::vec3(
-			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
-			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
-			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z
-		);
-		KinectSettings::lastPose[1][0] = glm::vec3(
-			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x,
-			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y,
-			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z
-		);
-		KinectSettings::lastPose[2][0] = glm::vec3(
-			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].x,
-			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].y,
-			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].z
-		);
-
 		/***********************************************************************************************/
 		/*  Software/Math based feet trackers' orientation is being calculated here, from base poses.  */
 		/***********************************************************************************************/

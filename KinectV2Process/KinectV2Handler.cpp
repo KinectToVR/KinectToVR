@@ -716,24 +716,6 @@ void KinectV2Handler::updateSkeletalFilters()
 	if (kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
 		kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
 		KinectSettings::waist_raw_ori = kinect_waist_raw_ori;
-	
-	// Update last pose for the interpolation algo
-	
-	KinectSettings::lastPose[0][0] = glm::vec3(
-		joints[JointType_AnkleLeft].Position.X,
-		joints[JointType_AnkleLeft].Position.Y,
-		joints[JointType_AnkleLeft].Position.Z
-	);
-	KinectSettings::lastPose[1][0] = glm::vec3(
-		joints[JointType_AnkleRight].Position.X,
-		joints[JointType_AnkleRight].Position.Y,
-		joints[JointType_AnkleRight].Position.Z
-	);
-	KinectSettings::lastPose[2][0] = glm::vec3(
-		joints[JointType_SpineBase].Position.X,
-		joints[JointType_SpineBase].Position.Y,
-		joints[JointType_SpineBase].Position.Z
-	);
 }
 
 sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex)

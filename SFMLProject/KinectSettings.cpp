@@ -240,14 +240,25 @@ namespace KinectSettings
 			/*****************************************************************************************/
 			// Filters
 			/*****************************************************************************************/
-			const glm::vec3 posePrev[3] = { left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose };
-			const glm::vec3 poseLast[3] = { lastPose[0][0], lastPose[1][0], lastPose[2][0] };
+			const glm::vec3 poseCurrent[3] = { left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose };
+			const glm::vec3 posePrevious[3] = { lastPose[0][0], lastPose[1][0], lastPose[2][0] };
 			const glm::vec3 poseLerp[3] = {
-				mix(posePrev[0], poseLast[0], 0.17f),
-				mix(posePrev[1], poseLast[1], 0.17f),
-				mix(posePrev[2], poseLast[2], 0.17f)
+				mix(posePrevious[0], poseCurrent[0], 0.17f),
+				mix(posePrevious[1], poseCurrent[1], 0.17f),
+				mix(posePrevious[2], poseCurrent[2], 0.17f)
 			};
-			glm::vec3 poseFiltered[3] = { glm::vec3(0, 0, 0), glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) };
+
+			// Create the filtered pose vector (empty)
+			glm::vec3 poseFiltered[3] = {
+				glm::vec3(0, 0, 0),
+				glm::vec3(0, 0, 0),
+				glm::vec3(0, 0, 0)
+			};
+
+			// Backup the old pose for the next loop
+			lastPose[0][0] = left_foot_raw_pose;
+			lastPose[1][0] = right_foot_raw_pose;
+			lastPose[2][0] = waist_raw_pose;
 
 			if (posOption == k_DisablePositionFilter)
 			{
