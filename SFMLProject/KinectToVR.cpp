@@ -80,8 +80,8 @@ sf::VideoMode getScaledWindowResolution()
 	int v;
 	getDesktopResolution(h, v);
 
-	sf::VideoMode mode = sf::VideoMode(SFMLsettings::windowScale * static_cast<float>(h),
-	                                   SFMLsettings::windowScale * static_cast<float>(v));
+	auto mode = sf::VideoMode(SFMLsettings::windowScale * static_cast<float>(h),
+	                          SFMLsettings::windowScale * static_cast<float>(v));
 	//std::cerr << "desktop: " << h << ", " << v << '\n';
 	//std::cerr << "scaled: " << mode.width << ", " << mode.height << '\n';
 	return mode;
@@ -197,14 +197,12 @@ void limitVRFramerate(double& endFrameMilliseconds)
 	}
 }
 
-void updatenormaltrackers()
-{
-}
-
 int checkK2Server()
 {
-	if (!KinectSettings::isDriverPresent) {
-		try {
+	if (!KinectSettings::isDriverPresent)
+	{
+		try
+		{
 			HANDLE ServerStatusPipe = CreateNamedPipe(
 				TEXT("\\\\.\\pipe\\K2ServerStatusPipe"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND,
 				PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, nullptr);
@@ -228,29 +226,32 @@ int checkK2Server()
 			}
 			return -10;
 		}
-		catch (std::exception const &e) { return -10; }
+		catch (const std::exception& e) { return -10; }
 	}
-	
-/*
- * codes:
- * -1: check fail
- * -10: sever fail
- * 1: result ok
- * 10: init fail
- */
+
+	/*
+	 * codes:
+	 * -1: check fail
+	 * -10: sever fail
+	 * 1: result ok
+	 * 10: init fail
+	 */
 	return 1; //don't check if it was already working
 }
 
 void updateServerStatus(GUIHandler& guiRef)
 {
-	std::thread([&]() {
+	std::thread([&]()
+	{
 		KinectSettings::K2Drivercode = checkK2Server();
-		switch (KinectSettings::K2Drivercode) {
+		switch (KinectSettings::K2Drivercode)
+		{
 		case -1:
 			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: UNKNOWN (Code: -1)");
 			break;
 		case -10:
-			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: SERVER ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
+			guiRef.DriverStatusLabel->SetText(
+				"SteamVR Driver Status: SERVER ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
 			break;
 		case 1:
 			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: Success!");
@@ -264,9 +265,11 @@ void updateServerStatus(GUIHandler& guiRef)
 			break;
 		}
 
-		guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent ? sfg::Widget::State::NORMAL : sfg::Widget::State::INSENSITIVE);
+		guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent
+			                                   ? sfg::Widget::State::NORMAL
+			                                   : sfg::Widget::State::INSENSITIVE);
 		guiRef.ping_InitTrackers();
-		}).detach();
+	}).detach();
 }
 
 void processLoop(KinectHandlerBase& kinect)
@@ -274,7 +277,7 @@ void processLoop(KinectHandlerBase& kinect)
 	LOG(INFO) << "~~~New logging session for main process begins here!~~~";
 	LOG(INFO) << "Kinect version is V" << static_cast<int>(kinect.kVersion);
 	KinectSettings::kinectVersion = kinect.kVersion; //Set kinect version
-	
+
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
 	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion,
@@ -318,10 +321,10 @@ void processLoop(KinectHandlerBase& kinect)
 
 	//Clear driver memory
 	boost::interprocess::shared_memory_object::remove("K2ServerDriverSHM");
-	
+
 	VRcontroller rightController(vr::TrackedControllerRole_RightHand);
 	VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
-	
+
 	LOG(INFO) << "Attempting connection to vrsystem.... "; // DEBUG
 	vr::EVRInitError eError = vr::VRInitError_None;
 	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
@@ -349,7 +352,7 @@ void processLoop(KinectHandlerBase& kinect)
 		}
 		KinectSettings::svrhmdyaw = yaw;
 
-		LOG(INFO) << "SteamVR Tracking Origin for Driver Relative: " << std::fixed << 
+		LOG(INFO) << "SteamVR Tracking Origin for Driver Relative: " << std::fixed <<
 			KinectSettings::trackingOriginPosition.v[0] << ", " <<
 			KinectSettings::trackingOriginPosition.v[1] << ", " <<
 			KinectSettings::trackingOriginPosition.v[2] << ", " <<
@@ -368,37 +371,42 @@ void processLoop(KinectHandlerBase& kinect)
 	}
 
 	guiRef.updateVRStatusLabel(eError);
-	
+
 	//Update driver status
 	/************************************************/
 	updateServerStatus(guiRef);
 	/************************************************/
 
 	KinectSettings::userChangingZero = true;
-	if (kinect.kVersion != KinectVersion::INVALID)
+	if (kinect.kVersion != INVALID)
 		kinect.initialiseSkeleton();
-	
+
+	// Initialise the VR Device Handler (For settings)
+	VRDeviceHandler vrDeviceHandler(m_VRSystem);
+	if (eError == vr::VRInitError_None)
+		vrDeviceHandler.initialise();
+
 	guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
 
 	// Select backed up or first (we may switch from KV1 to KV2, keeping config)
 	guiRef.coptbox->SelectItem(
-		VirtualHips::settings.footOption < guiRef.coptbox->GetItemCount() ? 
-		VirtualHips::settings.footOption : 0);
-	
+		VirtualHips::settings.footOption < guiRef.coptbox->GetItemCount() ? VirtualHips::settings.footOption : 0);
+
 	guiRef.coptbox1->SelectItem(VirtualHips::settings.hipsOption);
 	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
-	guiRef.contrackingselectbox->SelectItem(VirtualHips::settings.conOption);
 
 	// Select automatically
 	guiRef.bodytrackingselectbox->SelectItem(0);
 	guiRef.refreshpsms();
 
 	// Select tracking option automatically
-	VirtualHips::settings.bodyTrackingOption = KinectSettings::isKinectPSMS ? k_PSMoveFullTracking : k_KinectFullTracking;
+	VirtualHips::settings.bodyTrackingOption = KinectSettings::isKinectPSMS
+		                                           ? k_PSMoveFullTracking
+		                                           : k_KinectFullTracking;
 	bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(VirtualHips::settings.bodyTrackingOption);
 	KinectSettings::positional_tracking_option = VirtualHips::settings.bodyTrackingOption;
-	
-	boost::thread* ipcThread = new boost::thread(KinectSettings::sendipc);
+
+	auto ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
 
 	// Start a new test
@@ -413,7 +421,7 @@ void processLoop(KinectHandlerBase& kinect)
 		{
 			framenumber = 0;
 			checks++;
-			
+
 			// Start a new test
 			KinectSettings::latencyTestPending = true;
 			LOG(INFO) << "+500 frames have passed since the last check.";
@@ -428,7 +436,7 @@ void processLoop(KinectHandlerBase& kinect)
 			updateServerStatus(guiRef);
 			/************************************************/
 		}
-		
+
 		//Clear the debug text display
 		SFMLsettings::debugDisplayTextStream.str(std::string());
 		SFMLsettings::debugDisplayTextStream.clear();
@@ -460,7 +468,7 @@ void processLoop(KinectHandlerBase& kinect)
 				{
 					std::cerr << "HELP I AM RESIZING!\n";
 					//sf::Vector2f size = static_cast<sf::Vector2f>(renderWindow.getSize());
-					sf::Vector2f size = sf::Vector2f(event.size.width, event.size.height);
+					auto size = sf::Vector2f(event.size.width, event.size.height);
 					// Minimum size
 					if (size.x < 800)
 						size.x = 800;
@@ -598,7 +606,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 			///**********************************************************/
 		}
-		
+
 		renderWindow.clear(); //////////////////////////////////////////////////////
 
 		// Update Kinect Status
@@ -612,7 +620,7 @@ void processLoop(KinectHandlerBase& kinect)
 		if (kinect.isInitialised())
 		{
 			kinect.update();
-			
+
 			//renderWindow.clear();
 			kinect.drawKinectData(renderWindow);
 		}
@@ -642,15 +650,6 @@ void processLoop(KinectHandlerBase& kinect)
 
 			VirtualHips::saveSettings();
 		}
-		if (controllersTrackingOption_s.trackingOption != static_cast<controllersTrackingOption>(guiRef.contrackingselectbox
-			->GetSelectedItem()))
-		{
-			controllersTrackingOption_s.trackingOption = static_cast<controllersTrackingOption>(guiRef.contrackingselectbox
-				->GetSelectedItem());
-			VirtualHips::settings.conOption = guiRef.contrackingselectbox->GetSelectedItem();
-
-			VirtualHips::saveSettings();
-		}
 		// We're not updating it, it would mess everything
 		/*if (bodyTrackingOption_s.trackingOption != static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
 			GetSelectedItem()))
@@ -661,32 +660,16 @@ void processLoop(KinectHandlerBase& kinect)
 
 			VirtualHips::saveSettings();
 		}*/
-		if (headTrackingOption_s.trackingOption != static_cast<headTrackingOption>(guiRef.headtrackingselectbox->
-			GetSelectedItem()))
-		{
-			headTrackingOption_s.trackingOption = static_cast<headTrackingOption>(guiRef.headtrackingselectbox->
-				GetSelectedItem());
-			VirtualHips::settings.headTrackingOption = guiRef.headtrackingselectbox->GetSelectedItem();
-
-			VirtualHips::saveSettings();
-		}
 
 		if (VirtualHips::settings.bodyTrackingOption == k_PSMoveFullTracking)
 			guiRef.psmidbox->Show(true);
 		else
 			guiRef.psmidbox->Show(false);
 
-		if (VirtualHips::settings.headTrackingOption == k_PSMoveTracking)
-			guiRef.psmidbox1->Show(true);
-		else
-			guiRef.psmidbox1->Show(false);
-
 		KinectSettings::feet_rotation_option = VirtualHips::settings.footOption;
 		KinectSettings::hips_rotation_option = VirtualHips::settings.hipsOption;
 		KinectSettings::posOption = VirtualHips::settings.posOption;
-		KinectSettings::conOption = VirtualHips::settings.conOption;
 		KinectSettings::positional_tracking_option = VirtualHips::settings.bodyTrackingOption;
-		KinectSettings::headtrackingoption = VirtualHips::settings.headTrackingOption;
 
 		//KinectSettings::footRotationFilterOption::k_EnableOrientationFilter;
 
@@ -728,30 +711,32 @@ void processLoop(KinectHandlerBase& kinect)
 
 void spawnDefaultLowerBodyTrackers()
 {
-	std::thread* activate = new std::thread([]
+	auto activate = new std::thread([]
+	{
+		// create chrono for limiting loop timing
+		using clock = std::chrono::steady_clock;
+		auto next_frame = clock::now();
+
+		while (true)
 		{
-			// create chrono for limiting loop timing
-			using clock = std::chrono::steady_clock;
-			auto next_frame = clock::now();
-		
-			while (true) {
-				// measure loop time, let's run at 140/s
-				next_frame += std::chrono::milliseconds(1000 / 30);
-				
-				HANDLE pingPipe = CreateFile(
-					TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0, nullptr);
-				DWORD Written;
+			// measure loop time, let's run at 140/s
+			next_frame += std::chrono::milliseconds(1000 / 30);
 
-				std::string InitS = "Initialize Trackers!";
+			HANDLE pingPipe = CreateFile(
+				TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
+				nullptr);
+			DWORD Written;
 
-				char InitD[1024];
-				strcpy_s(InitD, InitS.c_str());
+			std::string InitS = "Initialize Trackers!";
 
-				WriteFile(pingPipe, InitD, sizeof(InitD), &Written, nullptr);
-				CloseHandle(pingPipe);
+			char InitD[1024];
+			strcpy_s(InitD, InitS.c_str());
 
-				//Sleep until next frame, if time haven't passed yet
-				std::this_thread::sleep_until(next_frame);
-			}
-		});
+			WriteFile(pingPipe, InitD, sizeof(InitD), &Written, nullptr);
+			CloseHandle(pingPipe);
+
+			//Sleep until next frame, if time haven't passed yet
+			std::this_thread::sleep_until(next_frame);
+		}
+	});
 }
