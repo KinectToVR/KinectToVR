@@ -518,13 +518,13 @@ void KinectV1Handler::updateSkeletalData()
 		/***********************************************************************************************/
 		
 		// Just for testing, may be zeroed //
-		// https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)
+		// "https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)"
 
-		params.fSmoothing = .25f; // In meters? MS docs...
-		params.fCorrection = .25f;
-		params.fPrediction = .15f;
-		params.fJitterRadius = .1f; // In meters? MS docs...
-		params.fMaxDeviationRadius = .2f;
+		params.fSmoothing = .15f;
+		params.fCorrection = .15f;
+		params.fPrediction = .25f;
+		params.fJitterRadius = .2f;
+		params.fMaxDeviationRadius = .1f;
 
 		// Just for testing, may be zeroed //
 		
