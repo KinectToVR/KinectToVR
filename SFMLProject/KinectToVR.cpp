@@ -330,6 +330,11 @@ void processLoop(KinectHandlerBase& kinect)
 	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 
 	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
+	
+	// Initialise the VR Device Handler (For settings)
+	VRDeviceHandler vrDeviceHandler(m_VRSystem);
+	if (eError == vr::VRInitError_None)
+		vrDeviceHandler.initialise();
 
 	//Update driver status
 	/************************************************/
@@ -381,10 +386,8 @@ void processLoop(KinectHandlerBase& kinect)
 	if (kinect.kVersion != INVALID)
 		kinect.initialiseSkeleton();
 
-	// Initialise the VR Device Handler (For settings)
-	VRDeviceHandler vrDeviceHandler(m_VRSystem);
-	if (eError == vr::VRInitError_None)
-		vrDeviceHandler.initialise();
+	// Since settings are read now, initialize the rest of gui
+	guiRef.setVirtualHipsBoxSignals();
 
 	guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
 

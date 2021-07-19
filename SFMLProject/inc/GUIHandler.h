@@ -97,7 +97,6 @@ public:
 		}
 
 		setDefaultSignals();
-		setVirtualHipsBoxSignals();
 
 		setLineWrapping();
 		packElementsIntoMainBox();
@@ -1885,7 +1884,7 @@ private:
 	sfg::SpinButton::Ptr CalibrationEntrylRotZ = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][1].v[2], -360.f, 360.f, .01f, .2f));
 
-	sfg::Label::Ptr CalibrationhPosLabel = sfg::Label::Create("Hips Position x, y, z       ");
+	sfg::Label::Ptr CalibrationhPosLabel = sfg::Label::Create("Hips Position x, y, z        ");
 	sfg::SpinButton::Ptr CalibrationEntryhPosX = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][2].v[0], -1000.f, 1000.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryhPosY = sfg::SpinButton::Create(
@@ -1893,7 +1892,7 @@ private:
 	sfg::SpinButton::Ptr CalibrationEntryhPosZ = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(KinectSettings::manual_offsets[0][2].v[2], -1000.f, 1000.f, .01f, .2f));
 
-	sfg::Label::Ptr CalibrationhRotLabel = sfg::Label::Create("Hips Rotation x, y, z       ");
+	sfg::Label::Ptr CalibrationhRotLabel = sfg::Label::Create("Hips Rotation x, y, z        ");
 	sfg::SpinButton::Ptr CalibrationEntryhRotX = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][2].v[0], -360.f, 360.f, .01f, .2f));
 	sfg::SpinButton::Ptr CalibrationEntryhRotY = sfg::SpinButton::Create(
