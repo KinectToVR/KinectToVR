@@ -198,8 +198,6 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <ClInclude Include="inc\EigenGLHelpers.h" />
     <ClInclude Include="inc\GUIHandler.h" />
     <ClInclude Include="inc\IKinectHandler.h" />
-    <ClInclude Include="inc\IMU_PositionMethod.h" />
-    <ClInclude Include="inc\IMU_RotationMethod.h" />
     <ClInclude Include="inc\KinectHandlerBase.h" />
     <ClInclude Include="inc\KinectJoint.h" />
     <ClInclude Include="inc\KinectSettings.h" />
