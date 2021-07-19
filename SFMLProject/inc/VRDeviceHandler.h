@@ -29,11 +29,11 @@ struct VirtualHipSettings
 {
 	// Seconds. How far behind the tracked point should the hips be so that they don't instantly follow every tiny movement
 	bool rtcalib = false;
-	
+
 	bool astartt = false;
 	float tryawst, kinpitchst;
-	int footOption, hipsOption, posOption = 3, conOption;
-	int bodyTrackingOption = 1, headTrackingOption = 1;
+	int footOption, hipsOption, posOption = 3;
+	int bodyTrackingOption = 1;
 	// --- Standing Settings ---
 	bool positionFollowsHMDLean = false;
 	// Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
@@ -55,7 +55,7 @@ struct VirtualHipSettings
 	float hauoffset_s_S[3];
 	float mauoffset_s_S[3];
 	float caliborigin_S[3];
-	
+
 	template <class Archive>
 	void serialize(Archive& archive)
 	{
@@ -66,9 +66,7 @@ struct VirtualHipSettings
 			CEREAL_NVP(footOption),
 			CEREAL_NVP(hipsOption),
 			CEREAL_NVP(posOption),
-			CEREAL_NVP(conOption),
 			CEREAL_NVP(bodyTrackingOption),
-			CEREAL_NVP(headTrackingOption),
 			CEREAL_NVP(astartt),
 			CEREAL_NVP(tryawst),
 			CEREAL_NVP(kinpitchst),
@@ -187,12 +185,12 @@ namespace VirtualHips
 				footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(settings.footOption);
 				hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(settings.hipsOption);
 				positionFilterOption.filterOption = static_cast<positionalFilterOption>(settings.posOption);
-				controllersTrackingOption_s.trackingOption = static_cast<controllersTrackingOption>(settings.conOption);
 				bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(settings.bodyTrackingOption);
 
 				KinectSettings::calibration_origin = settings.caliborigin;
 
-				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' << KinectSettings::calibration_trackers_yaw << '\n' <<
+				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' <<
+					KinectSettings::calibration_trackers_yaw << '\n' <<
 					KinectSettings::calibration_rotation << '\n';
 			}
 			catch (cereal::Exception e)
@@ -213,7 +211,7 @@ public:
 	{
 	}
 
-	~VRDeviceHandler()
+	~VRDeviceHandler() override
 	{
 	}
 
@@ -221,7 +219,7 @@ public:
 	{
 		// Add all devices that aren't sensors or virtual
 		LOG(INFO) << "Initialising VR Device Handler...";
-		
+
 		initVirtualHips();
 		active = true;
 		return 0;
@@ -257,7 +255,7 @@ private:
 		LOG(INFO) << "Reading Strings...";
 		VirtualHips::retrieveSettings();
 	}
-	
+
 	void getVRStringProperty(const uint32_t& openvrID, vr::ETrackedDeviceProperty strProperty, std::string& string)
 	{
 		vr::ETrackedPropertyError peError;
@@ -269,7 +267,7 @@ private:
 		}
 		else
 		{
-			char* pchBuffer = new char[unRequiredBufferLen];
+			auto pchBuffer = new char[unRequiredBufferLen];
 			unRequiredBufferLen = m_VRSystem->GetStringTrackedDeviceProperty(
 				openvrID, strProperty, pchBuffer, unRequiredBufferLen, &peError);
 			string = pchBuffer;

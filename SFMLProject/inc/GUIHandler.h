@@ -45,7 +45,7 @@ struct TempTrackerData
 	uint32_t rotationGlobalDeviceId = 0;
 	std::string rotDeviceName = "INVALID";
 	std::string rotDeviceSerial = "INVALID";
-	
+
 	bool isController = false;
 	friend class cereal::access;
 
@@ -67,7 +67,6 @@ struct TempTrackerData
 
 class GUIHandler
 {
-	
 public:
 	sfg::ComboBox::Ptr coptbox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr coptbox1 = sfg::ComboBox::Create();
@@ -76,26 +75,23 @@ public:
 	sfg::ComboBox::Ptr psmovebox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr psmovebox1 = sfg::ComboBox::Create();
 
-	sfg::ComboBox::Ptr contrackingselectbox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr bodytrackingselectbox = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr headtrackingselectbox = sfg::ComboBox::Create();
-	
+
 	sfg::ComboBox::Ptr psmovebox_left = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr psmovebox_right = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr psmovebox_waist = sfg::ComboBox::Create();
 	sfg::Box::Ptr psmidbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-	sfg::Box::Ptr psmidbox1 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Spawn Trackers");
 	sfg::Label::Ptr DriverStatusLabel = sfg::Label::Create("Driver Status: UNKNOWN (Code: -1)");
 
 	GUIHandler()
 	{
 		guiWindow->SetTitle("KinectToVR EX 0.8.1");
-		if(KinectSettings::kinectVersion == 1)
+		if (KinectSettings::kinectVersion == 1)
 		{
 			guiWindow->SetTitle("KinectToVR EX 0.8.1 (Xbox 360/V1)");
 		}
-		if(KinectSettings::kinectVersion == 2)
+		if (KinectSettings::kinectVersion == 2)
 		{
 			guiWindow->SetTitle("KinectToVR EX 0.8.1 (Xbox One/V2)");
 		}
@@ -196,7 +192,7 @@ public:
 	{
 		KinectPosButton->SetActive(KinectSettings::adjustingKinectRepresentationPos);
 	}
-	
+
 	void connectPSMoveHandlerGUIEvents()
 	{
 		if (psMoveHandler.active)
@@ -268,12 +264,12 @@ public:
 				}
 			});
 		}
-		
+
 		ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([]
 		{
 			KinectSettings::isSkeletonDrawn = !KinectSettings::isSkeletonDrawn;
 		});
-		
+
 		psmovebox->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
 			KinectSettings::psmh = psmovebox->GetSelectedItem();
@@ -306,11 +302,11 @@ public:
 			KinectSettings::flashnow[0] = psmovebox_waist->GetSelectedItem();
 			KinectSettings::flashnow[1] = true;
 		});
-		
+
 		connectPSMoveHandlerGUIEvents();
 		setCalibrationSignal();
 	}
-	
+
 	void refreshCalibrationMenuValues()
 	{
 		using namespace KinectSettings;
@@ -574,7 +570,6 @@ public:
 		{
 			refreshpsms();
 		});
-		
 	}
 
 	std::wstring s2ws(const std::string& s)
@@ -582,7 +577,7 @@ public:
 		int len;
 		int slength = static_cast<int>(s.length()) + 1;
 		len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, nullptr, 0);
-		wchar_t* buf = new wchar_t[len];
+		auto buf = new wchar_t[len];
 		MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
 		std::wstring r(buf);
 		delete[] buf;
@@ -594,33 +589,31 @@ public:
 		if (!KinectSettings::initialised && // If not done yet
 			VirtualHips::settings.astartt && KinectSettings::isDriverPresent)
 		{
-			std::thread* st = new std::thread([this]
-				{
-					std::this_thread::sleep_for(std::chrono::seconds(3));
-					TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-					spawnDefaultLowerBodyTrackers();
+			auto st = new std::thread([this]
+			{
+				std::this_thread::sleep_for(std::chrono::seconds(3));
+				TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+				spawnDefaultLowerBodyTrackers();
 
-					showPostTrackerInitUI();
+				showPostTrackerInitUI();
 
-					TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+				TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-					modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
-					TDegreeButton->SetValue(KinectSettings::cpoints);
-					TrackersConfigSaveButton->Show(true);
-					TrackersCalibButton->Show(true);
-					//TrackersCalibSButton->Show(true);
-					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
+				modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
+				TDegreeButton->SetValue(KinectSettings::cpoints);
+				TrackersConfigSaveButton->Show(true);
+				TrackersCalibButton->Show(true);
+				expcalibbutton->Show(!KinectSettings::isKinectPSMS);
 
-					space_label->Show(true);
-					AutoStartTrackers->Show(true);
-					KinectSettings::initialised = true;
-				});
+				space_label->Show(true);
+				AutoStartTrackers->Show(true);
+				KinectSettings::initialised = true;
+			});
 		}
 	}
 
 	void setTrackerButtonSignals(vr::IVRSystem*& m_VRSystem)
 	{
-
 		TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
 		{
 			if (!KinectSettings::initialised)
@@ -646,7 +639,6 @@ public:
 				TDegreeButton->SetValue(KinectSettings::cpoints);
 				TrackersConfigSaveButton->Show(true);
 				TrackersCalibButton->Show(true);
-				//TrackersCalibSButton->Show(true);
 				expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
 
 				space_label->Show(true);
@@ -665,7 +657,6 @@ public:
 
 		//Initialise trackers if $(Conditions)
 		ping_InitTrackers();
-		
 	}
 
 	void updateTrackerInitButtonLabelFail()
@@ -885,24 +876,8 @@ public:
 
 		mainGUIBox->Pack(expcalibbutton);
 		expcalibbutton->Show(false);
-
-		//mainGUIBox->Pack(TrackersCalibSButton);
-		//TrackersCalibSButton->Show(false);
-
-		//mainGUIBox->Pack(EnableGamepadButton);
-		//mainGUIBox->Pack(ReconControllersLabel);
-		//mainGUIBox->Pack(ReconControllersButton);
-
-		//mainGUIBox->Pack(KinectRotLabel);
-		//mainGUIBox->Pack(KinectRotButton);
-
-		//mainGUIBox->Pack(KinectPosLabel);
-		//mainGUIBox->Pack(KinectPosButton);
-
-		//mainGUIBox->Pack(InferredLabel);
-		//mainGUIBox->Pack(IgnoreInferredCheckButton);
 	}
-	
+
 	void packElementsIntoAdvTrackerBox()
 	{
 		// Only if we're using psms
@@ -924,7 +899,8 @@ public:
 		advancedTrackerBox->Pack(selectoptionbox);
 
 		// Append just a needed one
-		bodytrackingselectbox->AppendItem(KinectSettings::isKinectPSMS ? "PSMove body tracking" : "Kinect body tracking");
+		bodytrackingselectbox->AppendItem(
+			KinectSettings::isKinectPSMS ? "PSMove body tracking" : "Kinect body tracking");
 
 		// Select corresponding (only) device
 		bodytrackingselectbox->SelectItem(0);
@@ -973,9 +949,9 @@ public:
 		/*
 		* UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
 		*/
-		
+
 		// Only if we're using kinect v1
-		if(KinectSettings::kinectVersion == 1)
+		if (KinectSettings::kinectVersion == 1)
 			coptbox->AppendItem("Math-Based Rotation");
 
 		coptbox1->AppendItem("Enable Waist Rotation");
@@ -1012,7 +988,7 @@ public:
 
 		sfg::Box::Ptr astartbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 		astartbox->Pack(AutoStartTrackers);
-		
+
 		space_label->Show(false);
 		AutoStartTrackers->Show(false);
 		advancedTrackerBox->Pack(astartbox);
@@ -1099,7 +1075,7 @@ public:
 
 		calibrationBox->Pack(verticalBox);
 	}
-	
+
 	void updateKinectStatusLabel(KinectHandlerBase& kinect)
 	{
 		HRESULT status = kinect.getStatusResult();
@@ -1134,7 +1110,7 @@ public:
 			lastKinectStatus = status;
 		}
 	}
-	
+
 	void updateVRStatusLabel(vr::EVRInitError eError)
 	{
 		if (eError == vr::VRInitError_None)
@@ -1144,7 +1120,7 @@ public:
 				"SteamVR Status: ERROR " + std::to_string(eError) +
 				"\nPlease restart K2VR with SteamVR successfully running!");
 	}
-	
+
 	void updateWithNewWindowSize(sf::Vector2f size)
 	{
 		guiWindow->SetAllocation(sf::FloatRect(0.f, 0.f, .4f * size.x, .4f * size.y));
@@ -1155,7 +1131,7 @@ public:
 
 	using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>;
 
-	auto rigid_transform_3D(const PointSet& A, const PointSet& B) -> std::tuple<Eigen::Matrix3f, Eigen::Vector3f>
+	std::tuple<Eigen::Matrix3f, Eigen::Vector3f> rigid_transform_3D(const PointSet& A, const PointSet& B)
 	{
 		static_assert(PointSet::RowsAtCompileTime == 3);
 		assert(A.cols() == B.cols());
@@ -1207,7 +1183,7 @@ public:
 			if (strcmp(W2A(pEntry.szExeFile), filename) == 0)
 			{
 				HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0,
-				                              static_cast<DWORD>(pEntry.th32ProcessID));
+				                              pEntry.th32ProcessID);
 				if (hProcess != nullptr)
 				{
 					TerminateProcess(hProcess, 9);
@@ -1250,7 +1226,7 @@ public:
 				AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: NO");
 			}
 		});
-		
+
 		if (settings.astartt)
 		{
 			AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: YES");
@@ -1259,14 +1235,14 @@ public:
 		{
 			AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: NO");
 		}
-		
+
 		VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
 				settings.heightFromHMD = VirtualHipHeightFromHMDButton->GetValue();
 				KinectSettings::huoffsets.v[0] = VirtualHipHeightFromHMDButton->GetValue();
 			}
 		);
-		
+
 		DegreeButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
 				settings.hmdegree = DegreeButton->GetValue();
@@ -1283,7 +1259,7 @@ public:
 		{
 			settings.positionFollowsHMDLean = (VirtualHipFollowHMDLean->IsActive());
 		});
-		
+
 		VirtualHipConfigSaveButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
 			{
 				saveSettings();
@@ -1318,7 +1294,7 @@ public:
 
 				if (!KinectSettings::expcalib)
 				{
-					std::thread* t1 = new std::thread([this]()
+					auto t1 = new std::thread([this]()
 					{
 						KinectSettings::matrixes_calibrated = true;
 						KinectSettings::jcalib = true;
@@ -1365,7 +1341,8 @@ public:
 
 							if (firstTime)
 								KinectSettings::calibration_origin = Eigen::Vector3f(
-									KinectSettings::kinect_m_positions[2].v[0], KinectSettings::kinect_m_positions[2].v[1],
+									KinectSettings::kinect_m_positions[2].v[0],
+									KinectSettings::kinect_m_positions[2].v[1],
 									KinectSettings::kinect_m_positions[2].v[2]);
 							firstTime = false;
 
@@ -1404,7 +1381,7 @@ public:
 
 								// TODO: Check if it's not the opposite
 								KinectSettings::calibration_kinect_pitch = pitchtmp; // This one's in radians
-								
+
 								if (!KinectSettings::isCalibrating) break;
 							}
 
@@ -1421,7 +1398,7 @@ public:
 						}
 
 						std::this_thread::sleep_for(std::chrono::seconds(1));
-						
+
 						if (!KinectSettings::isCalibrating)
 						{
 							settings.caliborigin = KinectSettings::calibration_origin;
@@ -1445,7 +1422,7 @@ public:
 				}
 				else
 				{
-					std::thread* t1 = new std::thread([this]()
+					auto t1 = new std::thread([this]()
 					{
 						vr::EVRInitError error;
 						vr::IVRSystem* system = VR_Init(&error, vr::VRApplication_Background);
@@ -1469,7 +1446,7 @@ public:
 							if (!KinectSettings::isCalibrating) break;
 							vr::DriverPose_t ispose;
 							vr::HmdVector3d_t ihpose;
-							
+
 							// Tell the user to move somewhere else, ! means WE WANT IT
 							for (auto i = 4; i >= 0; i--)
 							{
@@ -1525,14 +1502,15 @@ public:
 
 							// Tell we got it? May be removed TODO: TODO:
 							TrackersCalibButton->SetLabel(
-								std::string("Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "!")
+								std::string(
+									"Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "!")
 								.c_str());
 							std::this_thread::sleep_for(std::chrono::seconds(1));
 							// Tell we got it? May be removed TODO: TODO:
 
 							spose.push_back(ispose);
 							hpose.push_back(ihpose);
-							
+
 							if (!KinectSettings::isCalibrating) break;
 						}
 						if (!KinectSettings::isCalibrating)
@@ -1593,7 +1571,7 @@ public:
 
 							settings.rcR_matT = ret_R;
 							settings.rcT_matT = ret_t;
-							
+
 							/*
 							 * A little explaination what's going on in applying Korejan's transforms...
 							 *
@@ -1608,7 +1586,7 @@ public:
 							 * and if you still don't, repeat it until you do...
 							 */
 
-							 /* NEW Try to "compute" lookAt kinect yaw ourselves */
+							/* NEW Try to "compute" lookAt kinect yaw ourselves */
 
 							// Assuming that if a point is at 1,0,3,
 							// in relative to the tracking device, then
@@ -1652,37 +1630,29 @@ public:
 							//	KinectDirectionRotMat(EigenUtils::lookAt(KinectDirectionVector, SVRHomePos, up));
 
 
-
-
-							
-							
 							// calculate direction vectors
 							Eigen::Vector3f up(0, 1, 0),
-								KinectDirectionVector(
-									ret_t.x(), 
-									0.0, 
-									ret_t.z());
+							                KinectDirectionVector(
+								                ret_t.x(),
+								                0.0,
+								                ret_t.z());
 
 							// Here's the SVR's home position
 							Eigen::Vector3f SVRHomePos(
 								KinectSettings::trackingOriginPosition.v[0],
 								0.0,
 								KinectSettings::trackingOriginPosition.v[2]);
-							
+
 							// Calculate the quaternion
-							auto // Matrix https://stackoverflow.com/questions/21761909/eigen-convert-matrix3d-rotation-to-quaternion
+							auto
+								// Matrix https://stackoverflow.com/questions/21761909/eigen-convert-matrix3d-rotation-to-quaternion
 								KinectDirectionRotMat(EigenUtils::lookAt(KinectDirectionVector, SVRHomePos, up));
-
-
-
-
-							
 
 
 							// https://stackoverflow.com/questions/60758298/eigenmatrixdouble-4-4-to-eigenquaterniond
 							Eigen::Vector3f
 								KinectDirectionEigenEuler =
-								KinectDirectionRotMat.topLeftCorner<3, 3>().eulerAngles(0, 1, 2);
+									KinectDirectionRotMat.topLeftCorner<3, 3>().eulerAngles(0, 1, 2);
 
 							/*
 							 *
@@ -1698,7 +1668,7 @@ public:
 							 *		  360		 0 ///
 							 *
 							 */
-							
+
 							Eigen::Vector3f
 								KinectDirectionEigenEulerDegrees = KinectDirectionEigenEuler * 180 / M_PI;
 
@@ -1710,7 +1680,7 @@ public:
 							///////// Make it 0-360
 
 							float RetrievedYaw = KinectDirectionEigenEulerDegrees.y();
-							
+
 							//if (RetrievedYaw < 180.f && RetrievedYaw > 0.f)
 							//	RetrievedYaw = abs(RetrievedYaw - 180.f);  // hack, although kinda working
 
@@ -1721,14 +1691,14 @@ public:
 							// additional PI radians will make it 180-360
 							// abs() because we're adding floats and idk how to make it safer
 							// it could have been std::clamp, actually...
-							
+
 							///////// Make it 0-360
-							
+
 							LOG(INFO) << "GOT FIXED ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
 							LOG(INFO) << KinectDirectionEigenEulerDegrees.x();
 							LOG(INFO) << RetrievedYaw;
 							LOG(INFO) << KinectDirectionEigenEulerDegrees.z();
-							
+
 							// Save it to settings
 
 							// Save our retrieved yaw (this one's in degrees)
@@ -1736,16 +1706,15 @@ public:
 							settings.tryawst = KinectSettings::calibration_trackers_yaw;
 
 							// Pitch may require some tweaks, before it was about 180deg
-							KinectSettings::calibration_kinect_pitch = 
+							KinectSettings::calibration_kinect_pitch =
 								glm::radians(KinectDirectionEigenEulerDegrees.x()); // We're using radsians
 							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
 
 							// In maualcalib it's hips position, although here it's gonna be 0
 							KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
 							settings.caliborigin = KinectSettings::calibration_origin;
-							
+
 							/* NEW Try to "compute" lookAt kinect yaw ourselves */
-							
 						}
 
 						// Grab the yaw (now it's calculated with a lookAt)
@@ -1774,7 +1743,7 @@ public:
 						}
 
 						/**********************************************************************************************/
-						
+
 						//// Grab the yaw (now it's calculated with a lookAt)
 						//if (KinectSettings::isCalibrating)
 						//{
@@ -1823,16 +1792,8 @@ public:
 
 			saveSettings();
 		});
-
-		TrackersCalibSButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
-			{
-				KinectSettings::headtracked = true;
-
-				saveSettings();
-			}
-		);
 	}
-	
+
 private:
 	sf::Font mainGUIFont;
 	sfg::SFGUI sfguiRef;
@@ -1850,7 +1811,7 @@ private:
 	sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 	sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
-	
+
 	sfg::Adjustment::Ptr fontSizeAdjustment = sfg::Adjustment::Create();
 	sfg::Label::Ptr FontSizeScaleLabel = sfg::Label::Create("(WARNING, LAGS ON CHANGE) Font Size: ");
 	sfg::SpinButton::Ptr FontSizeScale = sfg::SpinButton::Create(
@@ -1874,7 +1835,7 @@ private:
 	sfg::Button::Ptr ShowSkeletonButton = sfg::CheckButton::Create("Show/Hide Skeleton Tracking");
 	sfg::Button::Ptr AutoStartTrackers = sfg::Button::Create("Initialise trackers automatically");
 	sfg::Box::Ptr horcombox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
-	
+
 	//Zeroing
 	sfg::Label::Ptr KinectRotLabel = sfg::Label::Create(
 		"Calibrate the rotation of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
@@ -1889,7 +1850,7 @@ private:
 	sfg::Label::Ptr ReconControllersLabel = sfg::Label::Create(
 		"If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.");
 	sfg::Button::Ptr ReconControllersButton = sfg::Button::Create("Reconnect VR Controllers");
-	
+
 	sfg::Label::Ptr CalibrationSettingsLabel = sfg::Label::Create(
 		"This tab allows you to (manually) offset every one of your trackers. It will aeffect real calibration values, but it will not change them directly.\nYou may need it for example when your right foot will be upper than left, etc.\nRotation is in degrees and position is declared in meters.");
 	sfg::Label::Ptr CalibrationrPosLabel = sfg::Label::Create("Right Foot Position x, y, z");
@@ -1971,7 +1932,7 @@ private:
 	sfg::CheckButton::Ptr IsControllerButton = sfg::CheckButton::Create("Controller");
 	sfg::Button::Ptr AddTrackerToListButton = sfg::Button::Create("Add");
 	sfg::Button::Ptr RemoveTrackerFromListButton = sfg::Button::Create("Remove");
-	
+
 	//Tracking Method Box
 	sfg::Button::Ptr InitiateColorTrackingButton = sfg::Button::Create("Start Color Tracker");
 	sfg::Button::Ptr DestroyColorTrackingButton = sfg::Button::Create("Destroy Color Tracker");
@@ -1993,18 +1954,17 @@ private:
 	sfg::SpinButton::Ptr VirtualHipHeightFromHMDButton = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
 	sfg::CheckButton::Ptr VirtualHipFollowHMDLean = sfg::CheckButton::Create("Follow HMD Lean");
-	
+
 	sfg::SpinButton::Ptr DegreeButton = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -360.f, 360.f, 0.01f));
 	sfg::SpinButton::Ptr TDegreeButton = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, 2, 11, 1.f));
-	
+
 	sfg::Button::Ptr VirtualHipConfigSaveButton = sfg::Button::Create("Save Settings");
 	sfg::Button::Ptr TrackersConfigSaveButton = sfg::Button::Create("Save Settings");
 
 	sfg::Button::Ptr HeadTrackingStartButton = sfg::Button::Create("Start Head Tracking");
 	sfg::Button::Ptr HeadTrackingCalibButton = sfg::Button::Create("Calibration: Look at Kinect and stand still");
-	sfg::Button::Ptr TrackersCalibSButton = sfg::Button::Create("Begin Calibration");
 	sfg::Button::Ptr TrackersCalibButton = sfg::Button::Create("Begin Calibration");
 	sfg::CheckButton::Ptr expcalibbutton = sfg::CheckButton::Create("Enable Manual Calibration");
 
