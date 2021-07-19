@@ -101,6 +101,7 @@ public:
 		}
 
 		setDefaultSignals();
+		setVirtualHipsBoxSignals();
 
 		setLineWrapping();
 		packElementsIntoMainBox();
