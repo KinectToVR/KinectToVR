@@ -76,7 +76,4 @@
   <ItemGroup>
     <ResourceCompile Include="driver_KinectToVR.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
 </Project>
