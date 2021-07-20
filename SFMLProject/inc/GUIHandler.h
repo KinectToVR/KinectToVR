@@ -571,7 +571,7 @@ public:
 		});
 	}
 
-	std::wstring s2ws(const std::string& s)
+	static std::wstring s2ws(const std::string& s)
 	{
 		int len;
 		int slength = static_cast<int>(s.length()) + 1;
