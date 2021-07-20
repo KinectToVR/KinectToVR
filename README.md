@@ -24,7 +24,8 @@ You'll need:
 
 Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR/blob/master/.github/workflows/main.yml)**, or:<br>
 
-- Clone Valve's ```OpenVR``` to ```external/``` (eventually remove ```-master``` from folder name)<br>
+- ```git clone https://github.com/ValveSoftware/openvr external/openvr```<br>
+- ```git clone https://gitlab.com/libeigen/eigen external/eigen```<br>
 - Restore NuGet packages for ```KinectToVR``` <br>(Actually, if you have all the stuff in vcpkg, just enable it in project settings)
 - Build all in ```KinectToVR``` in ```x64/Release```
 

@@ -48,3 +48,5 @@ x64/
 packages/
 
 external/openvr/
+
+external/eigen/
