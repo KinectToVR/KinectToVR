@@ -1,0 +1,5 @@
+{
+  "release": "0,8,1",
+  "build": "51,4,31,0",
+  "changes": "Automatic calibration doesn't require looking at Kinect;Implemented a new update checking method;Removed OVRIE for better overall performance"
+}
