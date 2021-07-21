@@ -167,6 +167,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\external\icons\icon.ico" />
+    <Image Include="..\external\icons\psms_icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />

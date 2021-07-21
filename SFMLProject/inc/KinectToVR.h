@@ -15,12 +15,10 @@
 // Version number
 const int
 k2vr_version_major[4] = { 0, 8, 1 },
-k2vr_version_minor[4] = { 51, 4, 30, 99 };
+k2vr_version_minor[4] = { 51, 4, 31, 0 };
 
 void processKeyEvents(sf::Event event);
 void toggle(bool& b);
-
-void limitVRFramerate(double& endTimeMilliseconds, std::stringstream& ss);
 
 void processLoop(KinectHandlerBase& kinect);
 

@@ -39,5 +39,8 @@
     <Image Include="..\external\icons\icon.ico">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="..\external\icons\psms_icon.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
