@@ -35,13 +35,13 @@ Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR
    ```./vcpkg integrate install```
    
 - Install needed libraries (You should choose one linking method for all packages)<br>
-   ```vcpkg install glm:x64-windows boost:x64-windows opencv3[world]:x64-windows curlpp:x64-windows sfml:x64-windows sfgui:x64-windows glew:x64-windows ```<br>
+   ```vcpkg install glm:x64-windows boost:x64-windows opencv3[world]:x64-windows curlpp:x64-windows sfml:x64-windows sfgui:x64-windows glew:x64-windows```<br>
    (Now you may rest a bit, also consider using a drive other than ```C:/```, it'll be about 6-7GB)
 
 - Build all in ```KinectToVR``` in ```x64/Release```
 
 ## Deploy
 All needed dlls are automatically copied to the output folder with vcpkg.<br>
-Please note that everything from vcpg is being linked dynamically,<br>
+Please note that everything from vcpkg is being linked dynamically,<br>
 so to avoid errors with the driver, build it alone and copy to the desired folder, <br>
 including all present dlls inside the output folder.
