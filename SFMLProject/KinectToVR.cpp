@@ -324,148 +324,150 @@ void processLoop(KinectHandlerBase& kinect)
 		{
 			curlpp::Cleanup myCleanup;
 			std::ostringstream os;
-			os << curlpp::options::Url("https://raw.githubusercontent.com/KimihikoAkayasaki/update-dummy/main/version");
-
-			std::string read_buffer = os.str();
-			read_buffer.erase(read_buffer.find_last_of("\n"), read_buffer.length()); // Erase the ending "\n"
+			os << curlpp::options::Url("https://raw.githubusercontent.com/KinectToVR/KinectToVR/experiments/version");
 			
-			if (!read_buffer.empty())
+			if (std::string read_buffer = os.str(); !read_buffer.empty())
 			{
-				if (read_buffer.front() == '{' &&
-					read_buffer.back() == '}')
+				LOG(INFO) << "Update-check successful, string:\n" << read_buffer;
+
+				// Get rest strings
+				std::stringstream s;
+				s << read_buffer;
+
+				// Read the JSON
+				boost::property_tree::ptree s_ptree;
+				boost::property_tree::read_json(s, s_ptree);
+
+				// Get results
+				std::string release = s_ptree.get<std::string>("release"),
+					build = s_ptree.get<std::string>("build"),
+					changes = s_ptree.get<std::string>("changes");
+
+				// Split strin into lines
+				std::vector<std::string> _major, _minor;
+
+				// Split version strings into ints
+				split(_major, release, boost::is_any_of(","));
+				split(_minor, build, boost::is_any_of(","));
+
+				// Replace ";" with "\n" to make the changelog multi-line
+				std::string _changelog = changes;
+				std::replace(_changelog.begin(), _changelog.end(), ';', '\n');
+
+				// Compare to the current version
+				bool updateFound = false;
+				for (int i = 0; i < 3; i++)
 				{
-					LOG(INFO) << "Update-check successful, string:\n" << read_buffer;
+					// Check major
+					int _ver = boost::lexical_cast<int>(_major.at(i));
+					if (_ver > k2vr_version_major[i]) updateFound = true;
 
-					// Remove the {} from string
-					read_buffer.erase(0, read_buffer.find("\n") + 1);
-					read_buffer.erase(read_buffer.find_last_of("\n"), read_buffer.length());
+					// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
+					else if (_ver < k2vr_version_major[i]) break;
+				}
 
-					// Split strin into lines
-					std::vector<std::string> _lines, _major, _minor;
-					split(_lines, read_buffer, boost::is_any_of("\n"));
+				for (int i = 0; i < 4; i++)
+				{
+					// Check minor
+					int _ver = boost::lexical_cast<int>(_minor.at(i));
+					if (_ver > k2vr_version_minor[i]) updateFound = true;
 
-					// Split version strings into ints
-					split(_major, _lines.at(0), boost::is_any_of(","));
-					split(_minor, _lines.at(1), boost::is_any_of(","));
+					// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
+					else if (_ver < k2vr_version_minor[i]) break;
+				}
 
-					// Replace ";" with "\n" to make the changelog multi-line
-					std::string _changelog = _lines.at(2);
-					std::replace(_changelog.begin(), _changelog.end(), ';', '\n');
+				// Show the message box if update was found
+				if (updateFound)
+				{
+					if (MessageBoxA(nullptr,
+						std::string(
+							"KinectToVR EX "
 
-					// Compare to the current version
-					bool updateFound = false;
-					for (int i = 0; i < 3; i++)
+							+ _major.at(0) + "."
+							+ _major.at(1) + "."
+							+ _major.at(2) +
+
+							"\nBuild number: "
+
+							+ _minor.at(0) + "."
+							+ _minor.at(1) + "."
+							+ _minor.at(2) + "."
+							+ _minor.at(3) +
+
+							"\n\nChanges:\n\n"
+
+							+ _changelog +
+
+							"\n\nDo you wish to update KinectToVR now?"
+						).c_str(),
+						"KinectToVR Update Found!",
+						MB_YESNO) == IDYES)
 					{
-						// Check major
-						int _ver = boost::lexical_cast<int>(_major.at(i));
-						if (_ver > k2vr_version_major[i]) updateFound = true;
+						/*
+						 * Here, do all the stuff that needs to be done after pressing 'Yes'
+						 */
 
-							// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
-						else if (_ver < k2vr_version_major[i]) break;
-					}
+						 // Turn off trackers
+						KinectSettings::initialised = false;
 
-					for (int i = 0; i < 4; i++)
-					{
-						// Check minor
-						int _ver = boost::lexical_cast<int>(_minor.at(i));
-						if (_ver > k2vr_version_minor[i]) updateFound = true;
+						// Find the installer
+						// Clear the stream for reuse
+						os.str(std::string());
 
-							// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
-						else if (_ver < k2vr_version_minor[i]) break;
-					}
+						// Setup the User-Agent
+						curlpp::Easy request;
+						std::list<std::string> headers;
+						headers.emplace_back("User-Agent: curl/7.77.7");
 
-					// Show the message box if update was found
-					if (updateFound)
-					{
-						if (MessageBoxA(nullptr,
-						                std::string(
-							                "KinectToVR EX "
+						using namespace curlpp::Options;
 
-							                + _major.at(0) + "."
-							                + _major.at(1) + "."
-							                + _major.at(2) +
+						request.setOpt(new Verbose(true));
+						request.setOpt(new HttpHeader(headers));
+						request.setOpt(new Url("https://api.github.com/repos/KinectToVR/k2vr-installer-gui/releases/latest"));
+						request.perform();
 
-							                "\nVersion: "
+						// Dump the result
+						os << request;
 
-							                + _minor.at(0) + "."
-							                + _minor.at(1) + "."
-							                + _minor.at(2) + "."
-							                + _minor.at(3) +
-
-							                "\n\nChanges:\n\n"
-
-							                + _changelog +
-
-							                "\n\nDo you wish to update KinectToVR now?"
-						                ).c_str(),
-						                "KinectToVR Update Found!",
-						                MB_YESNO) == IDYES)
+						if (std::string installer_url, installer_releases = os.str(); !installer_releases.empty())
 						{
-							/*
-							 * Here, do all the stuff that needs to be done after pressing 'Yes'
-							 */
+							// Init the stream for boost
+							std::stringstream ss;
+							ss << installer_releases;
 
-							// Turn off trackers
-							KinectSettings::initialised = false;
+							// Read the JSON
+							boost::property_tree::ptree ptree;
+							boost::property_tree::read_json(ss, ptree);
 
-							// Find the installer
-							// Clear the stream for reuse
-							os.str(std::string());
+							// Iterate over all results
+							for (boost::property_tree::ptree::value_type& result : ptree.get_child("assets."))
+								for (boost::property_tree::ptree::value_type& field : result.second)
+									if (field.first == "browser_download_url") installer_url = field.second.data();
 
-							// Setup the User-Agent
-							curlpp::Easy request;
-							std::list<std::string> headers;
-							headers.emplace_back("User-Agent: curl/7.77.7");
+							// Notify about download
+							std::thread([] {
+								MessageBoxA(nullptr,
+									std::string(
+										"Update will begin soon!\n\nK2EX will close automatically."
+									).c_str(),
+									"KinectToVR Update Found!",
+									MB_OK);
+								}).detach();
 
-							using namespace curlpp::Options;
-
-							request.setOpt(new Verbose(true));
-							request.setOpt(new HttpHeader(headers));
-							request.setOpt(new Url("https://api.github.com/repos/KinectToVR/k2vr-installer-gui/releases/latest"));
-							request.perform();
-
-							// Dump the result
-							os << request;
-							
-							if (std::string installer_url, installer_releases = os.str(); !installer_releases.empty())
-							{
-								// Init the stream for boost
-								std::stringstream ss;
-								ss << installer_releases;
-								
-								// Read the JSON
-								boost::property_tree::ptree ptree;
-								boost::property_tree::read_json(ss, ptree);
-								
-								// Iterate over all results
-								for (boost::property_tree::ptree::value_type& result : ptree.get_child("assets."))
-									for (boost::property_tree::ptree::value_type& field : result.second)
-										if (field.first == "browser_download_url") installer_url = field.second.data();
-
-								// Notify about download
-								std::thread([] {
-									MessageBoxA(nullptr,
-										std::string(
-											"Update will begin soon!\n\nK2EX will close automatically."
-										).c_str(),
-										"KinectToVR Update Found!",
-										MB_OK);
-									}).detach();
-								
 								// Download the installer
 								// Setup the User-Agent
 								request.reset();
-								
+
 								using namespace curlpp::Options;
 								request.setOpt(new Verbose(true));
 								request.setOpt(new HttpHeader(headers));
 								request.setOpt(new FollowLocation(true));
 								request.setOpt(new Url(installer_url));
-								
+
 								// Perform the request
 								FILE* file;
 								fopen_s(&file, "k2ex-installer.exe", "wb");
-								
+
 								request.setOpt(curlpp::options::WriteFile(file));
 								request.perform();
 
@@ -474,16 +476,13 @@ void processLoop(KinectHandlerBase& kinect)
 
 								// Run the file and close K2EX
 								system("start k2ex-installer.exe");
-								
+
 								SFMLsettings::keepRunning = false;
 								KinectSettings::initialised = false;
 								renderWindow.close();
-							}
 						}
 					}
 				}
-				else
-					LOG(INFO) << "Update failed, string was corrupted.";
 			}
 			else
 				LOG(INFO) << "Update failed, string was empty.";
