@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include <SFML/Graphics/RenderWindow.hpp>
-#include <glew.h>
+#include <gl/glew.h>
 #include <openvr.h>
 
 #include <opencv2/opencv.hpp>

@@ -24,11 +24,24 @@ You'll need:
 
 Follow **[GitHub Actions script](https://github.com/KimihikoAkayasaki/KinectToVR/blob/master/.github/workflows/main.yml)**, or:<br>
 
-- ```git clone https://github.com/ValveSoftware/openvr external/openvr```<br>
-- ```git clone https://gitlab.com/libeigen/eigen external/eigen```<br>
-- Restore NuGet packages for ```KinectToVR``` <br>(Actually, if you have all the stuff in vcpkg, just enable it in project settings)
+- Clone the latest OpenVR and Eigen3 into ```external/```:<br>
+   ```git clone https://github.com/ValveSoftware/openvr external/openvr```<br>
+   ```git clone https://gitlab.com/libeigen/eigen external/eigen```
+
+- Install ```vcpkg``` and its Visual Studio integration<br>
+   ```git clone https://github.com/Microsoft/vcpkg.git```<br>
+   ```cd vcpkg```<br>
+   ```./bootstrap-vcpkg.sh```<br>
+   ```./vcpkg integrate install```
+   
+- Install needed libraries (You should choose one linking method for all packages)<br>
+   ```vcpkg install glm:x64-windows boost:x64-windows opencv3[world]:x64-windows curlpp:x64-windows sfml:x64-windows sfgui:x64-windows glew:x64-windows ```<br>
+   (Now you may rest a bit, also consider using a drive other than ```C:/```, it'll be about 6-7GB)
+
 - Build all in ```KinectToVR``` in ```x64/Release```
 
 ## Deploy
-Grab all needed files from your current KinectToVR installation folder.<br>
-This also applies to OpenVR driver folders structure and files.
+All needed dlls are automatically copied to the output folder with vcpkg.<br>
+Please note that everything from vcpg is being linked dynamically,<br>
+so to avoid errors with the driver, build it alone and copy to the desired folder, <br>
+including all present dlls inside the output folder.

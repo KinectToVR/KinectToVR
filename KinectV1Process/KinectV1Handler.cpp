@@ -9,7 +9,7 @@
 #include <glm/detail/type_vec2.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "glew.h"
+#include <gl/glew.h>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <KinectSettings.h>
