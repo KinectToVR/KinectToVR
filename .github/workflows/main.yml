@@ -9,64 +9,73 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2.1.0
       id: checkout_code
+      
+    - name: Cache vcpkg packages
+      uses: actions/cache@v2
+      env:
+        cache-name: cache-vcpkg-packages
+      with:
+        path: vcpkg
+        key: vcpkg-cache
 
     - name: Setup MSBuild
       uses: microsoft/setup-msbuild@v1.0.2
       id: setup_msbuild
+      
+    - name: Setup vcpkg
+      uses: friendlyanon/setup-vcpkg@v1
 
-    - name: Setup vcpkg (manually)
+    - name: Install vcpkg integration
+      run: |
+        vcpkg update
+        vcpkg integrate install
+        
+    - name: Install OpenCV [world]
+      run: vcpkg install opencv3[world]:x64-windows 
+      
+    - name: Install Boost [thread, ipc]
+      run: vcpkg install boost-thread:x64-windows boost-interprocess:x64-windows 
+      
+    - name: Install Boost [ptree, exception]
+      run: vcpkg install boost-property-tree:x64-windows boost-exception:x64-windows 
+      
+    - name: Install Boost [asio, algorithm]
+      run: vcpkg install boost-asio:x64-windows boost-algorithm:x64-windows
+      
+    - name: Install Boost [lexical cast, iostreams]
+      run: vcpkg install boost-lexical-cast:x64-windows boost-iostreams:x64-windows
+      
+    - name: Install Boost [bind, serialization]
+      run: vcpkg install boost-bind:x64-windows boost-serialization:x64-windows
+      
+    - name: Clear vcpkg cache
       shell: powershell
       run: |
-        Set-Location ${{ github.workspace }}
-
-        git clone https://github.com/Microsoft/vcpkg.git
-        cd vcpkg
-        ./bootstrap-vcpkg.sh
-        ./vcpkg integrate install
+        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse
+        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse
       
-    - name: Add MSYS64 bin to PATH
-      run: echo "C:\msys64\usr\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+    - name : Install [glm, curlpp, cereal]
+      run : vcpkg install glm:x64-windows curlpp:x64-windows cereal:x64-windows
+      
+    - name : Install [sfml, sfgui, glew]
+      run : vcpkg install sfml:x64-windows sfgui:x64-windows glew:x64-windows
 
+    - name: Install Kinect SDKs
+      run: |
+        vcpkg install kinectsdk1:x64-windows 
+        vcpkg install kinectsdk2:x64-windows 
+      
     - name: Setup non-vcpkg dependencies
       run: |
-        git clone https://github.com/ValveSoftware/openvr external/openvr
-        git clone https://gitlab.com/libeigen/eigen external/eigen
-
-    - name: Install Kinect SDK18
-      shell: powershell
-      run: |
-        Set-Location ${{ github.workspace }}
-
-        # Unpack the SDK if it hasn't been restored from cache
-        if (!(Test-Path -PathType Container KinectSDK-v1.8)) {
-            New-Item -ItemType directory KinectSDK-v1.8 | Out-Null
-            wget "https://download.microsoft.com/download/E/1/D/E1DEC243-0389-4A23-87BF-F47DE869FC1A/KinectSDK-v1.8-Setup.exe" -OutFile KinectSDK-v1.8-Setup.exe
-            & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v1.8-Setup.exe -x KinectSDK-v1.8
+        git clone https://github.com/ValveSoftware/openvr.git/ external/openvr
+        git clone https://gitlab.com/libeigen/eigen.git/ external/eigen
         
-            Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\KinectSDK-v1.8-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v1.8\AttachedContainer\SDK18" -Wait -NoNewWindow
-        }
-
-    - name: Install Kinect SDK20
-      shell: powershell
+    - name: Remove Kinect library links
       run: |
-        Set-Location ${{ github.workspace }}
-
-        # Unpack the SDK if it hasn't been restored from cache
-        if (!(Test-Path -PathType Container KinectSDK-v2.0)) {
-            New-Item -ItemType directory KinectSDK-v2.0 | Out-Null
-            wget "https://download.microsoft.com/download/F/2/D/F2D1012E-3BC6-49C5-B8B3-5ACFF58AF7B8/KinectSDK-v2.0_1409-Setup.exe" -OutFile KinectSDK-v2.0_1409-Setup.exe
-            & "C:\Program Files (x86)\WiX Toolset v3.11\bin\dark.exe" KinectSDK-v2.0_1409-Setup.exe -x KinectSDK-v2.0
-            
-            Start-Process msiexec -ArgumentList "/a ${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\KinectSDK-v2.0_1409-x64.msi /qn TARGETDIR=${{ github.workspace }}\KinectSDK-v2.0\AttachedContainer\SDK20" -Wait -NoNewWindow
-        }
-
-    - name: Restore vcpkg packages
-      shell: powershell
-      run: |
-        Set-Location ${{ github.workspace }}
-        
-        cd vcpkg
-        ./vcpkg install glm:x64-windows boost:x64-windows opencv3[world]:x64-windows curlpp:x64-windows sfml:x64-windows sfgui:x64-windows glew:x64-windows
+          sed -i -e 's/Kinect10.lib//g' KinectV1Process/KinectV1Process.vcxproj
+          sed -i -e 's/Kinect20.lib//g' KinectV2Process/KinectV2Process.vcxproj
+          sed -i -e 's/Kinect10.lib//g' KV1CrashHandler/KV1CrashHandler.vcxproj
+          sed -i -e 's/Kinect20.lib//g' KV2CrashHandler/KV2CrashHandler.vcxproj
 
     - name: Build KinectToVR
       id: run_msbuild_k2vr
@@ -76,44 +85,9 @@ jobs:
       id: slug
       run: "$slug = '::set-output name=slug::' + $env:GITHUB_SHA.SubString(0,7); echo $slug"
 
-    - name: Upload KV2 Close Handler artifact
+    - name: Upload Release artifact
       uses: actions/upload-artifact@v2
       with:
-        name: KV2CrashHandler-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/KV2CrashHandler.exe
-        if-no-files-found: error
-
-    - name: Upload KV1 Close Handler artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: KV1CrashHandler-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/KV1CrashHandler.exe
-        if-no-files-found: error
-
-    - name: Upload PSMS artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: PSMSProcess-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/PSMSProcess.exe
-        if-no-files-found: error
-
-    - name: Upload KV2 artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: KinectV2Process-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/KinectV2Process.exe
-        if-no-files-found: error
-
-    - name: Upload KV1 artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: KinectV1Process-${{ steps.slug.outputs.slug }}.exe
-        path: x64/Release/KinectV1Process.exe
-        if-no-files-found: error
-
-    - name: Upload driver artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: driver_KinectToVR-${{ steps.slug.outputs.slug }}.dll
-        path: x64/Release/driver_KinectToVR.dll
+        name: Release-${{ steps.slug.outputs.slug }}
+        path: x64/Release/
         if-no-files-found: error
