@@ -366,15 +366,16 @@ void processLoop(KinectHandlerBase& kinect)
 					else if (_ver < k2vr_version_major[i]) break;
 				}
 
-				for (int i = 0; i < 4; i++)
-				{
-					// Check minor
-					int _ver = boost::lexical_cast<int>(_minor.at(i));
-					if (_ver > k2vr_version_minor[i]) updateFound = true;
+				// Don't check the build number
+				//for (int i = 0; i < 4; i++)
+				//{
+				//	// Check minor
+				//	int _ver = boost::lexical_cast<int>(_minor.at(i));
+				//	if (_ver > k2vr_version_minor[i]) updateFound = true;
 
-					// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
-					else if (_ver < k2vr_version_minor[i]) break;
-				}
+				//	// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
+				//	else if (_ver < k2vr_version_minor[i]) break;
+				//}
 
 				// Show the message box if update was found
 				if (updateFound)
