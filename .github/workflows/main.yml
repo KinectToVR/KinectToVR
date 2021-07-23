@@ -69,7 +69,7 @@ jobs:
         git clone https://gitlab.com/libeigen/eigen.git/ external/eigen
 
     - name: Clone and setup K2APP
-      shell: poweshell
+      shell: powershell
       run: |
         git clone https://github.com/KinectToVR/k2vr-application external/KTVR
         New-Item -ItemType Junction -Path external/KTVR/external/openvr -Target external/openvr
