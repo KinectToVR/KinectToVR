@@ -77,6 +77,7 @@ jobs:
 
     - name: Build K2API and K2APP's driver
       run: |
+        cd external/KTVR
         msbuild "/t:KinectToVR_API" "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
         msbuild "/t:Driver_KinectToVR" "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
         
