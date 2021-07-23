@@ -28,6 +28,10 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
+// KinectToVR API include, from K2APP
+#define K2API_SOCKET 7135
+#include <KinectToVR_API.h>
+
 #pragma comment(lib, "Ws2_32.lib")
 
 using namespace KVR;
@@ -202,44 +206,111 @@ void limitVRFramerate(double& endFrameMilliseconds)
 	}
 }
 
+bool testConnection(const bool log)
+{
+	// Do not spawn 1000 voids, check how many do we have
+	if (KinectSettings::pingCheckingThreadsNumber <= KinectSettings::maxPingCheckingThreads) {
+
+		// Add a new worker
+		KinectSettings::pingCheckingThreadsNumber += 1; // May be ++ too
+
+		try {
+			// Send a ping message and capture the data
+			const auto [test_response, send_time, full_time] = ktvr::test_connection();
+
+			// Dump data to variables
+			KinectSettings::pingTime = full_time;
+			KinectSettings::parsingTime = std::clamp( // Subtract message creation (got) time and send time
+				test_response.messageTimestamp - test_response.messageManualTimestamp,
+				static_cast<long long>(1), LLONG_MAX);
+
+			// Log ?success
+			LOG(INFO) <<
+				"Connection test has ended, [result: " <<
+				(test_response.success ? "success" : "fail") <<
+				"], response code: " << test_response.result;
+
+			// Log some data if needed
+			LOG_IF(log, INFO) <<
+				"\nTested ping time: " << full_time << " [micros], " <<
+
+				"call time: " <<
+				std::clamp( // Subtract message creation (got) time and send time
+					send_time - test_response.messageManualTimestamp,
+					static_cast<long long>(0), LLONG_MAX) <<
+				" [micros], " <<
+
+				"\nparsing time: " <<
+				KinectSettings::parsingTime << // Just look at the k2api
+				" [micros], "
+
+				"flight-back time: " <<
+				std::clamp( // Subtract message creation (got) time and send time
+					K2API_GET_TIMESTAMP_NOW - test_response.messageManualTimestamp,
+					static_cast<long long>(1), LLONG_MAX) <<
+				" [micros]";
+			
+			// Release
+			KinectSettings::pingCheckingThreadsNumber -= 1; // May be -- too
+
+			// Return the result
+			return test_response.success;
+		}
+		catch (std::exception const& e)
+		{
+			// Log ?success
+			LOG(INFO) <<
+				"Connection test has ended, [result: fail], got an exception";
+			
+			// Release
+			KinectSettings::pingCheckingThreadsNumber -= 1; // May be -- too
+			return false;
+		}
+	}
+
+	// else
+	LOG(ERROR) << "Connection checking threads exceeds 3, aborting...";
+	return false;
+}
+
+// Note: blocking!
 int checkK2Server()
 {
 	if (!KinectSettings::isDriverPresent)
 	{
 		try
 		{
-			HANDLE ServerStatusPipe = CreateNamedPipe(
-				TEXT("\\\\.\\pipe\\K2ServerStatusPipe"), PIPE_ACCESS_INBOUND | PIPE_ACCESS_OUTBOUND,
-				PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE, 1, 1024, 1024, 120 * 1000, nullptr);
+			/* Initialize the port */
+			LOG(INFO) << "Initializing the server port...";
+			const auto init_code = ktvr::init_socket(K2API_SOCKET);
+			bool server_connected = false;
+			
+			LOG(INFO) << "Port " << K2API_SOCKET << " initialization " <<
+				(init_code == 0 ? "succeed" : "failed") << ", exit code: " << init_code;
 
-			char ServerData[1024];
-			DWORD Init = DWORD();
+			/* Connection test and display ping */
+			// We may wait
+			LOG(INFO) << "Testing the connection...";
 
-			ConnectNamedPipe(ServerStatusPipe, nullptr);
-			ReadFile(ServerStatusPipe, ServerData, 1024, &Init, nullptr);
-			CloseHandle(ServerStatusPipe);
-
-			std::string ServerString = ServerData;
-
-			if (ServerString.find("10") != std::string::npos)
-			{
-				return 10;
+			for (int i = 0; i < 3; i++) {
+				LOG(INFO) << "Starting the test no " << i << "...";
+				server_connected = testConnection(true);
 			}
-			if (ServerString.find("1") != std::string::npos)
-			{
-				return 1;
-			}
-			return -10;
+
+			return init_code == 0 ?
+				(server_connected ? 1 : -10)
+				: -1;
 		}
-		catch (const std::exception& e) { return -10; }
+		catch (const std::exception& e) { return -1; }
 	}
 
 	/*
 	 * codes:
 	 * -1: check fail
-	 * -10: sever fail
+	 * -10: server fail
+	 * 10: driver failure
+	 * -11: API fail
 	 * 1: result ok
-	 * 10: init fail
 	 */
 	return 1; //don't check if it was already working
 }
@@ -248,32 +319,35 @@ void updateServerStatus(GUIHandler& guiRef)
 {
 	std::thread([&]()
 	{
-		KinectSettings::K2Drivercode = checkK2Server();
-		switch (KinectSettings::K2Drivercode)
-		{
-		case -1:
-			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: UNKNOWN (Code: -1)");
-			break;
-		case -10:
-			guiRef.DriverStatusLabel->SetText(
-				"SteamVR Driver Status: SERVER ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
-			break;
-		case 1:
-			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: Success!");
-			KinectSettings::isDriverPresent = true;
-			break;
-		case 10:
-			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: ERROR NOT INITIALIZED (Code: 10)");
-			break;
-		default:
-			guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: UNKNOWN (Code: -1)");
-			break;
-		}
+			if (!KinectSettings::isServerFailure) {
+				KinectSettings::K2Drivercode = checkK2Server();
+				switch (KinectSettings::K2Drivercode)
+				{
+				case -1:
+					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: EXCEPTION WHILE CHECKING (Code: -1)");
+					break;
+				case -10:
+					guiRef.DriverStatusLabel->SetText(
+						"SteamVR Driver Status: SERVER CONNECTION ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
+					break;
+				case 10:
+					guiRef.DriverStatusLabel->SetText(
+						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
+					break;
+				case 1:
+					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: Success!");
+					KinectSettings::isDriverPresent = true;
+					break;
+				default:
+					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: COULD NOT CONNECT TO K2API (Code: -11)");
+					break;
+				}
 
-		guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent
-			                                   ? sfg::Widget::State::NORMAL
-			                                   : sfg::Widget::State::INSENSITIVE);
-		guiRef.ping_InitTrackers();
+				guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent
+					? sfg::Widget::State::NORMAL
+					: sfg::Widget::State::INSENSITIVE);
+				guiRef.ping_InitTrackers();
+			}
 	}).detach();
 }
 
@@ -495,6 +569,32 @@ void processLoop(KinectHandlerBase& kinect)
 		/* Check for updates */
 	}).detach();
 
+	// Generate the default trackers here
+	/* update 3 default trackers <KinectSettings.h> */
+	for (int i = 0; i < 3; i++)
+	{
+		// We don't let the user overwrite serial here
+		KinectSettings::trackerVector.at(i).data.serial = "/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i);
+
+		// Switch the rest
+		switch (i)
+		{
+		case 0: // Waist
+			KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_Waist;
+			break;
+		case 1: // LFoot
+			KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_LeftFoot;
+			break;
+		case 2: // RFoot
+			KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_RightFoot;
+			break;
+		}
+	}
+
+	// Initialize trackers' filters
+	for (auto& tracker : KinectSettings::trackerVector)
+		tracker.initAllFilters();
+	
 	//SFGUI Handling -------------------------------------- 
 	GUIHandler guiRef;
 	// ----------------------------------------------------
@@ -568,6 +668,108 @@ void processLoop(KinectHandlerBase& kinect)
 	updateServerStatus(guiRef);
 	/************************************************/
 
+	/************************************************/
+	// Add trackers (Try to download via serial / add)
+	/************************************************/
+
+	// Generate the default trackers here
+	/* update 3 default trackers <KinectSettings.h> */
+	for (int i = 0; i < 3; i++)
+	{
+		// We don't let the user overwrite serial here
+		auto tracker_downloaded = ktvr::download_tracker("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i));
+
+		// Check the role too
+		int _role = -1;
+		switch (i)
+		{
+		case 0: // Waist
+			_role = ktvr::Tracker_Waist;
+			break;
+		case 1: // LFoot
+			_role = ktvr::Tracker_LeftFoot;
+			break;
+		case 2: // RFoot
+			_role = ktvr::Tracker_RightFoot;
+			break;
+		}
+
+		// If tracker's been found
+		if(tracker_downloaded.result == ktvr::K2ResponseMessageCode_OK &&
+			tracker_downloaded.messageType == ktvr::K2ResponseMessage_Tracker &&
+			tracker_downloaded.tracker_base.data.role == _role)
+		{
+			KinectSettings::trackerID[i] = tracker_downloaded.id;
+			KinectSettings::trackerSerial[i] = tracker_downloaded.tracker_base.data.serial;
+			
+			KinectSettings::trackerVector.at(i).id = tracker_downloaded.id;
+			KinectSettings::trackerVector.at(i).data = tracker_downloaded.tracker_base.data;
+			KinectSettings::trackerVector.at(i).pose = tracker_downloaded.tracker_base.pose;
+
+			LOG(INFO) << "Tracker with serial " +
+				("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) +
+				" has been found with id " + std::to_string(tracker_downloaded.id) + " and will be used from now on.";
+		}
+		else
+		{
+			LOG(INFO) << "Tracker with serial " + 
+				("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) + 
+				" and suitable role has not been found and will be added separately.";
+
+			// Add the tracker and overwrite id
+			auto add_tracker_response = 
+				ktvr::add_tracker(KinectSettings::trackerVector.at(i).getTrackerBase());
+			KinectSettings::trackerVector.at(i).id = add_tracker_response.id;
+
+			if (add_tracker_response.result == ktvr::K2ResponseMessageCode_OK) {
+				LOG(INFO) << "Tracker with serial " +
+					("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) +
+					" has been added successfully.";
+				
+				KinectSettings::trackerID[i] = add_tracker_response.id;
+				KinectSettings::trackerSerial[i] = add_tracker_response.tracker_base.data.serial;
+			}
+			else if (add_tracker_response.result == ktvr::K2ResponseMessageCode_AlreadyPresent)
+			{
+				LOG(INFO) << "Tracker with serial " +
+					("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) +
+					" is already present. Changing the last serial digit by +3...";
+
+				// Change the serial
+				KinectSettings::trackerVector.at(i).data.serial = "/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i + 3);
+
+				// Compose the response
+				auto add_tracker_response_ns =
+					ktvr::add_tracker(KinectSettings::trackerVector.at(i).getTrackerBase());
+
+				if (add_tracker_response_ns.result == ktvr::K2ResponseMessageCode_OK) {
+					LOG(INFO) << "Tracker with serial " +
+						("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i + 3)) +
+						" has been added successfully.";
+					
+					KinectSettings::trackerVector.at(i).id = add_tracker_response_ns.id;
+					KinectSettings::trackerID[i] = add_tracker_response_ns.id;
+					KinectSettings::trackerSerial[i] = add_tracker_response_ns.tracker_base.data.serial;
+				}
+				else
+				{
+					LOG(INFO) << "Tracker with serial " +
+						("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i + 3)) +
+						" could not be added. Giving up...";
+
+					// Cause not checking anymore
+					KinectSettings::isServerFailure = true;
+					guiRef.DriverStatusLabel->SetText(
+						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
+				}
+			}
+		}
+	}
+	
+	/************************************************/
+	// Add trackers (Try to download via serial / add)
+	/************************************************/
+
 	KinectSettings::userChangingZero = true;
 	if (kinect.kVersion != INVALID)
 		kinect.initialiseSkeleton();
@@ -597,27 +799,10 @@ void processLoop(KinectHandlerBase& kinect)
 
 	auto ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
-
-	// Start a new test
-	KinectSettings::latencyTestPending = true;
-	LOG(INFO) << "Starting a latency test...";
-	LOG(INFO) << "Trackers may jump or go somewhere for a while, please don't panic.";
-	int framenumber = 3500, checks = 0; // Run a new test "right away"
-
+	
 	while (renderWindow.isOpen() && SFMLsettings::keepRunning)
 	{
-		if (framenumber >= 500 && checks < 5)
-		{
-			framenumber = 0;
-			checks++;
-
-			// Start a new test
-			KinectSettings::latencyTestPending = true;
-			LOG(INFO) << "+500 frames have passed since the last check.";
-			LOG(INFO) << "Starting a latency test...";
-		}
-		else framenumber++;
-
+		
 		if (!KinectSettings::isDriverPresent)
 		{
 			//Update driver status
@@ -625,6 +810,10 @@ void processLoop(KinectHandlerBase& kinect)
 			updateServerStatus(guiRef);
 			/************************************************/
 		}
+
+		if (KinectSettings::isServerFailure)
+			guiRef.DriverStatusLabel->SetText(
+				"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
 
 		//Clear the debug text display
 		SFMLsettings::debugDisplayTextStream.str(std::string());
@@ -709,21 +898,7 @@ void processLoop(KinectHandlerBase& kinect)
 			leftController.update(deltaT);
 
 			updateHMDPosAndRot(m_VRSystem);
-
-			/*std::cout << "X: " << float(int(rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x*10))/10.f <<
-				" Y: " << float(int(rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y*10))/10.f << 
-				" T: " << rightController.GetTrigger() << '\n';*/
-
-			/***********************************************************************************************
-			std::cout <<
-				"Left: " << KinectSettings::left_foot_psmove.Pose.Position.x << ' ' << KinectSettings::left_foot_psmove.Pose
-				.Position.y << ' ' << KinectSettings::left_foot_psmove.Pose.Position.z << '\n' <<
-				"Right: " << KinectSettings::right_foot_psmove.Pose.Position.x << ' ' << KinectSettings::right_foot_psmove.Pose.
-				Position.y << ' ' << KinectSettings::right_foot_psmove.Pose.Position.z << '\n' <<
-				"Waist: " << KinectSettings::waist_psmove.Pose.Position.x << ' ' << KinectSettings::waist_psmove.Pose.Position.y
-				<< ' ' << KinectSettings::waist_psmove.Pose.Position.z << "\n\n";
-			***********************************************************************************************/
-
+			
 			VRInput::trackpadpose[0].x = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
 			VRInput::trackpadpose[0].y = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
 			VRInput::trackpadpose[1].x = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
@@ -754,46 +929,7 @@ void processLoop(KinectHandlerBase& kinect)
 				confirmCalibrationData.bState = triggerDown;
 			}
 			// -------------------------
-
-
-			///**********************************************************/
-
-			//vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
-			//
-			//for (vr::TrackedDeviceIndex_t index = 0; index < vr::k_unMaxTrackedDeviceCount; index++) {
-			//	
-			//	if (index != vr::k_unTrackedDeviceIndexInvalid && index != 0) {
-			//		
-			//		m_VRSystem->GetDeviceToAbsoluteTrackingPose(vr::ETrackingUniverseOrigin::TrackingUniverseStanding, 
-			//			0, devicePose, vr::k_unMaxTrackedDeviceCount);
-
-			//		if (devicePose[index].bPoseIsValid)
-			//		{
-			//			if (m_VRSystem->GetTrackedDeviceClass(index) == vr::TrackedDeviceClass_GenericTracker)
-			//			{
-			//				m_VRSystem->GetTrackedDeviceClass(index);
-
-			//				char pch_value[1024] = { 0 };
-			//				m_VRSystem->GetStringTrackedDeviceProperty(index, vr::Prop_ControllerType_String, pch_value, sizeof pch_value);
-
-			//				// L, R, W
-			//				if (std::string(pch_value) == "vive_tracker_left_foot")
-			//					KinectSettings::trackerIndex[0] = index;
-			//				if (std::string(pch_value) == "vive_tracker_right_foot")
-			//					KinectSettings::trackerIndex[1] = index;
-			//				if (std::string(pch_value) == "vive_tracker_waist")
-			//					KinectSettings::trackerIndex[2] = index;
-
-			//				LOG(INFO) <<
-			//					devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[0][3] << ' ' <<
-			//					devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[1][3] << ' ' <<
-			//					devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[2][3] << ' ';
-			//			}
-			//		}
-			//	}
-			//}
-
-			///**********************************************************/
+			
 		}
 
 		renderWindow.clear(); //////////////////////////////////////////////////////
@@ -900,32 +1036,52 @@ void processLoop(KinectHandlerBase& kinect)
 
 void spawnDefaultLowerBodyTrackers()
 {
-	auto activate = new std::thread([]
-	{
-		// create chrono for limiting loop timing
-		using clock = std::chrono::steady_clock;
-		auto next_frame = clock::now();
-
-		while (true)
+	auto activate = new std::thread([&]
 		{
-			// measure loop time, let's run at 140/s
-			next_frame += std::chrono::milliseconds(1000 / 30);
+			bool spawned[3] = { false };
+		
+			// Try 3 times
+			for (int i = 0; i < 3; i++) {
+				// Add only lower body trackers from the vector
+				for (auto& tracker : KinectSettings::trackerVector) {
 
-			HANDLE pingPipe = CreateFile(
-				TEXT("\\\\.\\pipe\\TrackersInitPipe"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-				nullptr);
-			DWORD Written;
+					if (tracker.data.role == ktvr::Tracker_Waist ||
+						tracker.data.role == ktvr::Tracker_LeftFoot ||
+						tracker.data.role == ktvr::Tracker_RightFoot)
+					{
+						if (const auto& m_result =
+							ktvr::set_tracker_state(tracker.id, true);
+							m_result.id == tracker.id && m_result.success) {
 
-			std::string InitS = "Initialize Trackers!";
+							LOG(INFO) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
+								" was successfully updated with status [active]";
 
-			char InitD[1024];
-			strcpy_s(InitD, InitS.c_str());
+							spawned[tracker.id < 3 ? tracker.id : tracker.id - 3] = true;
+						}
 
-			WriteFile(pingPipe, InitD, sizeof(InitD), &Written, nullptr);
-			CloseHandle(pingPipe);
+						else if (m_result.id != tracker.id && m_result.success)
+							LOG(INFO) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
+							" could not be spawned due to ID mismatch.";
 
-			//Sleep until next frame, if time haven't passed yet
-			std::this_thread::sleep_until(next_frame);
-		}
-	});
+						else {
+							LOG(INFO) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
+								" could not be spawned due to internal server error.";
+						}
+					}
+					else
+					{
+						LOG(INFO) << "Not spawning tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
+							" because the role does not apply to the lower-body-tracking class.";
+					}
+				}
+			}
+
+			if (!spawned[0] || !spawned[1] || !spawned[2])
+			{
+				LOG(INFO) << "One or more trackers couldn't be spawned after 3 tries. Giving up...";
+
+				// Cause not checking anymore
+				KinectSettings::isServerFailure = true;
+			}
+		});
 }

@@ -14,6 +14,14 @@
 #include <PSMoveClient_CAPI.h>
 #include <EigenGLHelpers.h>
 
+// Hook into KTVR and use its K2STracker object
+// (for easier tracker management)
+// This also gives us some built-in filters
+#include <../KTVR/KinectToVR/K2STracker.h>
+
+// Casting Eigen<->GLM<->OpenVR
+#include <TypeCast.h>
+
 enum KinectVersion
 {
 	Version1 = 1,
@@ -35,7 +43,7 @@ enum footRotationFilterOption
 	///use headset orientation for feet
 	
 	/*
-	 * UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
+	 * WTF IS GOING ON HERE, IT'S COMMENTED OUT
 	*/
 
 	//k_HipTrackerOrientation,
@@ -44,7 +52,7 @@ enum footRotationFilterOption
 	///same as previous but keep orientation filter for pitch/roll
 
 	/*
-	 * UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
+	 * WTF IS GOING ON HERE, IT'S COMMENTED OUT
 	*/
 	
 	k_EnableOrientationFilter_Software
@@ -83,6 +91,10 @@ enum positionalFilterOption
 	///disable filtering for position
 };
 
+// Map positional filters from K2EX to KTVR
+
+
+
 static struct posFilter
 {
 	positionalFilterOption filterOption;
@@ -116,23 +128,6 @@ static struct bodyTrackingOpt
 	bodyTrackingOption trackingOption;
 } bodyTrackingOption_s;
 
-// Ancient things left from the .7
-// BELOW
-
-enum headTrackingOption
-{
-	k_PSMoveTracking,
-	k_KinectTracking
-};
-
-// UP
-// Ancient things left from the .7
-
-static struct headTrackingOpt
-{
-	headTrackingOption trackingOption;
-} headTrackingOption_s;
-
 namespace KinectSettings
 {
 	static struct K2VR_PSMoveData
@@ -141,6 +136,17 @@ namespace KinectSettings
 		bool isValidController = false;
 	} KVRPSMoveData[11];
 
+	/* Interfacing with the k2api */
+	extern long long pingTime, parsingTime,
+		lastLoopTime;
+	extern int pingCheckingThreadsNumber;
+	extern const int maxPingCheckingThreads;
+
+	/*All trackers which should be added : W, L, R*/
+	extern std::vector<K2STracker> trackerVector;
+	extern int trackerID[3]; // W, L, R
+	extern std::string trackerSerial[3]; // W, L, R
+
 	extern vr::TrackedDeviceIndex_t trackerIndex[3]; // Trackers' indexes : L, R, W
 	extern bool latencyTestPending, doingLatencyTest;
 	extern long long latencyTestMillis;
@@ -148,7 +154,7 @@ namespace KinectSettings
 	extern std::chrono::steady_clock::time_point latencyTestStart, latencyTestEnd;
 	
 	static std::vector<K2VR_PSMoveData> KVR_PSMoves;
-	extern bool isCalibrating, isKinectPSMS;
+	extern bool isCalibrating, isKinectPSMS, isServerFailure;
 	extern int K2Drivercode, kinectVersion;
 	extern PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
 	extern Eigen::Quaternionf left_tracker_rot, right_tracker_rot, waist_tracker_rot;

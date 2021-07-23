@@ -4,8 +4,6 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/memory.hpp>
 #include <boost/interprocess/managed_shared_memory.hpp>
-#include <LowPassFilter.h>
-#include <EKF_Filter.h>
 #include <MathEigen.h>
 #include <iostream>
 #include <fstream>
@@ -24,9 +22,22 @@ namespace KinectSettings
 	long long latencyTestMillis = -1;
 	std::chrono::steady_clock::time_point latencyTestStart, latencyTestEnd;
 
+	/* Interfacing with the k2api */
+	long long pingTime = 0, parsingTime = 0,
+		lastLoopTime = 0;
+	int pingCheckingThreadsNumber = 0;
+	const int maxPingCheckingThreads = 3;
+
+	/*All trackers which should be added : W, L, R*/
+	std::vector<K2STracker> trackerVector{
+		K2STracker(), K2STracker(), K2STracker()
+	}; // This way we're gonna auto-init filters
+	int trackerID[3] = { -1, -1, -1 }; // W, L, R
+	std::string trackerSerial[3] = { "", "", "" }; // W, L, R
+
 	int kinectVersion = -1;
 	bool psmbuttons[5][10];
-	bool isKinectDrawn = false;
+	bool isKinectDrawn = false, isServerFailure = false;
 	bool isSkeletonDrawn = false;
 	bool isDriverPresent = false;
 	float svrhmdyaw = 0, calibration_kinect_pitch = 0;
@@ -50,7 +61,7 @@ namespace KinectSettings
 
 	PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
 	bool isGripPressed[2] = {false, false}, isTriggerPressed[2] = {false, false}; //0L, 1R
-	bool initialised = false, isKinectPSMS = false;
+	bool initialised = false, initialised_bak = false, isKinectPSMS = false;
 	bool userChangingZero = false;
 	bool legacy = false;
 	float g_TrackedBoneThickness = 6.0f;
@@ -114,6 +125,8 @@ namespace KinectSettings
 	vr::HmdQuaternion_t kinectRepRotation{0, 0, 0, 0}; //TEMP
 	vr::HmdVector3d_t kinectRadRotation{0, 0, 0};
 	vr::HmdVector3d_t kinectRepPosition{0, 0, 0};
+
+	// R, L, H
 	vr::HmdVector3d_t manual_offsets[2][3] = {{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
 	vr::HmdVector3d_t hoffsets{0, 0, 0};
 	vr::HmdVector3d_t huoffsets{0, 0, 0};
@@ -131,6 +144,7 @@ namespace KinectSettings
 	float calibration_trackers_yaw = 0.0;
 	bool jcalib;
 	int cpoints = 3;
+	int p_loops = 0; // Loops passed since last status update
 
 	vr::HmdQuaternion_t hmdquat{1, 0, 0, 0};
 
@@ -163,46 +177,7 @@ namespace KinectSettings
 
 	void sendipc()
 	{
-		LowPassFilter lowPassFilter[3][3] = {
-			{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
-			{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
-			{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)}
-		};
-
-		int n = 3, m = 1; // Number of measurements & statements
-		double dt = 1.0 / 30, t[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-		Eigen::MatrixXd A(n, n), C(m, n), Q(n, n), R(m, m), P(n, n);
-
-		A << 1, dt, 0, 0, 1, dt, 0, 0, 1;
-		C << 1, 0, 0;
-
-		Q << .05, .05, .0, .05, .05, .0, .0, .0, .0;
-		R << 5;
-		P << .1, .1, .1, .1, 10000, 10, .1, 10, 100;
-
-		KalmanFilter kalmanFilter[3][3] = {
-			{KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P)},
-			{KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P)},
-			{KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P), KalmanFilter(dt, A, C, Q, R, P)}
-		};
-
-		Eigen::VectorXd x0(n);
-		x0 << 0.f, 0.f, 0.f;
-
-		for (int i = 0; i < 3; i++)
-		{
-			for (int j = 0; j < 3; j++)
-			{
-				kalmanFilter[i][j].init(0.f, x0);
-			}
-		}
-
-		Eigen::VectorXd y[3][3] = {
-			{Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m)},
-			{Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m)},
-			{Eigen::VectorXd(m), Eigen::VectorXd(m), Eigen::VectorXd(m)}
-		};
-
+		
 		while (true)
 		{
 			auto loop_start_time = std::chrono::high_resolution_clock::now();
@@ -244,129 +219,7 @@ namespace KinectSettings
 			kinect_m_positions[0].v[0] = head_position.x;
 			kinect_m_positions[0].v[1] = head_position.y;
 			kinect_m_positions[0].v[2] = head_position.z;
-
-			/*****************************************************************************************/
-			// Filters
-			/*****************************************************************************************/
-			const glm::vec3 poseCurrent[3] = {left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose};
-			const glm::vec3 posePrevious[3] = {lastPose[0][0], lastPose[1][0], lastPose[2][0]};
-			const glm::vec3 poseLerp[3] = {
-				mix(posePrevious[0], poseCurrent[0], 0.5f),
-				mix(posePrevious[1], poseCurrent[1], 0.5f),
-				mix(posePrevious[2], poseCurrent[2], 0.5f)
-			};
-
-			// Create the filtered pose vector (empty)
-			glm::vec3 poseFiltered[3] = {
-				glm::vec3(0, 0, 0),
-				glm::vec3(0, 0, 0),
-				glm::vec3(0, 0, 0)
-			};
-
-			// Backup the old pose for the next loop
-			lastPose[0][0] = left_foot_raw_pose;
-			lastPose[1][0] = right_foot_raw_pose;
-			lastPose[2][0] = waist_raw_pose;
-
-			if (posOption == k_DisablePositionFilter)
-			{
-				poseFiltered[0] = left_foot_raw_pose;
-				poseFiltered[1] = right_foot_raw_pose;
-				poseFiltered[2] = waist_raw_pose;
-			}
-			else if (posOption == k_EnablePositionFilter_LERP)
-			{
-				poseFiltered[0] = poseLerp[0];
-				poseFiltered[1] = poseLerp[1];
-				poseFiltered[2] = poseLerp[2];
-			}
-			else if (posOption == k_EnablePositionFilter_LowPass)
-			{
-				poseFiltered[0] = glm::vec3(lowPassFilter[0][0].update(left_foot_raw_pose.x),
-				                            lowPassFilter[0][1].update(left_foot_raw_pose.y),
-				                            lowPassFilter[0][2].update(left_foot_raw_pose.z));
-				poseFiltered[1] = glm::vec3(lowPassFilter[1][0].update(right_foot_raw_pose.x),
-				                            lowPassFilter[1][1].update(right_foot_raw_pose.y),
-				                            lowPassFilter[1][2].update(right_foot_raw_pose.z));
-				poseFiltered[2] = glm::vec3(lowPassFilter[2][0].update(waist_raw_pose.x),
-				                            lowPassFilter[2][1].update(waist_raw_pose.y),
-				                            lowPassFilter[2][2].update(waist_raw_pose.z));
-			}
-			else if (posOption == k_EnablePositionFilter_Kalman)
-			{
-				for (int i = 0; i < 3; i++)
-				{
-					t[0][i] += dt;
-					switch (i)
-					{
-					case 0:
-						y[0][i] << left_foot_raw_pose.x;
-						kalmanFilter[0][i].update(y[0][i]);
-						poseFiltered[0].x = kalmanFilter[0][i].state().x();
-						break;
-					case 1:
-						y[0][i] << left_foot_raw_pose.y;
-						kalmanFilter[0][i].update(y[0][i]);
-						poseFiltered[0].y = kalmanFilter[0][i].state().x();
-						break;
-					case 2:
-						y[0][i] << left_foot_raw_pose.z;
-						kalmanFilter[0][i].update(y[0][i]);
-						poseFiltered[0].z = kalmanFilter[0][i].state().x();
-						break;
-					}
-				}
-
-				for (int i = 0; i < 3; i++)
-				{
-					t[1][i] += dt;
-					switch (i)
-					{
-					case 0:
-						y[1][i] << right_foot_raw_pose.x;
-						kalmanFilter[1][i].update(y[1][i]);
-						poseFiltered[1].x = kalmanFilter[1][i].state().x();
-						break;
-					case 1:
-						y[1][i] << right_foot_raw_pose.y;
-						kalmanFilter[1][i].update(y[1][i]);
-						poseFiltered[1].y = kalmanFilter[1][i].state().x();
-						break;
-					case 2:
-						y[1][i] << right_foot_raw_pose.z;
-						kalmanFilter[1][i].update(y[1][i]);
-						poseFiltered[1].z = kalmanFilter[1][i].state().x();
-						break;
-					}
-				}
-
-				for (int i = 0; i < 3; i++)
-				{
-					t[2][i] += dt;
-					switch (i)
-					{
-					case 0:
-						y[2][i] << waist_raw_pose.x;
-						kalmanFilter[2][i].update(y[2][i]);
-						poseFiltered[2].x = kalmanFilter[2][i].state().x();
-						break;
-					case 1:
-						y[2][i] << waist_raw_pose.y;
-						kalmanFilter[2][i].update(y[2][i]);
-						poseFiltered[2].y = kalmanFilter[2][i].state().x();
-						break;
-					case 2:
-						y[2][i] << waist_raw_pose.z;
-						kalmanFilter[2][i].update(y[2][i]);
-						poseFiltered[2].z = kalmanFilter[2][i].state().x();
-						break;
-					}
-				}
-			}
-			/*****************************************************************************************/
-			// Filters
-			/*****************************************************************************************/
-
+			
 			/*****************************************************************************************/
 			// Resetting PSMoves orientations
 			/*****************************************************************************************/
@@ -869,262 +722,130 @@ namespace KinectSettings
 				// Swap poses for flip if needed and construct the message string, check if we're calibrated
 				/*****************************************************************************************/
 
-				if (!latencyTestPending)
+				/*****************************************************************************************/
+				// Push RAW poses to trackers
+				/*****************************************************************************************/
+
+				trackerVector.at(0).pose.position = waist_raw_pose;
+				trackerVector.at(1).pose.position = left_foot_raw_pose;
+				trackerVector.at(2).pose.position = right_foot_raw_pose;
+				
+				/*****************************************************************************************/
+				// Push offset poses to trackers
+				/*****************************************************************************************/
+
+				// Waist
+				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[0];
+				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[1];
+				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[2];
+				
+				// Left
+				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[0];
+				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[1];
+				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[2];
+				
+				// Right
+				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[0];
+				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[1];
+				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[2];
+				
+				/*****************************************************************************************/
+				// Push RAW poses to trackers
+				/*****************************************************************************************/
+
+				/*****************************************************************************************/
+				// Push RAW orientations to trackers
+				/*****************************************************************************************/
+				
+				trackerVector.at(0).pose.orientation = p_cast_type<glm::quat>(waist_tracker_rot);
+				trackerVector.at(1).pose.orientation = p_cast_type<glm::quat>(left_tracker_rot);
+				trackerVector.at(2).pose.orientation = p_cast_type<glm::quat>(right_tracker_rot);
+				
+				/*****************************************************************************************/
+				// Push RAW orientations to trackers
+				/*****************************************************************************************/
+
+				/*****************************************************************************************/
+				// Flip
+				/*****************************************************************************************/
+
+				// Flipping trackers
+				// To flip trackers without interfering their internal filters,
+				// we need to 'fool' the server that it updates the same tracker,
+				// with pose rapidly changed. To achieve this, we'll change particular
+				// trackers' serials and ids and keep the internal pose.
+				
+				if(!flip)
 				{
-					if (matrixes_calibrated)
-					{
-						// Construct 3 temporary variables for the poses
-						Eigen::Vector3f
-							left_foot_pose,
-							right_foot_pose,
-							waist_pose;
+					trackerVector.at(1).id = trackerID[1]; // L->L
+					trackerVector.at(1).data.serial = trackerSerial[1];
 
-						// Swap poses if needed
-						if (!flip)
-						{
-							left_foot_pose(0) = poseFiltered[0].x;
-							left_foot_pose(1) = poseFiltered[0].y;
-							left_foot_pose(2) = poseFiltered[0].z;
-
-							right_foot_pose(0) = poseFiltered[1].x;
-							right_foot_pose(1) = poseFiltered[1].y;
-							right_foot_pose(2) = poseFiltered[1].z;
-						}
-						else
-						{
-							right_foot_pose(0) = poseFiltered[0].x;
-							right_foot_pose(1) = poseFiltered[0].y;
-							right_foot_pose(2) = poseFiltered[0].z;
-
-							left_foot_pose(0) = poseFiltered[1].x;
-							left_foot_pose(1) = poseFiltered[1].y;
-							left_foot_pose(2) = poseFiltered[1].z;
-						}
-
-						// Waist in't flipped, after all
-						waist_pose(0) = poseFiltered[2].x;
-						waist_pose(1) = poseFiltered[2].y;
-						waist_pose(2) = poseFiltered[2].z;
-
-						// Construct the calibrated pose: SEE GuiHandler.h#2918
-						PointSet left_pose_end = (calibration_rotation * (left_foot_pose - calibration_origin)).
-							colwise() + calibration_translation + calibration_origin;
-						PointSet right_pose_end = (calibration_rotation * (right_foot_pose - calibration_origin)).
-							colwise() + calibration_translation + calibration_origin;
-						PointSet waist_pose_end = (calibration_rotation * (waist_pose - calibration_origin)).colwise() +
-							calibration_translation + calibration_origin;
-
-						S << "HX" << 10000 * (left_pose_end(0) + manual_offsets[0][1].v[0] + kinect_tracker_offsets.v[
-								0]) <<
-							"/HY" << 10000 * (left_pose_end(1) + manual_offsets[0][1].v[1] + kinect_tracker_offsets.v[
-								1]) <<
-							"/HZ" << 10000 * (left_pose_end(2) + manual_offsets[0][1].v[2] + kinect_tracker_offsets.v[
-								2]) <<
-							"/MX" << 10000 * (right_pose_end(0) + manual_offsets[0][0].v[0] + kinect_tracker_offsets.v[
-								0]) <<
-							"/MY" << 10000 * (right_pose_end(1) + manual_offsets[0][0].v[1] + kinect_tracker_offsets.v[
-								1]) <<
-							"/MZ" << 10000 * (right_pose_end(2) + manual_offsets[0][0].v[2] + kinect_tracker_offsets.v[
-								2]) <<
-							"/PX" << 10000 * (waist_pose_end(0) + manual_offsets[0][2].v[0] + kinect_tracker_offsets.v[
-								0]) <<
-							"/PY" << 10000 * (waist_pose_end(1) + manual_offsets[0][2].v[1] + kinect_tracker_offsets.v[
-								1]) <<
-							"/PZ" << 10000 * (waist_pose_end(2) + manual_offsets[0][2].v[2] + kinect_tracker_offsets.v[
-								2]) <<
-							"/HRW" << 10000 * left_tracker_rot.w() <<
-							"/HRX" << 10000 * left_tracker_rot.x() <<
-							"/HRY" << 10000 * left_tracker_rot.y() <<
-							"/HRZ" << 10000 * left_tracker_rot.z() <<
-							"/MRW" << 10000 * right_tracker_rot.w() <<
-							"/MRX" << 10000 * right_tracker_rot.x() <<
-							"/MRY" << 10000 * right_tracker_rot.y() <<
-							"/MRZ" << 10000 * right_tracker_rot.z() <<
-							"/PRW" << 10000 * waist_tracker_rot.w() <<
-							"/PRX" << 10000 * waist_tracker_rot.x() <<
-							"/PRY" << 10000 * waist_tracker_rot.y() <<
-							"/PRZ" << 10000 * waist_tracker_rot.z() <<
-							"/ENABLED" << initialised << "/";
-					}
-					else
-					{
-						S << "HX" << 10000 * (poseFiltered[0].x + manual_offsets[0][1].v[0] + kinect_tracker_offsets.v[
-								0]) <<
-							"/HY" << 10000 * (poseFiltered[0].y + manual_offsets[0][1].v[1] + kinect_tracker_offsets.v[
-								1]) <<
-							"/HZ" << 10000 * (poseFiltered[0].z + manual_offsets[0][1].v[2] + kinect_tracker_offsets.v[
-								2]) <<
-							"/MX" << 10000 * (poseFiltered[1].x + manual_offsets[0][0].v[0] + kinect_tracker_offsets.v[
-								0]) <<
-							"/MY" << 10000 * (poseFiltered[1].y + manual_offsets[0][0].v[1] + kinect_tracker_offsets.v[
-								1]) <<
-							"/MZ" << 10000 * (poseFiltered[1].z + manual_offsets[0][0].v[2] + kinect_tracker_offsets.v[
-								2]) <<
-							"/PX" << 10000 * (poseFiltered[2].x + manual_offsets[0][2].v[0] + kinect_tracker_offsets.v[
-								0]) <<
-							"/PY" << 10000 * (poseFiltered[2].y + manual_offsets[0][2].v[1] + kinect_tracker_offsets.v[
-								1]) <<
-							"/PZ" << 10000 * (poseFiltered[2].z + manual_offsets[0][2].v[2] + kinect_tracker_offsets.v[
-								2]) <<
-							"/HRW" << 10000 * left_tracker_rot.w() <<
-							"/HRX" << 10000 * left_tracker_rot.x() <<
-							"/HRY" << 10000 * left_tracker_rot.y() <<
-							"/HRZ" << 10000 * left_tracker_rot.z() <<
-							"/MRW" << 10000 * right_tracker_rot.w() <<
-							"/MRX" << 10000 * right_tracker_rot.x() <<
-							"/MRY" << 10000 * right_tracker_rot.y() <<
-							"/MRZ" << 10000 * right_tracker_rot.z() <<
-							"/PRW" << 10000 * waist_tracker_rot.w() <<
-							"/PRX" << 10000 * waist_tracker_rot.x() <<
-							"/PRY" << 10000 * waist_tracker_rot.y() <<
-							"/PRZ" << 10000 * waist_tracker_rot.z() <<
-							"/ENABLED" << initialised << "/";
-					}
+					trackerVector.at(2).id = trackerID[2]; // R->R
+					trackerVector.at(2).data.serial = trackerSerial[2];
 				}
 				else
 				{
-					// don't mess with multiple instances
-					if (!doingLatencyTest)
-					{
-						// Inform that there's already one ongoing
-						doingLatencyTest = true;
+					trackerVector.at(1).id = trackerID[2]; // L->R
+					trackerVector.at(1).data.serial = trackerSerial[2];
 
-						// Dump current time for the latency test.
-						// Assuming we don't have latency from read->here
-						// we can just add it right in this code block
+					trackerVector.at(2).id = trackerID[1]; // R->L
+					trackerVector.at(2).data.serial = trackerSerial[1];
+				}
+				
+				/*****************************************************************************************/
+				// Filters & update
+				/*****************************************************************************************/
 
-						latencyTestStart = std::chrono::high_resolution_clock::now();
+				trackerVector.at(0).updatePositionFilters();
+				trackerVector.at(1).updatePositionFilters();
+				trackerVector.at(2).updatePositionFilters();
 
-						// Add some special values if we're doing a latency test
-						S << "HX" << 10000 * 101 <<
-							"/HY" << 10000 * 110 <<
-							"/HZ" << 10000 * 111 <<
-							"/MX" << 10000 * 100 <<
-							"/MY" << 10000 * 10 <<
-							"/MZ" << 10000 * 11 <<
-							"/PX" << 10000 * 1 <<
-							"/PY" << 10000 * 0 <<
-							"/PZ" << 10000 * -1 <<
-							"/HRW" << 10000 * left_tracker_rot.w() <<
-							"/HRX" << 10000 * left_tracker_rot.x() <<
-							"/HRY" << 10000 * left_tracker_rot.y() <<
-							"/HRZ" << 10000 * left_tracker_rot.z() <<
-							"/MRW" << 10000 * right_tracker_rot.w() <<
-							"/MRX" << 10000 * right_tracker_rot.x() <<
-							"/MRY" << 10000 * right_tracker_rot.y() <<
-							"/MRZ" << 10000 * right_tracker_rot.z() <<
-							"/PRW" << 10000 * waist_tracker_rot.w() <<
-							"/PRX" << 10000 * waist_tracker_rot.x() <<
-							"/PRY" << 10000 * waist_tracker_rot.y() <<
-							"/PRZ" << 10000 * waist_tracker_rot.z() <<
-							"/ENABLED" << initialised << "/";
+				// Update trackers + filters
+				for (auto& k2_s_tracker : trackerVector) {
 
-						std::thread([&]
-						{
-							/**********************************************************/
+					// Update pose w/ filtering
+					if (matrixes_calibrated)
+						ktvr::update_tracker_pose(
+							k2_s_tracker.getTrackerBase
+							(
+								calibration_rotation,
+								calibration_translation,
+								calibration_origin,
+								posOption, t_NoOrientationTrackingFilter
+							));
 
-							// just repeat this one until we'll get the result OR give up
-							int loops_num = 0;
-							while (true)
-							{
-								loops_num++;
-								vr::TrackedDevicePose_t devicePose[vr::k_unMaxTrackedDeviceCount];
+					else ktvr::update_tracker_pose(
+						k2_s_tracker.getTrackerBase(
+							posOption, t_NoOrientationTrackingFilter));
+					
+					// Okie, this would be in loop, really...
+					// but somehow it captures only the last value from the loop then
+					// so for now it will be one-by-one
+					// This is in the loop because it may fail from tiem to time
+					
+					// Update status 1/1000 loops / ~8s
+					// or right after any change
+					if (p_loops >= 1000 ||
+						(initialised_bak != initialised)) {
+						// Update status in server
+						ktvr::set_tracker_state(trackerVector.at(0).id, initialised);
+						ktvr::set_tracker_state(trackerVector.at(1).id, initialised);
+						ktvr::set_tracker_state(trackerVector.at(2).id, initialised);
 
-								for (vr::TrackedDeviceIndex_t index = 0; index < vr::k_unMaxTrackedDeviceCount; index++)
-								{
-									if (index != vr::k_unTrackedDeviceIndexInvalid && index != 0)
-									{
-										vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(
-											vr::ETrackingUniverseOrigin::TrackingUniverseStanding,
-											0, devicePose, vr::k_unMaxTrackedDeviceCount);
+						// Update internal status
+						k2_s_tracker.data.isActive = initialised;
+						initialised_bak = initialised;
 
-										if (devicePose[index].bDeviceIsConnected)
-										{
-											if (vr::VRSystem()->GetTrackedDeviceClass(index) ==
-												vr::TrackedDeviceClass_GenericTracker)
-											{
-												LOG(INFO) <<
-													"Got a valid TrackedDeviceClass_GenericTracker device's id: " <<
-													index;
-
-												char pch_value[1024] = {0};
-												vr::VRSystem()->GetStringTrackedDeviceProperty(
-													index, vr::Prop_ControllerType_String, pch_value, sizeof pch_value);
-
-												// L, R, W
-												if (std::string(pch_value) == "vive_tracker_left_foot")
-													trackerIndex[0] = index;
-												if (std::string(pch_value) == "vive_tracker_right_foot")
-													trackerIndex[1] = index;
-												if (std::string(pch_value) == "vive_tracker_waist")
-													trackerIndex[2] = index;
-
-												// Check for pose, after fixing it -> see GuiHandler.h / calibration:auto
-												if (trackerIndex[0] != vr::k_unTrackedDeviceIndexInvalid)
-												{
-													Eigen::Vector3f ispose;
-													ispose.x() = devicePose[trackerIndex[0]].mDeviceToAbsoluteTracking.m
-														[0][3] -
-														trackingOriginPosition.v[0];
-													ispose.y() = devicePose[trackerIndex[0]].mDeviceToAbsoluteTracking.m
-														[1][3] -
-														trackingOriginPosition.v[1];
-													ispose.z() = devicePose[trackerIndex[0]].mDeviceToAbsoluteTracking.m
-														[2][3] -
-														trackingOriginPosition.v[2];
-
-													Eigen::AngleAxisf rollAngle(0.f, Eigen::Vector3f::UnitZ());
-													Eigen::AngleAxisf yawAngle(-svrhmdyaw, Eigen::Vector3f::UnitY());
-													Eigen::AngleAxisf pitchAngle(0.f, Eigen::Vector3f::UnitX());
-
-													Eigen::Quaternionf q = rollAngle * yawAngle * pitchAngle;
-													Eigen::Vector3f out = q * ispose;
-
-													//LOG(INFO) << "Got left tracker's pose:\n" << ispose;
-
-													if (static_cast<int>(out.x()) == 101 &&
-														static_cast<int>(out.y()) == 110 &&
-														static_cast<int>(out.z()) == 111)
-													{
-														latencyTestEnd = std::chrono::high_resolution_clock::now();
-														latencyTestMillis = std::chrono::duration_cast<
-															std::chrono::milliseconds>(
-															latencyTestEnd - latencyTestStart).count();
-
-														latencyTestPending = false;
-														doingLatencyTest = false;
-
-														LOG(INFO) << "Latency test ended successfully.";
-														LOG(INFO) << "Current app-driver latency: " << latencyTestMillis
-															<< " [ms]";
-														return;
-													}
-												}
-
-												//LOG(INFO) <<
-												//	devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[0][3] << ' ' <<
-												//	devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[1][3] << ' ' <<
-												//	devicePose[KinectSettings::trackerIndex[1]].mDeviceToAbsoluteTracking.m[2][3] << ' ';
-											}
-										}
-									}
-								}
-
-								if (loops_num >= 100)
-								{
-									LOG(INFO) << "Giving up... Latency test ended with a failure after 1 second.";
-									latencyTestPending = false;
-									doingLatencyTest = false;
-									return;
-								}
-
-								std::this_thread::sleep_for(std::chrono::milliseconds(5));
-							}
-							/**********************************************************/
-						}).detach();
+						// Reset
+						p_loops = 0;
 					}
+					else p_loops++;
 				}
 
+				/*****************************************************************************************/
+				// Filters & update
+				/*****************************************************************************************/
+				
 				/*****************************************************************************************/
 				// Swap poses for flip if needed and construct the message string, check if we're calibrated
 				/*****************************************************************************************/

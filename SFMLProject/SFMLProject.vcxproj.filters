@@ -78,16 +78,13 @@
     <ClInclude Include="Math_Utility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="LowPassFilter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="EKF_Filter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="inc\EigenGLHelpers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="inc\openvr_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="inc\TypeCast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -114,6 +111,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Math_Utility.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\external\KTVR\KinectToVR\K2STracker.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

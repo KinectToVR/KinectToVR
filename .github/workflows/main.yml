@@ -32,23 +32,17 @@ jobs:
         
     - name: Install OpenCV [world]
       run: vcpkg install opencv3[world]:x64-windows 
+
+    - name: Clear vcpkg downloads
+      shell: powershell
+      run: |
+        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse
+        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse
       
-    - name: Install Boost [thread, ipc]
-      run: vcpkg install boost-thread:x64-windows boost-interprocess:x64-windows 
+    - name: Install Boost
+      run: vcpkg install boost:x64-windows
       
-    - name: Install Boost [ptree, exception]
-      run: vcpkg install boost-property-tree:x64-windows boost-exception:x64-windows 
-      
-    - name: Install Boost [asio, algorithm]
-      run: vcpkg install boost-asio:x64-windows boost-algorithm:x64-windows
-      
-    - name: Install Boost [lexical cast, iostreams]
-      run: vcpkg install boost-lexical-cast:x64-windows boost-iostreams:x64-windows
-      
-    - name: Install Boost [bind, serialization]
-      run: vcpkg install boost-bind:x64-windows boost-serialization:x64-windows
-      
-    - name: Clear vcpkg cache
+    - name: Clear vcpkg downloads
       shell: powershell
       run: |
         Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse
@@ -60,6 +54,15 @@ jobs:
     - name : Install [sfml, sfgui, glew]
       run : vcpkg install sfml:x64-windows sfgui:x64-windows glew:x64-windows
 
+    - name : Install [cppzmq, glog]
+      run : vcpkg install cppzmq:x64-windows glog:x64-windows
+
+    - name: Clear vcpkg downloads
+      shell: powershell
+      run: |
+        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse
+        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse
+
     - name: Install Kinect SDKs
       run: |
         vcpkg install kinectsdk1:x64-windows 
@@ -69,6 +72,18 @@ jobs:
       run: |
         git clone https://github.com/ValveSoftware/openvr.git/ external/openvr
         git clone https://gitlab.com/libeigen/eigen.git/ external/eigen
+
+    - name: Clone and setup K2APP
+      shell: poweshell
+      run: |
+        git clone https://github.com/KinectToVR/k2vr-application external/KTVR
+        New-Item -ItemType Junction -Path external/KTVR/external/openvr -Target external/openvr
+        New-Item -ItemType Junction -Path external/KTVR/external/eigen -Target external/eigen
+
+    - name: Build K2API and K2APP's driver
+      run: |
+        msbuild "/t:KinectToVR_API" "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+        msbuild "/t:Driver_KinectToVR" "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
         
     - name: Remove Kinect library links
       run: |

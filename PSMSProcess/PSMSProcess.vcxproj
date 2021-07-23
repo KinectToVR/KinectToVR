@@ -119,14 +119,14 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib;$(SolutionDir)\external\openvr\lib\win64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>openvr_api.lib;OpenGL32.lib;KinectToVR-d.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)external\KTVR\$(Platform)\$(Configuration);$(SolutionDir)lib;$(SolutionDir)\external\openvr\lib\win64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>KinectToVR_API.lib;openvr_api.lib;OpenGL32.lib;KinectToVR-d.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -137,7 +137,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>BOOST_USE_WINDOWS_H;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;_CONSOLE%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
@@ -145,8 +145,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)lib;$(SolutionDir)\external\openvr\lib\win64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>openvr_api.lib;OpenGL32.lib;KinectToVR.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)external\KTVR\$(Platform)\$(Configuration);$(SolutionDir)lib;$(SolutionDir)\external\openvr\lib\win64;$(SolutionDir)external\PSMoveService\lib;$(SolutionDir)\external\KVRlib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>KinectToVR_API.lib;openvr_api.lib;OpenGL32.lib;KinectToVR.lib;PSMoveClient_CAPI.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

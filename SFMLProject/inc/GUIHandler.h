@@ -32,39 +32,6 @@
 #include <cereal/access.hpp>
 #include "EigenGLHelpers.h"
 
-struct TempTrackerData
-{
-	TempTrackerData()
-	{
-	}
-
-	uint32_t positionGlobalDeviceId = 0;
-	std::string posDeviceName = "INVALID";
-	std::string posDeviceSerial = "INVALID";
-
-	uint32_t rotationGlobalDeviceId = 0;
-	std::string rotDeviceName = "INVALID";
-	std::string rotDeviceSerial = "INVALID";
-
-	bool isController = false;
-	friend class cereal::access;
-
-	template <class Archive>
-	void serialize(Archive& archive)
-	{
-		archive(
-			CEREAL_NVP(positionGlobalDeviceId),
-			CEREAL_NVP(posDeviceName),
-			CEREAL_NVP(posDeviceSerial),
-			CEREAL_NVP(positionGlobalDeviceId),
-			CEREAL_NVP(rotDeviceName),
-			CEREAL_NVP(rotDeviceSerial),
-			CEREAL_NVP(role),
-			CEREAL_NVP(isController)
-		);
-	}
-};
-
 class GUIHandler
 {
 public:

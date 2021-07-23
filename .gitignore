@@ -50,3 +50,5 @@ packages/
 external/openvr/
 
 external/eigen/
+
+external/KTVR

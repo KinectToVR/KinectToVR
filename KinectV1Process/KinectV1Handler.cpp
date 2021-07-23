@@ -19,7 +19,7 @@
 #include <KinectJoint.h>
 #include <math.h>
 
-#include <../LowPassFilter.h>
+#include <../KTVR/KinectToVR/LowPassFilter.h>
 
 LowPassFilter lowPassFilter[3][4] = {
 	{

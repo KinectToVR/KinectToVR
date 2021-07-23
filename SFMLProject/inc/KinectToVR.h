@@ -24,4 +24,5 @@ void processLoop(KinectHandlerBase& kinect);
 
 void updateFilePath();
 
+// Property of KinectToVR.cpp
 void spawnDefaultLowerBodyTrackers();

@@ -111,7 +111,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
@@ -123,7 +123,17 @@
       <AdditionalDependencies>Debug\sfml-audio-d.lib;Debug\sfml-graphics-d.lib;Debug\sfml-window-d.lib;Debug\sfml-system-d.lib;libvrinputemulator.lib;openvr_api64.lib;Kinect10.lib;OpenGL32.lib;glew32.lib;sfgui-d.lib;Kinect20.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y</Command>
+      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y
+
+xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\libzmq-mt-4_3_3.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization-vc142-mt-x64-1_75.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\gflags.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\glog.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -160,7 +170,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -174,7 +184,17 @@
       <AdditionalDependencies>glew32.lib;Kinect20.lib;sfgui.lib;Kinect10.lib;OpenGL32.lib;libvrinputemulator.lib;openvr_api64.lib;Release\sfml-audio.lib;Release\sfml-graphics.lib;Release\sfml-window.lib;Release\sfml-system.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y</Command>
+      <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y
+
+xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\libzmq-mt-4_3_3.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization-vc142-mt-x64-1_75.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\gflags.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\glog.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -189,7 +209,6 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EKF_Filter.h" />
     <ClInclude Include="inc\DeviceHandler.h" />
     <ClInclude Include="inc\EigenGLHelpers.h" />
     <ClInclude Include="inc\GUIHandler.h" />
@@ -203,17 +222,18 @@
     <ClInclude Include="inc\PSMoveHandler.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
+    <ClInclude Include="inc\TypeCast.h" />
     <ClInclude Include="inc\VectorMath.h" />
     <ClInclude Include="inc\VRController.h" />
     <ClInclude Include="inc\VRDeviceHandler.h" />
     <ClInclude Include="inc\VRHelper.h" />
-    <ClInclude Include="LowPassFilter.h" />
     <ClInclude Include="MathEigen.h" />
     <ClInclude Include="Math_Utility.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\external\KTVR\KinectToVR\K2STracker.cpp" />
     <ClCompile Include="KinectJoint.cpp" />
     <ClCompile Include="KinectSettings.cpp" />
     <ClCompile Include="KinectToVR.cpp" />

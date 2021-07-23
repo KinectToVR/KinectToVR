@@ -21,7 +21,7 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <thread>
 #include <chrono>
-#include <../LowPassFilter.h>
+#include <../KTVR/KinectToVR/LowPassFilter.h>
 
 LowPassFilter lowPassFilter[3][4] = {
 	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
