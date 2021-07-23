@@ -95,6 +95,7 @@ jobs:
     - name: Clear Release folder
       shell: powershell
       run: |
+        cd x64/Release
         Get-ChildItem *.pdb | foreach { Remove-Item -Path $_.FullName }
         Get-ChildItem *.exp | foreach { Remove-Item -Path $_.FullName }
         Get-ChildItem *.lib | foreach { Remove-Item -Path $_.FullName }
