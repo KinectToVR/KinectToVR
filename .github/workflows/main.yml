@@ -31,8 +31,8 @@ jobs:
     - name: Clear vcpkg downloads
       shell: powershell
       run: |
-        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse
-        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse
+        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse -ErrorAction Ignore
+        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse -ErrorAction Ignore
       
     - name: Install Boost
       run: vcpkg install boost:x64-windows
@@ -40,8 +40,8 @@ jobs:
     - name: Clear vcpkg downloads
       shell: powershell
       run: |
-        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse
-        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse
+        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse -ErrorAction Ignore
+        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse -ErrorAction Ignore
       
     - name : Install [glm, curlpp, cereal]
       run : vcpkg install glm:x64-windows curlpp:x64-windows cereal:x64-windows
@@ -55,8 +55,8 @@ jobs:
     - name: Clear vcpkg downloads
       shell: powershell
       run: |
-        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse
-        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse
+        Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse -ErrorAction Ignore
+        Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse -ErrorAction Ignore
 
     - name: Install Kinect SDKs
       run: |
