@@ -944,10 +944,10 @@ public:
 		*    until arduvr is officially announced and promoted)
 		*/
 
-		foptbox->AppendItem("Extended Kalman filter - slow and smoothest"); //use ekf in k2vr
-		foptbox->AppendItem("Low Pass Optical filter - smooth moves, little delay"); //use lpf in k2vr
-		foptbox->AppendItem("Linear Interpolation - very fast, no smoothing"); //use glm::mix in k2vr
-		foptbox->AppendItem("No filter - normal results, no smoothing");
+		foptbox->AppendItem("Extended Kalman filter - smooths every jitter"); //use ekf in k2vr
+		foptbox->AppendItem("Low Pass filter - quite fast, adaptive smoothing"); //use lpf in k2vr
+		foptbox->AppendItem("Linear Interpolation - gentle, continuous smoothing"); //use glm::mix in k2vr
+		foptbox->AppendItem("No filter - realtime results, no smoothing");
 
 		advancedTrackerBox->Pack(box11);
 		advancedTrackerBox->Pack(space_label);
