@@ -24,6 +24,8 @@ public:
 	}
 
 	DoubleExponentialFilter filter;
+	DoubleExponentialFilter bakfilter;
+	
 	DoubleExpBoneOrientationsFilter rotationFilter;
 	IKinectSensor* kinectSensor = nullptr;
 	//IMultiSourceFrameReader* frameReader = nullptr;

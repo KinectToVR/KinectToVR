@@ -17,7 +17,7 @@ namespace KinectSettings
 {
 	const std::wstring CFG_NAME(L"KinectToVR.cfg");
 	std::string KVRversion = "0.8.1 EX";
-	vr::TrackedDeviceIndex_t trackerIndex[3] = {vr::k_unTrackedDeviceIndexInvalid}; // Trackers' indexes
+	vr::TrackedDeviceIndex_t trackerIndex[3] = { vr::k_unTrackedDeviceIndexInvalid }; // Trackers' indexes
 	bool latencyTestPending = false, doingLatencyTest = false;
 	long long latencyTestMillis = -1;
 	std::chrono::steady_clock::time_point latencyTestStart, latencyTestEnd;
@@ -60,7 +60,7 @@ namespace KinectSettings
 	bool isCalibrating = false;
 
 	PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
-	bool isGripPressed[2] = {false, false}, isTriggerPressed[2] = {false, false}; //0L, 1R
+	bool isGripPressed[2] = { false, false }, isTriggerPressed[2] = { false, false }; //0L, 1R
 	bool initialised = false, initialised_bak = false, isKinectPSMS = false;
 	bool userChangingZero = false;
 	bool legacy = false;
@@ -96,8 +96,8 @@ namespace KinectSettings
 	}
 
 	glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose
-	          , mElPose,
-	          lastPose[3][2];
+		, mElPose,
+		lastPose[3][2];
 	Eigen::Quaternionf left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
 	Eigen::Quaternionf trackerSoftRot[2];
 	vr::HmdQuaternion_t hmdRot;
@@ -114,28 +114,28 @@ namespace KinectSettings
 	int rightFootPlayspaceMovementButton = 0;
 	int psmmigi, psmhidari, psmyobu, psmatama;
 	float hmdYaw = 0;
-	float conID[2] = {0, 1};
+	float conID[2] = { 0, 1 };
 
-	vr::HmdVector3d_t hmdPosition = {0, 0, 0};
-	vr::HmdQuaternion_t hmdRotation = {0, 0, 0, 0};
+	vr::HmdVector3d_t hmdPosition = { 0, 0, 0 };
+	vr::HmdQuaternion_t hmdRotation = { 0, 0, 0, 0 };
 	vr::HmdMatrix34_t hmdAbsoluteTracking = {};
 	extern vr::HmdMatrix34_t trackingOrigin = {};
-	extern vr::HmdVector3d_t trackingOriginPosition = {0, 0, 0};
-	vr::HmdVector3d_t secondaryTrackingOriginOffset = {0};
-	vr::HmdQuaternion_t kinectRepRotation{0, 0, 0, 0}; //TEMP
-	vr::HmdVector3d_t kinectRadRotation{0, 0, 0};
-	vr::HmdVector3d_t kinectRepPosition{0, 0, 0};
+	extern vr::HmdVector3d_t trackingOriginPosition = { 0, 0, 0 };
+	vr::HmdVector3d_t secondaryTrackingOriginOffset = { 0 };
+	vr::HmdQuaternion_t kinectRepRotation{ 0, 0, 0, 0 }; //TEMP
+	vr::HmdVector3d_t kinectRadRotation{ 0, 0, 0 };
+	vr::HmdVector3d_t kinectRepPosition{ 0, 0, 0 };
 
 	// R, L, H
-	vr::HmdVector3d_t manual_offsets[2][3] = {{{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}};
-	vr::HmdVector3d_t hoffsets{0, 0, 0};
-	vr::HmdVector3d_t huoffsets{0, 0, 0};
-	vr::HmdVector3d_t kinect_tracker_offsets{0, 0, 0};
+	vr::HmdVector3d_t manual_offsets[2][3] = { {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}}, {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}} };
+	vr::HmdVector3d_t hoffsets{ 0, 0, 0 };
+	vr::HmdVector3d_t huoffsets{ 0, 0, 0 };
+	vr::HmdVector3d_t kinect_tracker_offsets{ 0, 0, 0 };
 	float hroffset = 0;
 	float troffset = 0;
 	Eigen::Vector3f calibration_origin;
 	vr::TrackedDevicePose_t controllersPose[2];
-	vr::HmdVector3d_t hauoffset{0, 0, 0}, mauoffset{0, 0, 0};
+	vr::HmdVector3d_t hauoffset{ 0, 0, 0 }, mauoffset{ 0, 0, 0 };
 	Eigen::Matrix<float, 3, 3> calibration_rotation;
 	Eigen::Matrix<float, 3, 1> calibration_translation;
 	bool ismatrixcalibrated = false;
@@ -146,9 +146,9 @@ namespace KinectSettings
 	int cpoints = 3;
 	int p_loops = 0; // Loops passed since last status update
 
-	vr::HmdQuaternion_t hmdquat{1, 0, 0, 0};
+	vr::HmdQuaternion_t hmdquat{ 1, 0, 0, 0 };
 
-	vr::HmdVector3d_t kinect_m_positions[3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+	vr::HmdVector3d_t kinect_m_positions[3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
 
 	bool headtracked = false;
 	bool sensorConfigChanged = true; // First time used, it's config has changed internally
@@ -159,25 +159,25 @@ namespace KinectSettings
 	void updateKinectQuaternion()
 	{
 		kinectRepRotation = vrmath::quaternionFromYawPitchRoll(kinectRadRotation.v[1], kinectRadRotation.v[0],
-		                                                       kinectRadRotation.v[2]);
+			kinectRadRotation.v[2]);
 	}
 
 	//first is cutoff in hz (multiplied per 2PI) and second is our framerate about 100 fps
 	bool flip;
 	PSMQuatf offset[2];
 	Eigen::Quaternionf quatf[2];
-	glm::vec3 joy[2] = {glm::vec3(0, 0, 0), glm::vec3(0, 0, 0)};
+	glm::vec3 joy[2] = { glm::vec3(0, 0, 0), glm::vec3(0, 0, 0) };
 
 	Eigen::Quaternionf move_ori_offset[3] = {
-		                   Eigen::Quaternionf(1, 0, 0, 0),
-		                   Eigen::Quaternionf(1, 0, 0, 0),
-		                   Eigen::Quaternionf(1, 0, 0, 0)
-	                   },
-	                   left_tracker_rot, right_tracker_rot, waist_tracker_rot;
+						   Eigen::Quaternionf(1, 0, 0, 0),
+						   Eigen::Quaternionf(1, 0, 0, 0),
+						   Eigen::Quaternionf(1, 0, 0, 0)
+	},
+		left_tracker_rot, right_tracker_rot, waist_tracker_rot;
 
 	void sendipc()
 	{
-		
+
 		while (true)
 		{
 			auto loop_start_time = std::chrono::high_resolution_clock::now();
@@ -189,24 +189,24 @@ namespace KinectSettings
 			if (positional_tracking_option == k_PSMoveFullTracking)
 			{
 				left_foot_raw_pose = .01f * glm::vec3(left_foot_psmove.Pose.Position.x,
-				                                      left_foot_psmove.Pose.Position.y,
-				                                      left_foot_psmove.Pose.Position.z);
+					left_foot_psmove.Pose.Position.y,
+					left_foot_psmove.Pose.Position.z);
 				right_foot_raw_pose = .01f * glm::vec3(right_foot_psmove.Pose.Position.x,
-				                                       right_foot_psmove.Pose.Position.y,
-				                                       right_foot_psmove.Pose.Position.z);
+					right_foot_psmove.Pose.Position.y,
+					right_foot_psmove.Pose.Position.z);
 				waist_raw_pose = .01f * glm::vec3(waist_psmove.Pose.Position.x, waist_psmove.Pose.Position.y,
-				                                  waist_psmove.Pose.Position.z);
+					waist_psmove.Pose.Position.z);
 
 				left_foot_raw_ori = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
-				                                       left_foot_psmove.Pose.Orientation.x,
-				                                       left_foot_psmove.Pose.Orientation.y,
-				                                       left_foot_psmove.Pose.Orientation.z);
+					left_foot_psmove.Pose.Orientation.x,
+					left_foot_psmove.Pose.Orientation.y,
+					left_foot_psmove.Pose.Orientation.z);
 				right_foot_raw_ori = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w,
-				                                        right_foot_psmove.Pose.Orientation.x,
-				                                        right_foot_psmove.Pose.Orientation.y,
-				                                        right_foot_psmove.Pose.Orientation.z);
+					right_foot_psmove.Pose.Orientation.x,
+					right_foot_psmove.Pose.Orientation.y,
+					right_foot_psmove.Pose.Orientation.z);
 				waist_raw_ori = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w, waist_psmove.Pose.Orientation.x,
-				                                   waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
+					waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
 			}
 
 			// Update poses for interfacing
@@ -219,7 +219,7 @@ namespace KinectSettings
 			kinect_m_positions[0].v[0] = head_position.x;
 			kinect_m_positions[0].v[1] = head_position.y;
 			kinect_m_positions[0].v[2] = head_position.z;
-			
+
 			/*****************************************************************************************/
 			// Resetting PSMoves orientations
 			/*****************************************************************************************/
@@ -235,21 +235,21 @@ namespace KinectSettings
 
 			if (left_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter left foot move with select button
 				move_ori_offset[0] = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
-				                                        left_foot_psmove.Pose.Orientation.x,
-				                                        left_foot_psmove.Pose.Orientation.y,
-				                                        left_foot_psmove.Pose.Orientation.z);
+					left_foot_psmove.Pose.Orientation.x,
+					left_foot_psmove.Pose.Orientation.y,
+					left_foot_psmove.Pose.Orientation.z);
 
 			if (right_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter right foot move with select button
 				move_ori_offset[1] = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w,
-				                                        right_foot_psmove.Pose.Orientation.x,
-				                                        right_foot_psmove.Pose.Orientation.y,
-				                                        right_foot_psmove.Pose.Orientation.z);
+					right_foot_psmove.Pose.Orientation.x,
+					right_foot_psmove.Pose.Orientation.y,
+					right_foot_psmove.Pose.Orientation.z);
 
 			if (waist_psmove.SelectButton == PSMButtonState_DOWN) //recenter waist move with select button
 				move_ori_offset[2] = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w,
-				                                        waist_psmove.Pose.Orientation.x,
-				                                        waist_psmove.Pose.Orientation.y,
-				                                        waist_psmove.Pose.Orientation.z);
+					waist_psmove.Pose.Orientation.x,
+					waist_psmove.Pose.Orientation.y,
+					waist_psmove.Pose.Orientation.z);
 
 			/*****************************************************************************************/
 			// Resetting PSMoves orientations
@@ -314,11 +314,11 @@ namespace KinectSettings
 				if (hips_rotation_option == k_EnableHipsOrientationFilter)
 					waist_tracker_rot = waist_raw_ori;
 
-					// If we don't want hip tracker to move, let it be
+				// If we don't want hip tracker to move, let it be
 				else if (hips_rotation_option == k_DisableHipsOrientationFilter)
 					waist_tracker_rot = Eigen::Quaternionf(1, 0, 0, 0);
 
-					// If we want to use head yaw for tracker, let it use
+				// If we want to use head yaw for tracker, let it use
 				else if (hips_rotation_option == k_EnableOrientationFilter_HeadOrientation)
 				{
 					Eigen::Quaternionf hmdYawQuaternion = EigenUtils::EulersToQuat(
@@ -358,7 +358,7 @@ namespace KinectSettings
 							left_tracker_rot = right_foot_raw_ori.inverse();
 						}
 					}
-						// positional since mixed is not supported - maybe in next major release
+					// positional since mixed is not supported - maybe in next major release
 					else if (positional_tracking_option == k_PSMoveFullTracking)
 					{
 						// If we're using psmoves, apply the psmoves' orientations
@@ -368,16 +368,16 @@ namespace KinectSettings
 					}
 				}
 
-					// If we want to totally stop trackers from rotating
-					// (Probably except the flip)
+				// If we want to totally stop trackers from rotating
+				// (Probably except the flip)
 				else if (feet_rotation_option == k_DisableOrientationFilter)
 				{
 					left_tracker_rot = Eigen::Quaternionf(1, 0, 0, 0);
 					right_tracker_rot = Eigen::Quaternionf(1, 0, 0, 0);
 				}
 
-					// If we're discarding yaw from our results, PSMS supported too
-					// to remove blocking, we'll check if the kinect version is v2 / is PSMS
+				// If we're discarding yaw from our results, PSMS supported too
+				// to remove blocking, we'll check if the kinect version is v2 / is PSMS
 				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw &&
 					(kinectVersion == 1 || positional_tracking_option == k_PSMoveFullTracking))
 				{
@@ -390,16 +390,16 @@ namespace KinectSettings
 						// Remove yaw from eulers
 						auto
 							left_tracker_rot_wyaw_vector =
-								Eigen::Vector3f(
-									left_ori_with_yaw.x(),
-									0.f, // Disable the yaw
-									left_ori_with_yaw.z()),
+							Eigen::Vector3f(
+								left_ori_with_yaw.x(),
+								0.f, // Disable the yaw
+								left_ori_with_yaw.z()),
 
 							right_tracker_rot_wyaw_vector =
-								Eigen::Vector3f(
-									right_ori_with_yaw.x(),
-									0.f, // Disable the yaw
-									right_ori_with_yaw.z());
+							Eigen::Vector3f(
+								right_ori_with_yaw.x(),
+								0.f, // Disable the yaw
+								right_ori_with_yaw.z());
 
 
 						// Kind of a solution for flipping at too big X.
@@ -469,7 +469,7 @@ namespace KinectSettings
 					}
 				}
 
-					// If we want to use head yaw for tracker, let it use
+				// If we want to use head yaw for tracker, let it use
 				else if (feet_rotation_option == k_EnableOrientationFilter_HeadOrientation)
 				{
 					Eigen::Quaternionf hmdYawQuaternion = EigenUtils::EulersToQuat(
@@ -479,8 +479,8 @@ namespace KinectSettings
 					right_tracker_rot = hmdYawQuaternion;
 				}
 
-					// If we have calculated the orientation by ourselves, aka math-based
-					// in addition, kinect v2 uses it too by default, so let's make it use this too
+				// If we have calculated the orientation by ourselves, aka math-based
+				// in addition, kinect v2 uses it too by default, so let's make it use this too
 				else if (feet_rotation_option == k_EnableOrientationFilter_Software ||
 					feet_rotation_option == k_EnableOrientationFilter && kinectVersion == 2)
 				{
@@ -503,11 +503,74 @@ namespace KinectSettings
 					}
 				}
 
-					// If we want yaw disabled on v2, we'll actually need to run math-based
-					// and additionally disable yaw on it. this is only for the v2
+				// If we want yaw disabled on v2, we'll actually need to run math-based
+				// and additionally disable yaw on it. this is only for the v2
 				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw && kinectVersion == 2)
 				{
 					// same as upper but without yaw
+					// Grab original orientations and make them euler angles
+					Eigen::Vector3f left_ori_with_yaw = EigenUtils::QuatToEulers(trackerSoftRot[0]);
+					Eigen::Vector3f right_ori_with_yaw = EigenUtils::QuatToEulers(trackerSoftRot[1]);
+
+					// Remove yaw from eulers
+					auto left_tracker_rot_wyaw_vector =
+						Eigen::Vector3f(
+							left_ori_with_yaw.x(),
+							0.f, // Disable the yaw
+							left_ori_with_yaw.z()),
+
+						right_tracker_rot_wyaw_vector =
+						Eigen::Vector3f(
+							right_ori_with_yaw.x(),
+							0.f, // Disable the yaw
+							right_ori_with_yaw.z());
+
+
+					// Kind of a solution for flipping at too big X.
+					// Found out during testing,
+					// no other known mathematical reason (maybe except gimbal lock)
+
+					/****************************************************/
+
+					if (left_tracker_rot_wyaw_vector.x() <= 1.f
+						&& left_tracker_rot_wyaw_vector.x() >= 0
+						&& (left_tracker_rot_wyaw_vector.z() >= 1.f
+							|| left_tracker_rot_wyaw_vector.z() <= -1.f))
+
+						left_tracker_rot_wyaw_vector.y() += M_PI;
+
+					/****************************************************/
+
+					if (right_tracker_rot_wyaw_vector.x() <= 1.f
+						&& right_tracker_rot_wyaw_vector.x() >= 0
+
+						&& (right_tracker_rot_wyaw_vector.z() >= 1.f
+							|| right_tracker_rot_wyaw_vector.z() <= -1.f))
+
+						right_tracker_rot_wyaw_vector.y() += M_PI;
+
+					/****************************************************/
+
+					// Apply to the base
+					Eigen::Quaternionf
+						left_tracker_rot_wyaw = EigenUtils::EulersToQuat(
+							left_tracker_rot_wyaw_vector),
+
+						right_tracker_rot_wyaw = EigenUtils::EulersToQuat(
+							right_tracker_rot_wyaw_vector);
+
+
+					// If we're in flip mode, reverse and swap additionally
+					if (!flip)
+					{
+						left_tracker_rot = left_tracker_rot_wyaw;
+						right_tracker_rot = right_tracker_rot_wyaw;
+					}
+					else
+					{
+						right_tracker_rot = left_tracker_rot_wyaw.inverse();
+						left_tracker_rot = right_tracker_rot_wyaw.inverse();
+					}
 				}
 
 				/*****************************************************************************************/
@@ -554,18 +617,18 @@ namespace KinectSettings
 					// Construct an offset quaternion with the calibration yaw
 					Eigen::Quaternionf
 						yawOffsetQuaternion =
-							EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, glm::radians(calibration_trackers_yaw), 0.f)),
+						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, glm::radians(calibration_trackers_yaw), 0.f)),
 
 						yawFlipQuaternion =
-							EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f)); // Just turn around the yaw
+						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f)); // Just turn around the yaw
 
-					//TODO:
-					//// Construct an offset quaternion with the pitch offset
-					//Eigen::Quaternionf rollOffsetQuaternion =
-					//	EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, 0.f, M_PI)); // Whole PI will flip them around (180deg)
-					//TODO:
+				//TODO:
+				//// Construct an offset quaternion with the pitch offset
+				//Eigen::Quaternionf rollOffsetQuaternion =
+				//	EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, 0.f, M_PI)); // Whole PI will flip them around (180deg)
+				//TODO:
 
-					// Temporary holder for the quaternion to begin
+				// Temporary holder for the quaternion to begin
 					Eigen::Quaternionf temp_orientation[3] = {
 						left_tracker_rot,
 						right_tracker_rot,
@@ -586,7 +649,7 @@ namespace KinectSettings
 						// if you want not to, just set it to true
 						bool pitchOn = true;
 						float pitchOffOffset = 0.0, // May be applied when pitch is off
-						      pitchShift = 0.f;
+							pitchShift = 0.f;
 
 						if (feet_rotation_option == k_EnableOrientationFilter ||
 							feet_rotation_option == k_EnableOrientationFilter_WithoutYaw)
@@ -676,7 +739,7 @@ namespace KinectSettings
 						waist_tracker_rot = temp_orientation[2];
 					}
 				}
-					// If we're using PSMoves, apply the manual offset
+				// If we're using PSMoves, apply the manual offset
 				else if (positional_tracking_option == k_PSMoveFullTracking)
 				{
 					left_tracker_rot = move_ori_offset[0].inverse() * left_tracker_rot;
@@ -729,7 +792,7 @@ namespace KinectSettings
 				trackerVector.at(0).pose.position = waist_raw_pose;
 				trackerVector.at(1).pose.position = left_foot_raw_pose;
 				trackerVector.at(2).pose.position = right_foot_raw_pose;
-				
+
 				/*****************************************************************************************/
 				// Push offset poses to trackers
 				/*****************************************************************************************/
@@ -738,33 +801,21 @@ namespace KinectSettings
 				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[0];
 				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[1];
 				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[2];
-				
+
 				// Left
 				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[0];
 				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[1];
 				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[2];
-				
+
 				// Right
 				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[0];
 				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[1];
 				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[2];
-				
+
 				/*****************************************************************************************/
 				// Push RAW poses to trackers
 				/*****************************************************************************************/
-
-				/*****************************************************************************************/
-				// Push RAW orientations to trackers
-				/*****************************************************************************************/
 				
-				trackerVector.at(0).pose.orientation = p_cast_type<glm::quat>(waist_tracker_rot);
-				trackerVector.at(1).pose.orientation = p_cast_type<glm::quat>(left_tracker_rot);
-				trackerVector.at(2).pose.orientation = p_cast_type<glm::quat>(right_tracker_rot);
-				
-				/*****************************************************************************************/
-				// Push RAW orientations to trackers
-				/*****************************************************************************************/
-
 				/*****************************************************************************************/
 				// Flip
 				/*****************************************************************************************/
@@ -773,24 +824,28 @@ namespace KinectSettings
 				// To flip trackers without interfering their internal filters,
 				// we need to 'fool' the server that it updates the same tracker,
 				// with pose rapidly changed. To achieve this, we'll change particular
-				// trackers' serials and ids and keep the internal pose.
-				
-				if(!flip)
-				{
-					trackerVector.at(1).id = trackerID[1]; // L->L
-					trackerVector.at(1).data.serial = trackerSerial[1];
+				// trackers' ids while updating them via k2api's longer function w/ id
 
-					trackerVector.at(2).id = trackerID[2]; // R->R
-					trackerVector.at(2).data.serial = trackerSerial[2];
-				}
-				else
-				{
-					trackerVector.at(1).id = trackerID[2]; // L->R
-					trackerVector.at(1).data.serial = trackerSerial[2];
+				// Also, we won't update trackers via full update or updatedata,
+				// this would create A GODDAMN LOAD of logs in the driver
 
-					trackerVector.at(2).id = trackerID[1]; // R->L
-					trackerVector.at(2).data.serial = trackerSerial[1];
-				}
+				// Now why am I replacing rotations one more time?
+				// soooo in the code, they are being replaced peacefully
+				// and we're replacing the whole pose applied to trackers.
+				// Since we're gonna replace the whole pose,
+				// this will be replace one more time too //>_<//
+
+				// flip ? id1 : id2 --->
+				// if flip: pass id1
+				// if not flip: pass id2
+
+				/*****************************************************************************************/
+				// Push RAW orientations to trackers / with Flip
+				/*****************************************************************************************/
+
+				trackerVector.at(0).pose.orientation = p_cast_type<glm::quat>(waist_tracker_rot);
+				trackerVector.at(flip ? 2 : 1).pose.orientation = p_cast_type<glm::quat>(left_tracker_rot);
+				trackerVector.at(flip ? 1 : 2).pose.orientation = p_cast_type<glm::quat>(right_tracker_rot);
 				
 				/*****************************************************************************************/
 				// Filters & update
@@ -801,30 +856,71 @@ namespace KinectSettings
 				trackerVector.at(2).updatePositionFilters();
 
 				// Update trackers + filters
-				for (auto& k2_s_tracker : trackerVector) {
+				
+				// Okie, this would be in a loop, really...
+				// but somehow it captures wrong trackers ids...
+				// so for now it will be one-by-one
 
-					// Update pose w/ filtering
-					if (matrixes_calibrated)
-						ktvr::update_tracker_pose(
-							k2_s_tracker.getTrackerBase
-							(
-								calibration_rotation,
-								calibration_translation,
-								calibration_origin,
-								posOption, t_NoOrientationTrackingFilter
-							));
+				// Update pose w/ filtering
+				// WAIST TRACKER (0)
+				if (matrixes_calibrated)
+					ktvr::update_tracker_pose(
+						trackerVector.at(0).getTrackerBase
+						(
+							calibration_rotation,
+							calibration_translation,
+							calibration_origin,
+							posOption, t_NoOrientationTrackingFilter
+						));
 
-					else ktvr::update_tracker_pose(
-						k2_s_tracker.getTrackerBase(
-							posOption, t_NoOrientationTrackingFilter));
-					
-					// Okie, this would be in loop, really...
-					// but somehow it captures only the last value from the loop then
-					// so for now it will be one-by-one
-					// This is in the loop because it may fail from tiem to time
-					
-					// Update status 1/1000 loops / ~8s
-					// or right after any change
+				else ktvr::update_tracker_pose(
+					trackerVector.at(0).getTrackerBase(
+						posOption, t_NoOrientationTrackingFilter));
+
+				// Update pose w/ filtering
+				// LEFT TRACKER (1)
+				if (matrixes_calibrated)
+					ktvr::update_tracker_pose(
+						trackerVector.at(1).id,
+						trackerVector.at(flip ? 2 : 1).getTrackerBase
+						(
+							calibration_rotation,
+							calibration_translation,
+							calibration_origin,
+							posOption, t_NoOrientationTrackingFilter
+						).pose);
+
+				else ktvr::update_tracker_pose(
+					trackerVector.at(1).id,
+					trackerVector.at(flip ? 2 : 1).getTrackerBase(
+						posOption, t_NoOrientationTrackingFilter).pose);
+
+				// Update pose w/ filtering
+				// RIGHT TRACKER (2)
+				if (matrixes_calibrated)
+					ktvr::update_tracker_pose(
+						trackerVector.at(2).id,
+						trackerVector.at(flip ? 2 : 1).getTrackerBase
+						(
+							calibration_rotation,
+							calibration_translation,
+							calibration_origin,
+							posOption, t_NoOrientationTrackingFilter
+						).pose);
+
+				else ktvr::update_tracker_pose(
+					trackerVector.at(2).id,
+					trackerVector.at(flip ? 2 : 1).getTrackerBase(
+						posOption, t_NoOrientationTrackingFilter).pose);
+
+				// Okie, this would be in a loop, really...
+				// but somehow it captures only the last value from the loop then
+				// so for now it will be one-by-one
+				// This is in the loop because it may fail from time to time
+
+				// Update status 1/1000 loops / ~8s
+				// or right after any change
+				for (int i = 0; i < 3; i++) { // try 3 times
 					if (p_loops >= 1000 ||
 						(initialised_bak != initialised)) {
 						// Update status in server
@@ -833,7 +929,6 @@ namespace KinectSettings
 						ktvr::set_tracker_state(trackerVector.at(2).id, initialised);
 
 						// Update internal status
-						k2_s_tracker.data.isActive = initialised;
 						initialised_bak = initialised;
 
 						// Reset
@@ -845,37 +940,19 @@ namespace KinectSettings
 				/*****************************************************************************************/
 				// Filters & update
 				/*****************************************************************************************/
-				
+
 				/*****************************************************************************************/
 				// Swap poses for flip if needed and construct the message string, check if we're calibrated
 				/*****************************************************************************************/
 
 				return S.str();
 			}();
-
-			/*****************************************************************************************/
-			// Compose the string to send to driver
-			/*****************************************************************************************/
-
-			// Create a buffer
-			char tracker_data_char[1024];
-			strcpy_s(tracker_data_char, tracker_data_string.c_str()); // Copy data to buffer
-
-			// Create a pipe handle / once a loop
-			const HANDLE server_pipe_handle = CreateFile(
-				TEXT("\\\\.\\pipe\\LogPipeTracker"), GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
-				nullptr);
-
-			// Write to teh pipe
-			DWORD written;
-			WriteFile(server_pipe_handle, tracker_data_char, sizeof(tracker_data_char), &written, nullptr);
-			CloseHandle(server_pipe_handle);
-
-			// Wait until certain time has passed
+			
+			// Wait until certain loop time has passed
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
 				std::chrono::high_resolution_clock::now() - loop_start_time).count();
 
-			// If we were too fast, sleep peacefully
+			// If we were too fast, sleep peacefully @120hz
 			if (duration <= 8333333.f)
 				std::this_thread::sleep_for(std::chrono::nanoseconds(8333333 - duration));
 		}
@@ -898,8 +975,8 @@ namespace KinectSettings
 
 			using namespace KinectSettings;
 			using namespace SFMLsettings;
-			float rot[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-			float pos[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+			float rot[3][3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
+			float pos[3][3] = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
 			double hipHeight = 0;
 			float fontScale = 12.f;
 
@@ -917,13 +994,13 @@ namespace KinectSettings
 				LOG(ERROR) << "CONFIG FILE LOAD JSON ERROR: " << e.what();
 			}
 
-			manual_offsets[0][0] = {pos[0][0], pos[0][1], pos[0][2]};
-			manual_offsets[0][1] = {pos[1][0], pos[1][1], pos[1][2]};
-			manual_offsets[0][2] = {pos[2][0], pos[2][1], pos[2][2]};
+			manual_offsets[0][0] = { pos[0][0], pos[0][1], pos[0][2] };
+			manual_offsets[0][1] = { pos[1][0], pos[1][1], pos[1][2] };
+			manual_offsets[0][2] = { pos[2][0], pos[2][1], pos[2][2] };
 
-			manual_offsets[1][0] = {rot[0][0], rot[0][1], rot[0][2]};
-			manual_offsets[1][1] = {rot[1][0], rot[1][1], rot[1][2]};
-			manual_offsets[1][2] = {rot[2][0], rot[2][1], rot[2][2]};
+			manual_offsets[1][0] = { rot[0][0], rot[0][1], rot[0][2] };
+			manual_offsets[1][1] = { rot[1][0], rot[1][1], rot[1][2] };
+			manual_offsets[1][2] = { rot[2][0], rot[2][1], rot[2][2] };
 
 			hipRoleHeightAdjust = hipHeight;
 			sensorConfigChanged = true;
@@ -1014,7 +1091,7 @@ namespace KVR
 	std::wstring fileToDirPath(const std::wstring& relativeFilePath)
 	{
 		CreateDirectory(std::wstring(std::wstring(_wgetenv(L"APPDATA")) + std::wstring(L"\\KinectToVR\\")).c_str(),
-		                nullptr);
+			nullptr);
 		return std::wstring(_wgetenv(L"APPDATA")) + L"\\KinectToVR\\" + relativeFilePath;
 	}
 
@@ -1054,8 +1131,8 @@ namespace KVR
 		{
 			LOG(INFO) << systemName << "Tracking Load Attempted!";
 
-			vr::HmdQuaternion_t driverFromWorldRotation = {1, 0, 0, 0};
-			vr::HmdVector3d_t driverFromWorldPosition = {0, 0, 0};
+			vr::HmdQuaternion_t driverFromWorldRotation = { 1, 0, 0, 0 };
+			vr::HmdVector3d_t driverFromWorldPosition = { 0, 0, 0 };
 
 			try
 			{

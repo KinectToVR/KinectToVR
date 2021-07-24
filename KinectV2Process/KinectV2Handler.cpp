@@ -21,13 +21,6 @@
 #include <glm/gtx/rotate_vector.hpp>
 #include <thread>
 #include <chrono>
-#include <../KTVR/KinectToVR/LowPassFilter.h>
-
-LowPassFilter lowPassFilter[3][4] = {
-	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
-	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)},
-	{LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005), LowPassFilter(7.1, 0.005)}
-};
 
 HRESULT KinectV2Handler::getStatusResult()
 {
@@ -62,6 +55,18 @@ void KinectV2Handler::initialise()
 		// Updating all of the arrays uses a shit ton of CPU, but then again, it's still WIP
 		// initialiseDepth();
 		initialiseSkeleton();
+
+		// Init the second, slower filter
+		SmoothingParameters bakparameters
+		{
+		.05f, // In meters? MS docs...
+		.8f,
+		.1f,
+		.08f, // In meters? MS docs...
+		.08f
+		};
+		bakfilter.init(bakparameters);
+		
 		if (!initialised) throw FailedKinectInitialisation;
 	}
 	catch (std::exception& e)
@@ -496,13 +501,20 @@ void KinectV2Handler::updateSkeletalData()
 	}
 }
 
-static bool flip = false;
+Eigen::Quaternionf yawFilteringQuaternion[2] = { Eigen::Quaternionf(1,0,0,0) }; // L, R
 
 void KinectV2Handler::updateSkeletalFilters()
 {
 
-	// Just for testing, should be removed //
-	// TODO: TODO: TODO: TODO: TODO: //
+	/*
+	 * I'm sending fast data to poses and creating a copy 'bak'
+	 * of it, then smoothing it AND additionally applying a filter.
+	 * Then I'm gonna create orientations from the filtered one.
+	 */
+
+	 // Just for testing, may be zeroed //
+	 // https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)
+
 	for (int i = 0; i < BODY_COUNT; i++)
 	{
 		if (kinectBodies[i])
@@ -521,8 +533,6 @@ void KinectV2Handler::updateSkeletalFilters()
 			break;
 		}
 	}
-	// TODO: TODO: TODO: TODO: TODO: //
-	// Just for testing, should be removed //
 	
 	KinectSettings::head_position = glm::vec3(
 		joints[JointType_Head].Position.X,
@@ -565,141 +575,255 @@ void KinectV2Handler::updateSkeletalFilters()
 		joints[JointType_SpineBase].Position.Z
 	);
 
+	/***********************************************************************************************/
+	/*  Software/Math based feet trackers' orientation is being calculated here, from base poses.  */
+	/***********************************************************************************************/
 
-	JointOrientation jointOrientationsF[3];
+	// Additional objects for copy-ing
+	Joint bakjoints[JointType_Count];
+	
+	for (int i = 0; i < BODY_COUNT; i++)
+	{
+		if (kinectBodies[i])
+			kinectBodies[i]->get_IsTracked(&isTracking);
+		if (isTracking)
+		{
+			kinectBodies[i]->GetJoints(JointType_Count, bakjoints);
 
-	// we're using direction vectors for feet so comment it out
-	/*
-	jointOrientationsF[0].Orientation.w = lowPassFilter[0][0].update(jointOrientations[JointType_AnkleLeft].Orientation.w);
-	jointOrientationsF[0].Orientation.x = lowPassFilter[0][1].update(jointOrientations[JointType_AnkleLeft].Orientation.x);
-	jointOrientationsF[0].Orientation.y = lowPassFilter[0][2].update(jointOrientations[JointType_AnkleLeft].Orientation.y);
-	jointOrientationsF[0].Orientation.z = lowPassFilter[0][3].update(jointOrientations[JointType_AnkleLeft].Orientation.z);
-
-	jointOrientationsF[1].Orientation.w = lowPassFilter[1][0].update(jointOrientations[JointType_AnkleRight].Orientation.w);
-	jointOrientationsF[1].Orientation.x = lowPassFilter[1][1].update(jointOrientations[JointType_AnkleRight].Orientation.x);
-	jointOrientationsF[1].Orientation.y = lowPassFilter[1][2].update(jointOrientations[JointType_AnkleRight].Orientation.y);
-	jointOrientationsF[1].Orientation.z = lowPassFilter[1][3].update(jointOrientations[JointType_AnkleRight].Orientation.z);
-	*/
-
-	//hips are ok
-	jointOrientationsF[2].Orientation.w = lowPassFilter[2][0].update(
-		jointOrientations[JointType_SpineBase].Orientation.w);
-	jointOrientationsF[2].Orientation.x = lowPassFilter[2][1].update(
-		jointOrientations[JointType_SpineBase].Orientation.x);
-	jointOrientationsF[2].Orientation.y = lowPassFilter[2][2].update(
-		jointOrientations[JointType_SpineBase].Orientation.y);
-	jointOrientationsF[2].Orientation.z = lowPassFilter[2][3].update(
-		jointOrientations[JointType_SpineBase].Orientation.z);
-
+			//Smooth
+			bakfilter.update(bakjoints, newBodyFrameArrived);
+			break;
+		}
+	}
 
 	/***********************************************************************************************/
-	glm::quat hFootRotF, mFootRotF;
+	// Setup base types we'll need
+	/***********************************************************************************************/
 
-	//calculate direction vectors
-	glm::vec3 up(0, 1, 0),
+	// Final orientations and backups
+	Eigen::Quaternionf calculatedLeftFootOrientation, calculatedRightFootOrientation;
+
+	// Position vectors for needed points
+	// 10+ to make all positives, just in case
+	Eigen::Vector3f up(0, 1, 0), forward(0, 0, 1), backward(0, 0, -1), // forward cuz zero quat in steamvr means just forward
 		ankleLeftPose(
-			joints[JointType_AnkleLeft].Position.X,
-			joints[JointType_AnkleLeft].Position.Y,
-			joints[JointType_AnkleLeft].Position.Z),
+			bakjoints[JointType_AnkleLeft].Position.X,
+			bakjoints[JointType_AnkleLeft].Position.Y,
+			bakjoints[JointType_AnkleLeft].Position.Z),
 
 		ankleRightPose(
-			joints[JointType_AnkleRight].Position.X,
-			joints[JointType_AnkleRight].Position.Y,
-			joints[JointType_AnkleRight].Position.Z),
+			bakjoints[JointType_AnkleRight].Position.X,
+			bakjoints[JointType_AnkleRight].Position.Y,
+			bakjoints[JointType_AnkleRight].Position.Z),
 
 		footLeftPose(
-			joints[JointType_FootLeft].Position.X,
-			joints[JointType_FootLeft].Position.Y,
-			joints[JointType_FootLeft].Position.Z),
+			bakjoints[JointType_FootLeft].Position.X,
+			bakjoints[JointType_FootLeft].Position.Y,
+			bakjoints[JointType_FootLeft].Position.Z),
 
 		footRightPose(
-			joints[JointType_FootRight].Position.X,
-			joints[JointType_FootRight].Position.Y,
-			joints[JointType_FootRight].Position.Z),
+			bakjoints[JointType_FootRight].Position.X,
+			bakjoints[JointType_FootRight].Position.Y,
+			bakjoints[JointType_FootRight].Position.Z),
 
 		kneeLeftPose(
-			joints[JointType_KneeLeft].Position.X,
-			joints[JointType_KneeLeft].Position.Y,
-			joints[JointType_KneeLeft].Position.Z),
+			bakjoints[JointType_KneeLeft].Position.X,
+			bakjoints[JointType_KneeLeft].Position.Y,
+			bakjoints[JointType_KneeLeft].Position.Z),
 
 		kneeRightPose(
-			joints[JointType_KneeRight].Position.X,
-			joints[JointType_KneeRight].Position.Y,
-			joints[JointType_KneeRight].Position.Z);
-
-	glm::vec3 feetRot[2] = {
-		eulerAngles(glm::quat(lookAt(footLeftPose, ankleLeftPose, up))),
-		eulerAngles(glm::quat(lookAt(footRightPose, ankleRightPose, up)))
-	};
-
-	glm::vec3 tibiaRotZ[2] = {
-		eulerAngles(glm::quat(lookAt(
-			glm::vec3(ankleLeftPose.x, ankleLeftPose.y, 1),
-			glm::vec3(kneeLeftPose.x, kneeLeftPose.y, 0), up))),
-		eulerAngles(glm::quat(lookAt(
-			glm::vec3(ankleRightPose.x, ankleRightPose.y, 1),
-			glm::vec3(kneeRightPose.x, kneeRightPose.y, 0), up)))
-	};
-
-	glm::vec3 tibiaRotX[2] = {
-		eulerAngles(glm::quat(lookAt(
-			glm::vec3(1, ankleLeftPose.y, ankleLeftPose.z),
-			glm::vec3(0, kneeLeftPose.y, kneeLeftPose.z), up))),
-		eulerAngles(glm::quat(lookAt(
-			glm::vec3(1, ankleRightPose.y, ankleRightPose.z),
-			glm::vec3(0, kneeRightPose.y, kneeRightPose.z), up)))
-	};
-
-	hFootRotF = glm::vec3(
-		-tibiaRotX[0].x - M_PI / 3,
-		-feetRot[0].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
-		-tibiaRotZ[0].z * 15 + M_PI);
-
-	mFootRotF = glm::vec3(
-		-tibiaRotX[1].x - M_PI / 3,
-		-feetRot[1].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
-		-tibiaRotZ[1].z * 15 + M_PI);
-
-	normalize(hFootRotF);
-	normalize(mFootRotF);
-
-	//smooth with lowpass filter
-	/*hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
-	hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
-	hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
-	hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
-
-	mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
-	mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
-	mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
-	mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);*/
-
-	//K/inectSettings::trackerSoftRot[0] = hFootRotF;
-	//K/inectSettings::trackerSoftRot[1] = mFootRotF;
+			bakjoints[JointType_KneeRight].Position.X,
+			bakjoints[JointType_KneeRight].Position.Y,
+			bakjoints[JointType_KneeRight].Position.Z);
 
 	/***********************************************************************************************/
+	// Setup base types we'll need
+	/***********************************************************************************************/
 
+	/***********************************************************************************************/
+	// Calculate orientations with lookAt
+	/***********************************************************************************************/
 
-	/* KINECT V2 ONLY: filter quaternion to be less jittery at end */
-	/* glm::quat hFootRotF = glm::quat(
-		jointOrientationsF[0].Orientation.w,
-		jointOrientationsF[0].Orientation.x,
-		jointOrientationsF[0].Orientation.y,
-		jointOrientationsF[0].Orientation.z
-	);
-	glm::quat mFootRotF = glm::quat(
-		jointOrientationsF[1].Orientation.w,
-		jointOrientationsF[1].Orientation.x,
-		jointOrientationsF[1].Orientation.y,
-		jointOrientationsF[1].Orientation.z
-	); */
+	// Calculate euler yaw foot orientation, we'll need it later
+	Eigen::Vector3f
+		footLeftRawOrientation = EigenUtils::DirectionQuat(
+			Eigen::Vector3f(ankleLeftPose.x(), 0.f, ankleLeftPose.z()),
+			Eigen::Vector3f(footLeftPose.x(), 0.f, footLeftPose.z()),
+			forward).toRotationMatrix().eulerAngles(0, 1, 2),
 
-	//hips are ok
+		footRightRawOrientation = EigenUtils::DirectionQuat(
+			Eigen::Vector3f(ankleRightPose.x(), 0.f, ankleRightPose.z()),
+			Eigen::Vector3f(footRightPose.x(), 0.f, footRightPose.z()),
+			forward).toRotationMatrix().eulerAngles(0, 1, 2);
+
+	// Flip the yaw around, without reversing it -> we need it basing to 0
+	// (what an irony that we actually need to reverse it...)
+	footLeftRawOrientation.y() *= -1.f; footLeftRawOrientation.y() += M_PI;
+	footRightRawOrientation.y() *= -1.f; footRightRawOrientation.y() += M_PI;
+
+	// Make the yaw less sensitive
+	// Decided to go for radians for the read-ability
+	// (Although my code is shit anyway, and there'll be none in the end)
+	float lsFixedYaw[2] = {
+		glm::degrees(footLeftRawOrientation.y()),
+		glm::degrees(footRightRawOrientation.y())
+	}; // L, R
+
+	// Left
+	if (lsFixedYaw[0] > 180.f && lsFixedYaw[0] < 360.f)
+		lsFixedYaw[0] = 360.f - abs(lsFixedYaw[0] - 360.f) * .5f;
+	else if (lsFixedYaw[0] < 180.f && lsFixedYaw[0] > 0.f)
+		lsFixedYaw[0] *= .5f;
+
+	// Right
+	if (lsFixedYaw[1] > 180.f && lsFixedYaw[1] < 360.f)
+		lsFixedYaw[1] = 360.f - abs(lsFixedYaw[1] - 360.f) * .5f;
+	else if (lsFixedYaw[1] < 180.f && lsFixedYaw[1] > 0.f)
+		lsFixedYaw[1] *= .5f;
+
+	// Apply to the base
+	footLeftRawOrientation.y() = glm::radians(lsFixedYaw[0]); // Back to the RAD format
+	footRightRawOrientation.y() = glm::radians(lsFixedYaw[1]);
+
+	// Construct a helpful offsetting quaternion from the stuff we got
+	// It's made like Quat->Eulers->Quat because we may need to adjust some things on-to-go
+	Eigen::Quaternionf
+		leftFootYawOffsetQuaternion = EigenUtils::EulersToQuat(footLeftRawOrientation), // There is no X and Z anyway
+		rightFootYawOffsetQuaternion = EigenUtils::EulersToQuat(footRightRawOrientation);
+
+	// Smooth a bit with a slerp
+	yawFilteringQuaternion[0] = yawFilteringQuaternion[0].slerp(.25f, leftFootYawOffsetQuaternion);
+	yawFilteringQuaternion[1] = yawFilteringQuaternion[1].slerp(.25f, rightFootYawOffsetQuaternion);
+
+	// Apply to the base
+	leftFootYawOffsetQuaternion = yawFilteringQuaternion[0];
+	rightFootYawOffsetQuaternion = yawFilteringQuaternion[1];
+
+	/***********************************************************************************************/
+	// Calculate orientations with lookAt
+	/***********************************************************************************************/
+
+	// Calculate the knee-ankle orientation, aka "Tibia"
+	// We aren't disabling look-thorough yaw, since it'll be 0
+	Eigen::Quaternionf
+		knee_ankleLeftOrientationQuaternion = EigenUtils::DirectionQuat(kneeLeftPose, ankleLeftPose, forward),
+		knee_ankleRightOrientationQuaternion = EigenUtils::DirectionQuat(kneeRightPose, ankleRightPose, forward);
+
+	/***********************************************************************************************/
+	// Calculate orientations with lookAt
+	/***********************************************************************************************/
+
+	/***********************************************************************************************/
+	// Add an offset
+	/***********************************************************************************************/
+
+	// The tuning quat
+	Eigen::Quaternionf
+		tuneQuaternion_first = Eigen::Quaternionf(1, 0, 0, 0);
+
+	// Now adjust some values like playspace yaw and pitch, additional rotations
+	// -> they're facing purely down and Z / Y are flipped
+	tuneQuaternion_first =
+		EigenUtils::EulersToQuat(
+			Eigen::Vector3f(
+				M_PI / 5.f,
+				0.f,
+				0.f
+			));
+
+	// Apply the fine-tuning to global variable
+	knee_ankleLeftOrientationQuaternion = tuneQuaternion_first * knee_ankleLeftOrientationQuaternion;
+	knee_ankleRightOrientationQuaternion = tuneQuaternion_first * knee_ankleRightOrientationQuaternion;
+
+	/***********************************************************************************************/
+	// Mirror 2 missed axes
+	/***********************************************************************************************/
+
+	// Grab original orientations and make them euler angles
+	Eigen::Vector3f left_knee_ori_full = EigenUtils::QuatToEulers(knee_ankleLeftOrientationQuaternion);
+	Eigen::Vector3f right_knee_ori_full = EigenUtils::QuatToEulers(knee_ankleRightOrientationQuaternion);
+
+	// Try to fix yaw and roll mismatch, caused by XYZ XZY mismatch
+	knee_ankleLeftOrientationQuaternion = EigenUtils::EulersToQuat(
+		Eigen::Vector3f(
+			left_knee_ori_full.x() - M_PI / 1.6f,
+			0.0, // left_knee_ori_full.z(), // actually 0.0 but okay
+			-left_knee_ori_full.y()));
+
+	knee_ankleRightOrientationQuaternion = EigenUtils::EulersToQuat(
+		Eigen::Vector3f(
+			right_knee_ori_full.x() - M_PI / 1.6f,
+			0.0, // right_knee_ori_full.z(), // actually 0.0 but okay
+			-right_knee_ori_full.y()));
+
+	/***********************************************************************************************/
+	// Add the results
+	/***********************************************************************************************/
+
+	if (bakjoints[JointType_AnkleLeft].TrackingState == TrackingState_Tracked) {
+		// All the rotations
+		calculatedLeftFootOrientation = leftFootYawOffsetQuaternion * knee_ankleLeftOrientationQuaternion;
+		calculatedRightFootOrientation = rightFootYawOffsetQuaternion * knee_ankleRightOrientationQuaternion;
+	}
+	else {
+		// Without the foot's yaw
+		calculatedLeftFootOrientation = knee_ankleLeftOrientationQuaternion;
+		calculatedRightFootOrientation = knee_ankleRightOrientationQuaternion;
+	}
+
+	//calculatedLeftFootOrientation = leftFootYawOffsetQuaternion;
+	//calculatedRightFootOrientation = rightFootYawOffsetQuaternion;
+
+	/***********************************************************************************************/
+	// Add the results / Push to global / Apply fine-tuning
+	/***********************************************************************************************/
+
+	// The tuning quat
+	Eigen::Quaternionf
+		leftFootFineTuneQuaternion = Eigen::Quaternionf(1, 0, 0, 0),
+		rightFootFineTuneQuaternion = Eigen::Quaternionf(1, 0, 0, 0);
+
+	// Now adjust some values like playspace yaw and pitch, additional rotations
+
+	leftFootFineTuneQuaternion =
+		EigenUtils::EulersToQuat(
+			Eigen::Vector3f(
+				KinectSettings::calibration_kinect_pitch, // this one's in radians alr
+				0.f, //glm::radians(KinectSettings::calibration_trackers_yaw),
+				0.f
+			));
+
+	rightFootFineTuneQuaternion =
+		EigenUtils::EulersToQuat(
+			Eigen::Vector3f(
+				KinectSettings::calibration_kinect_pitch, // this one's in radians alr
+				0.f, //glm::radians(KinectSettings::calibration_trackers_yaw),
+				0.f
+			));
+
+	// Apply the fine-tuning to global variable
+	calculatedLeftFootOrientation = leftFootFineTuneQuaternion * calculatedLeftFootOrientation;
+	calculatedRightFootOrientation = rightFootFineTuneQuaternion * calculatedRightFootOrientation;
+
+	/***********************************************************************************************/
+	// Add the results / Push to global
+	/***********************************************************************************************/
+
+	// Additionally slerp for smoother orientation,
+	// @see https://eigen.tuxfamily.org/dox/classEigen_1_1QuaternionBase.html
+	KinectSettings::trackerSoftRot[0] = KinectSettings::trackerSoftRot[0].slerp(0.37, calculatedLeftFootOrientation);
+	KinectSettings::trackerSoftRot[1] = KinectSettings::trackerSoftRot[1].slerp(0.37, calculatedRightFootOrientation);
+
+	/***********************************************************************************************/
+	// Add the results / Push to global
+	/***********************************************************************************************/
+	
+	// hips are ok
 	Eigen::Quaternionf kinect_waist_raw_ori = Eigen::Quaternionf(
-		jointOrientationsF[2].Orientation.w,
-		jointOrientationsF[2].Orientation.x,
-		jointOrientationsF[2].Orientation.y,
-		jointOrientationsF[2].Orientation.z
+		jointOrientations[JointType_SpineBase].Orientation.w,
+		jointOrientations[JointType_SpineBase].Orientation.x,
+		jointOrientations[JointType_SpineBase].Orientation.y,
+		jointOrientations[JointType_SpineBase].Orientation.z
 	);
 	
 	// Check for identity / equality to quat_zero
@@ -712,9 +836,9 @@ void KinectV2Handler::updateSkeletalFilters()
 		mFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
 	//K/inectSettings::right_foot_raw_ori = mFootRotF;
 
-	//hips are ok
-	if (kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
-		kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
+	// hips are ok, so check them
+	if (!kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
+		!kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
 		KinectSettings::waist_raw_ori = kinect_waist_raw_ori;
 }
 

@@ -19,29 +19,6 @@
 #include <KinectJoint.h>
 #include <math.h>
 
-#include <../KTVR/KinectToVR/LowPassFilter.h>
-
-LowPassFilter lowPassFilter[3][4] = {
-	{
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005)
-	},
-	{
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005)
-	},
-	{
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005),
-		LowPassFilter(7.1, 0.005)
-	}
-};
-
 void KinectV1Handler::initOpenGL()
 {
 	LOG(INFO) << "Attempted to initialise OpenGL";
@@ -768,47 +745,7 @@ void KinectV1Handler::updateSkeletalData()
 		/***********************************************************************************************/
 		// Add the results / Push to global
 		/***********************************************************************************************/
-
-
-
 		
-		//KinectSettings::trackerSoftRot[0] = Eigen::Quaternionf(1, 0, 0, 0);
-		//KinectSettings::trackerSoftRot[1] = Eigen::Quaternionf(1, 0, 0, 0);
-		
-		//KinectSettings::left_foot_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
-		//KinectSettings::right_foot_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
-		//KinectSettings::waist_raw_ori = Eigen::Quaternionf(1, 0, 0, 0);
-		
-		
-		//hFootRotF = glm::vec3(
-		//	-tibiaRotX[0].x - M_PI / 3,
-		//	-feetRot[0].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
-		//	-tibiaRotZ[0].z * 15 + M_PI);
-
-		//mFootRotF = glm::vec3(
-		//	-tibiaRotX[1].x - M_PI / 3,
-		//	-feetRot[1].y + /*2 */ KinectSettings::calibration_trackers_yaw / 180 * M_PI,
-		//	-tibiaRotZ[1].z * 15 + M_PI);
-
-		//normalize(hFootRotF);
-		//normalize(mFootRotF);
-		
-		////smooth with lowpass filter
-		/*hFootRotF.w = lowPassFilter[0][0].update(hFootRotF.w);
-		hFootRotF.x = lowPassFilter[0][1].update(hFootRotF.x);
-		hFootRotF.y = lowPassFilter[0][2].update(hFootRotF.y);
-		hFootRotF.z = lowPassFilter[0][3].update(hFootRotF.z);
-
-		mFootRotF.w = lowPassFilter[1][0].update(mFootRotF.w);
-		mFootRotF.x = lowPassFilter[1][1].update(mFootRotF.x);
-		mFootRotF.y = lowPassFilter[1][2].update(mFootRotF.y);
-		mFootRotF.z = lowPassFilter[1][3].update(mFootRotF.z);*/
-		
-		//K/inectSettings::trackerSoftRot[0] = hFootRotF;
-		//K/inectSettings::trackerSoftRot[1] = mFootRotF;
-
-		/***********************************************************************************************/
-
 		/***********************************************************************************************/
 		/*  Software/Math based feet trackers' orientation is being calculated here, from base poses.  */
 		/***********************************************************************************************/
