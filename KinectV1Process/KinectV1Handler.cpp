@@ -817,12 +817,12 @@ void KinectV1Handler::DrawSkeleton(const NUI_SKELETON_DATA& skel, sf::RenderWind
 
 		if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_INFERRED)
 		{
-			circle.setFillColor(sf::Color::Red);
+			circle.setFillColor(sf::Color(176, 0, 0));
 			window.draw(circle);
 		}
 		else if (skel.eSkeletonPositionTrackingState[i] == NUI_SKELETON_POSITION_TRACKED)
 		{
-			circle.setFillColor(sf::Color::Yellow);
+			circle.setFillColor(sf::Color(255, 255, 255));
 			window.draw(circle);
 		}
 	}
@@ -865,12 +865,12 @@ void KinectV1Handler::DrawBone(const NUI_SKELETON_DATA& skel, NUI_SKELETON_POSIT
 	// Assume all bones are inferred unless BOTH joints are tracked
 	if (joint0State == NUI_SKELETON_POSITION_TRACKED && joint1State == NUI_SKELETON_POSITION_TRACKED)
 	{
-		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Green,
+		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color(184, 184, 184),
 		         KinectSettings::g_TrackedBoneThickness, window);
 	}
 	else
 	{
-		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color::Red,
+		DrawLine(screenSkelePoints[joint0], screenSkelePoints[joint1], sf::Color(255, 189, 0),
 		         KinectSettings::g_InferredBoneThickness, window);
 	}
 }

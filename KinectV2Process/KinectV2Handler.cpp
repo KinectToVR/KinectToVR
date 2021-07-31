@@ -431,36 +431,7 @@ void KinectV2Handler::drawTrackedSkeletons(sf::RenderWindow& win)
 		win.resetGLStates();
 
 		drawBody(backup, vbackup, win);
-		drawHand(lbackup, vbackup[JointType_HandLeft], win);
-		drawHand(rbackup, vbackup[JointType_HandRight], win);
-
 		win.popGLStates();
-	}
-}
-
-void KinectV2Handler::drawHand(HandState handState, const sf::Vector2f& handPosition, sf::RenderWindow& win)
-{
-	sf::CircleShape circle{};
-	circle.setPosition(handPosition);
-	static const float c_HandSize = 30.0f;
-	circle.setRadius(c_HandSize);
-
-	switch (handState)
-	{
-	case HandState_Closed:
-		circle.setFillColor(sf::Color::Red);
-		win.draw(circle);
-		break;
-
-	case HandState_Open:
-		circle.setFillColor(sf::Color::Green);
-		win.draw(circle);
-		break;
-
-	case HandState_Lasso:
-		circle.setFillColor(sf::Color::Blue);
-		win.draw(circle);
-		break;
 	}
 }
 
@@ -945,16 +916,18 @@ void KinectV2Handler::drawBody(const Joint* pJoints, const sf::Vector2f* pJointP
 	{
 		sf::CircleShape circle{};
 		circle.setRadius(KinectSettings::g_JointThickness);
-		circle.setPosition(pJointPoints[i]);
+		circle.setPosition(
+			pJointPoints[i].x - KinectSettings::g_JointThickness/2.,
+			pJointPoints[i].y - KinectSettings::g_JointThickness/2.);
 
 		if (pJoints[i].TrackingState == TrackingState_Inferred)
 		{
-			circle.setFillColor(sf::Color::Red);
+			circle.setFillColor(sf::Color(176, 0, 0));
 			window.draw(circle);
 		}
 		else if (pJoints[i].TrackingState == TrackingState_Tracked)
 		{
-			circle.setFillColor(sf::Color::Yellow);
+			circle.setFillColor(sf::Color(255, 255, 255));
 			window.draw(circle);
 		}
 	}
@@ -981,12 +954,12 @@ void KinectV2Handler::drawBone(const Joint* pJoints, const sf::Vector2f* pJointP
 	// We assume all drawn bones are inferred unless BOTH joints are tracked
 	if ((joint0State == TrackingState_Tracked) && (joint1State == TrackingState_Tracked))
 	{
-		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness,
+		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color(184, 184, 184), KinectSettings::g_TrackedBoneThickness,
 		         window);
 	}
 	else
 	{
-		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color::Green, KinectSettings::g_TrackedBoneThickness,
+		drawLine(pJointPoints[joint0], pJointPoints[joint1], sf::Color(255, 189, 0), KinectSettings::g_TrackedBoneThickness,
 		         window);
 	}
 }
