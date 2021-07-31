@@ -603,10 +603,7 @@ void processLoop(KinectHandlerBase& kinect)
 	guiRef.updateKinectStatusLabel(kinect);
 	// Reconnect Kinect Event Signal
 	guiRef.setKinectButtonSignal(kinect);
-
-	//Clear driver memory
-	boost::interprocess::shared_memory_object::remove("K2ServerDriverSHM");
-
+	
 	VRcontroller rightController(vr::TrackedControllerRole_RightHand);
 	VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
 
@@ -614,8 +611,7 @@ void processLoop(KinectHandlerBase& kinect)
 	vr::EVRInitError eError = vr::VRInitError_None;
 	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 
-	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " <<
- static_cast<int>(eError);
+	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
 
 	// Initialise the VR Device Handler (For settings)
 	VRDeviceHandler vrDeviceHandler(m_VRSystem);
@@ -624,6 +620,8 @@ void processLoop(KinectHandlerBase& kinect)
 
 	//Update driver status
 	/************************************************/
+	LOG(INFO) << "KinectToVR will try to connect the Driver via API on port " + std::to_string(K2API_SOCKET);
+
 	updateServerStatus(guiRef);
 	/************************************************/
 
