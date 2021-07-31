@@ -651,7 +651,6 @@ void processLoop(KinectHandlerBase& kinect)
 
 		guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
 		updateTrackerInitGuiSignals(guiRef, m_VRSystem);
-		setTrackerRolesInVRSettings();
 		//VRInput::initialiseVRInput();
 
 		leftController.Connect(m_VRSystem);
@@ -1028,10 +1027,7 @@ void processLoop(KinectHandlerBase& kinect)
 	kinect.terminateSkeleton();
 
 	if (eError == vr::EVRInitError::VRInitError_None)
-	{
-		removeTrackerRolesInVRSettings();
 		vr::VR_Shutdown();
-	}
 }
 
 void spawnDefaultLowerBodyTrackers()
