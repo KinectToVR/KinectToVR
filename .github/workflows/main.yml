@@ -49,14 +49,32 @@ jobs:
     - name : Install [sfml, sfgui, glew]
       run : vcpkg install sfml:x64-windows sfgui:x64-windows glew:x64-windows
 
-    - name : Install [cppzmq, glog]
-      run : vcpkg install cppzmq:x64-windows glog:x64-windows
+    - name : Install [cppzmq]
+      run : vcpkg install cppzmq:x64-windows
 
     - name: Clear vcpkg downloads
       shell: powershell
       run: |
         Remove-Item -LiteralPath "vcpkg/buildtrees" -Force -Recurse -ErrorAction Ignore
         Remove-Item -LiteralPath "vcpkg/downloads" -Force -Recurse -ErrorAction Ignore
+
+    - name : Setup Glog
+      run : |
+        git clone https://github.com/google/glog.git external/glog
+        cd external/glog
+        git reset --hard f8c8e99fdfb998c2ba96cfb470decccf418f0b30
+        mkdir vcbuild; cd vcbuild
+        cmake -DBUILD_SHARED_LIBS=ON ..
+        msbuild glog.vcxproj "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+
+    - name : Setup GFlags
+      run : |
+        git clone https://github.com/gflags/gflags.git external/gflags
+        cd external/gflags
+        git reset --hard 827c769e5fc98e0f2a34c47cef953cc6328abced
+        mkdir vcbuild; cd vcbuild
+        cmake -DBUILD_SHARED_LIBS=ON ..
+        msbuild gflags.vcxproj "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
 
     - name: Install Kinect SDKs
       run: |

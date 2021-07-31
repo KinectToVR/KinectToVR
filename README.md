@@ -32,7 +32,7 @@ Follow **[GitHub Actions script](https://github.com/KinectToVR/KinectToVR/blob/e
    ```./vcpkg integrate install```
 
 - Install needed libraries (You should choose one linking method for all packages)<br>
-   ```vcpkg install opencv3[world]:x64-windows boost:x64-windows glm:x64-windows curlpp:x64-windows cereal:x64-windows sfml:x64-windows sfgui:x64-windows glew:x64-windows cppzmq:x64-windows glog:x64-windows```<br>
+   ```vcpkg install opencv3[world]:x64-windows boost:x64-windows glm:x64-windows curlpp:x64-windows cereal:x64-windows sfml:x64-windows sfgui:x64-windows glew:x64-windows cppzmq:x64-windows```<br>
    (Now you may rest a bit, also consider using a drive other than ```C:```, it'll be about 6-7GB without cleaned buildtrees)
 
 - Clone the latest OpenVR and Eigen3 into ```external/```:<br>
@@ -43,6 +43,23 @@ Follow **[GitHub Actions script](https://github.com/KinectToVR/KinectToVR/blob/e
    ```git clone https://github.com/KinectToVR/k2vr-application external/KTVR```<br>
    ```New-Item -ItemType Junction -Path external/KTVR/external/openvr -Target external/openvr```<br>
    ```New-Item -ItemType Junction -Path external/KTVR/external/eigen -Target external/eigen```
+
+- Setup GLog<br>
+   ```git clone https://github.com/google/glog.git external/glog```<br>
+   ```git reset --hard f8c8e99fdfb998c2ba96cfb470decccf418f0b30```<br>
+   ```cd external/glog```<br>
+   ```mkdir vcbuild; cd vcbuild```<br>
+   ```cmake -DBUILD_SHARED_LIBS=ON ..```<br>
+   ```msbuild glog.vcxproj "/p:Configuration=Release;Platform=x64```<br>
+   ```WindowsTargetPlatformVersion=10.0"```<br>
+
+- Setup GFlags<br>
+   ```git clone https://github.com/gflags/gflags.git external/gflags```<br>
+   ```git reset --hard 827c769e5fc98e0f2a34c47cef953cc6328abced```<br>
+   ```cd external/gflags```<br>
+   ```mkdir vcbuild; cd vcbuild```<br>
+   ```cmake -DBUILD_SHARED_LIBS=ON ..```<br>
+   ```msbuild gflags.vcxproj "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"```<br>
 
 - Build the K2API & K2APP's OpenVR driver:<br>
    ```msbuild "/t:KinectToVR_API" "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"```<br>
