@@ -574,7 +574,7 @@ void processLoop(KinectHandlerBase& kinect)
 	for (int i = 0; i < 3; i++)
 	{
 		// We don't let the user overwrite serial here
-		KinectSettings::trackerVector.at(i).data.serial = "/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i);
+		KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i);
 
 		// Switch the rest
 		switch (i)
@@ -677,7 +677,7 @@ void processLoop(KinectHandlerBase& kinect)
 	for (int i = 0; i < 3; i++)
 	{
 		// We don't let the user overwrite serial here
-		auto tracker_downloaded = ktvr::download_tracker("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i));
+		auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
 
 		// Check the role too
 		int _role = -1;
@@ -707,13 +707,13 @@ void processLoop(KinectHandlerBase& kinect)
 			KinectSettings::trackerVector.at(i).pose = tracker_downloaded.tracker_base.pose;
 
 			LOG(INFO) << "Tracker with serial " +
-				("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) +
+				("LHR-CB9AD1T" + std::to_string(i)) +
 				" has been found with id " + std::to_string(tracker_downloaded.id) + " and will be used from now on.";
 		}
 		else
 		{
 			LOG(INFO) << "Tracker with serial " + 
-				("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) + 
+				("LHR-CB9AD1T" + std::to_string(i)) + 
 				" and suitable role has not been found and will be added separately.";
 
 			// Add the tracker and overwrite id
@@ -723,7 +723,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 			if (add_tracker_response.result == ktvr::K2ResponseMessageCode_OK) {
 				LOG(INFO) << "Tracker with serial " +
-					("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) +
+					("LHR-CB9AD1T" + std::to_string(i)) +
 					" has been added successfully.";
 				
 				KinectSettings::trackerID[i] = add_tracker_response.id;
@@ -732,11 +732,11 @@ void processLoop(KinectHandlerBase& kinect)
 			else if (add_tracker_response.result == ktvr::K2ResponseMessageCode_AlreadyPresent)
 			{
 				LOG(INFO) << "Tracker with serial " +
-					("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i)) +
+					("LHR-CB9AD1T" + std::to_string(i)) +
 					" is already present. Changing the last serial digit by +3...";
 
 				// Change the serial
-				KinectSettings::trackerVector.at(i).data.serial = "/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i + 3);
+				KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i + 3);
 
 				// Compose the response
 				auto add_tracker_response_ns =
@@ -744,7 +744,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 				if (add_tracker_response_ns.result == ktvr::K2ResponseMessageCode_OK) {
 					LOG(INFO) << "Tracker with serial " +
-						("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i + 3)) +
+						("LHR-CB9AD1T" + std::to_string(i + 3)) +
 						" has been added successfully.";
 					
 					KinectSettings::trackerVector.at(i).id = add_tracker_response_ns.id;
@@ -754,7 +754,7 @@ void processLoop(KinectHandlerBase& kinect)
 				else
 				{
 					LOG(INFO) << "Tracker with serial " +
-						("/devices/KinectToVR/LHR-CB9AD1T" + std::to_string(i + 3)) +
+						("LHR-CB9AD1T" + std::to_string(i + 3)) +
 						" could not be added. Giving up...";
 
 					// Cause not checking anymore
