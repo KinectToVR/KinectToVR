@@ -92,6 +92,8 @@ jobs:
         git clone https://github.com/KinectToVR/k2vr-application external/KTVR
         New-Item -ItemType Junction -Path external/KTVR/external/openvr -Target external/openvr
         New-Item -ItemType Junction -Path external/KTVR/external/eigen -Target external/eigen
+        New-Item -ItemType Junction -Path external/KTVR/external/glog -Target external/glog
+        New-Item -ItemType Junction -Path external/KTVR/external/gflags -Target external/gflags
 
     - name: Build K2API and K2APP's driver
       run: |
