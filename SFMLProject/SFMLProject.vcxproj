@@ -129,7 +129,8 @@ xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(Soluti
 xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\libzmq-mt-4_3_3.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization-vc142-mt-x64-1_75.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\gflags.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\glog.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 </Command>
@@ -189,7 +190,8 @@ xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(Soluti
 xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\libzmq-mt-4_3_3.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization-vc142-mt-x64-1_75.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\gflags.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\glog.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 </Command>
