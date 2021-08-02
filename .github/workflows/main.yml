@@ -49,9 +49,6 @@ jobs:
     - name : Install [sfml, sfgui, glew]
       run : vcpkg install sfml:x64-windows sfgui:x64-windows glew:x64-windows
 
-    - name : Install [cppzmq]
-      run : vcpkg install cppzmq:x64-windows
-
     - name: Clear vcpkg downloads
       shell: powershell
       run: |
