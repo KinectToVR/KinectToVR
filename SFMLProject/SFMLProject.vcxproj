@@ -129,10 +129,10 @@ xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(Soluti
 xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\libzmq*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\gflags.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\glog.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 </Command>
     </PostBuildEvent>
     <CustomBuildStep>
@@ -190,10 +190,10 @@ xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(Soluti
 xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\libzmq*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
 xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\gflags.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
-xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\glog.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 </Command>
     </PostBuildEvent>
     <CustomBuildStep>

@@ -29,7 +29,6 @@
 #include <Windows.h>
 
 // KinectToVR API include, from K2APP
-#define K2API_SOCKET 7135
 #include <KinectToVR_API.h>
 
 #pragma comment(lib, "Ws2_32.lib")
@@ -281,11 +280,11 @@ int checkK2Server()
 		try
 		{
 			/* Initialize the port */
-			LOG(INFO) << "Initializing the server port...";
-			const auto init_code = ktvr::init_socket(K2API_SOCKET);
+			LOG(INFO) << "Initializing the server IPC...";
+			const auto init_code = ktvr::init_k2api();
 			bool server_connected = false;
 			
-			LOG(INFO) << "Port " << K2API_SOCKET << " initialization " <<
+			LOG(INFO) << "Server IPC initialization " <<
 				(init_code == 0 ? "succeed" : "failed") << ", exit code: " << init_code;
 
 			/* Connection test and display ping */
@@ -620,7 +619,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 	//Update driver status
 	/************************************************/
-	LOG(INFO) << "KinectToVR will try to connect the Driver via API on port " + std::to_string(K2API_SOCKET);
+	LOG(INFO) << "KinectToVR will try to connect the Driver via API on K2API's default addresses.";
 
 	updateServerStatus(guiRef);
 	/************************************************/
@@ -1044,7 +1043,7 @@ void spawnDefaultLowerBodyTrackers()
 						tracker.data.role == ktvr::Tracker_RightFoot)
 					{
 						if (const auto& m_result =
-							ktvr::set_tracker_state(tracker.id, true);
+							std::get<0>(ktvr::set_tracker_state(tracker.id, true, true)); // We WANT a reply
 							m_result.id == tracker.id && m_result.success) {
 
 							LOG(INFO) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
@@ -1052,14 +1051,15 @@ void spawnDefaultLowerBodyTrackers()
 
 							spawned[tracker.id < 3 ? tracker.id : tracker.id - 3] = true;
 						}
-
+						
 						else if (m_result.id != tracker.id && m_result.success)
-							LOG(INFO) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
+							LOG(ERROR) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
 							" could not be spawned due to ID mismatch.";
-
+						
 						else {
-							LOG(INFO) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
+							LOG(ERROR) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(tracker.id) +
 								" could not be spawned due to internal server error.";
+							if(!ktvr::GetLastError().empty()) LOG(ERROR) << "Last K2API error: " + ktvr::GetLastError();
 						}
 					}
 					else

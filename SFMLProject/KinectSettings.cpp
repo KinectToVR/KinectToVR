@@ -861,6 +861,8 @@ namespace KinectSettings
 				// but somehow it captures wrong trackers ids...
 				// so for now it will be one-by-one
 
+				// Also now we DON'T WANT replies
+
 				// Update pose w/ filtering
 				// WAIST TRACKER (0)
 				if (matrixes_calibrated)
@@ -871,11 +873,11 @@ namespace KinectSettings
 							calibration_translation,
 							calibration_origin,
 							posOption, t_NoOrientationTrackingFilter
-						));
+						), false);
 
 				else ktvr::update_tracker_pose(
 					trackerVector.at(0).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter));
+						posOption, t_NoOrientationTrackingFilter), false);
 
 				// Update pose w/ filtering
 				// LEFT TRACKER (1)
@@ -888,12 +890,12 @@ namespace KinectSettings
 							calibration_translation,
 							calibration_origin,
 							posOption, t_NoOrientationTrackingFilter
-						).pose);
+						).pose, false);
 
 				else ktvr::update_tracker_pose(
 					trackerVector.at(1).id,
 					trackerVector.at(flip ? 2 : 1).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter).pose);
+						posOption, t_NoOrientationTrackingFilter).pose, false);
 
 				// Update pose w/ filtering
 				// RIGHT TRACKER (2)
@@ -906,12 +908,12 @@ namespace KinectSettings
 							calibration_translation,
 							calibration_origin,
 							posOption, t_NoOrientationTrackingFilter
-						).pose);
+						).pose, false);
 
 				else ktvr::update_tracker_pose(
 					trackerVector.at(2).id,
 					trackerVector.at(flip ? 2 : 1).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter).pose);
+						posOption, t_NoOrientationTrackingFilter).pose, false);
 
 				// Okie, this would be in a loop, really...
 				// but somehow it captures only the last value from the loop then
@@ -924,9 +926,9 @@ namespace KinectSettings
 					if (p_loops >= 1000 ||
 						(initialised_bak != initialised)) {
 						// Update status in server
-						ktvr::set_tracker_state(trackerVector.at(0).id, initialised);
-						ktvr::set_tracker_state(trackerVector.at(1).id, initialised);
-						ktvr::set_tracker_state(trackerVector.at(2).id, initialised);
+						ktvr::set_tracker_state(trackerVector.at(0).id, initialised, false);
+						ktvr::set_tracker_state(trackerVector.at(1).id, initialised, false);
+						ktvr::set_tracker_state(trackerVector.at(2).id, initialised, false);
 
 						// Update internal status
 						initialised_bak = initialised;
