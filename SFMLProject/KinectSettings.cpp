@@ -866,23 +866,23 @@ namespace KinectSettings
 				// Update pose w/ filtering
 				// WAIST TRACKER (0)
 				if (matrixes_calibrated)
-					ktvr::update_tracker_pose(
+					ktvr::update_tracker_pose<false>(
 						trackerVector.at(0).getTrackerBase
 						(
 							calibration_rotation,
 							calibration_translation,
 							calibration_origin,
 							posOption, t_NoOrientationTrackingFilter
-						), false);
+						));
 
-				else ktvr::update_tracker_pose(
+				else ktvr::update_tracker_pose<false>(
 					trackerVector.at(0).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter), false);
+						posOption, t_NoOrientationTrackingFilter));
 
 				// Update pose w/ filtering
 				// LEFT TRACKER (1)
 				if (matrixes_calibrated)
-					ktvr::update_tracker_pose(
+					ktvr::update_tracker_pose<false>(
 						trackerVector.at(1).id,
 						trackerVector.at(flip ? 2 : 1).getTrackerBase
 						(
@@ -890,17 +890,17 @@ namespace KinectSettings
 							calibration_translation,
 							calibration_origin,
 							posOption, t_NoOrientationTrackingFilter
-						).pose, false);
+						).pose);
 
-				else ktvr::update_tracker_pose(
+				else ktvr::update_tracker_pose<false>(
 					trackerVector.at(1).id,
 					trackerVector.at(flip ? 2 : 1).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter).pose, false);
+						posOption, t_NoOrientationTrackingFilter).pose);
 
 				// Update pose w/ filtering
 				// RIGHT TRACKER (2)
 				if (matrixes_calibrated)
-					ktvr::update_tracker_pose(
+					ktvr::update_tracker_pose<false>(
 						trackerVector.at(2).id,
 						trackerVector.at(flip ? 2 : 1).getTrackerBase
 						(
@@ -908,12 +908,12 @@ namespace KinectSettings
 							calibration_translation,
 							calibration_origin,
 							posOption, t_NoOrientationTrackingFilter
-						).pose, false);
+						).pose);
 
-				else ktvr::update_tracker_pose(
+				else ktvr::update_tracker_pose<false>(
 					trackerVector.at(2).id,
 					trackerVector.at(flip ? 2 : 1).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter).pose, false);
+						posOption, t_NoOrientationTrackingFilter).pose);
 
 				// Okie, this would be in a loop, really...
 				// but somehow it captures only the last value from the loop then
@@ -926,9 +926,9 @@ namespace KinectSettings
 					if (p_loops >= 1000 ||
 						(initialised_bak != initialised)) {
 						// Update status in server
-						ktvr::set_tracker_state(trackerVector.at(0).id, initialised, false);
-						ktvr::set_tracker_state(trackerVector.at(1).id, initialised, false);
-						ktvr::set_tracker_state(trackerVector.at(2).id, initialised, false);
+						ktvr::set_tracker_state<false>(trackerVector.at(0).id, initialised);
+						ktvr::set_tracker_state<false>(trackerVector.at(1).id, initialised);
+						ktvr::set_tracker_state<false>(trackerVector.at(2).id, initialised);
 
 						// Update internal status
 						initialised_bak = initialised;
@@ -954,9 +954,9 @@ namespace KinectSettings
 			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
 				std::chrono::high_resolution_clock::now() - loop_start_time).count();
 
-			// If we were too fast, sleep peacefully @120hz
-			if (duration <= 8333333.f)
-				std::this_thread::sleep_for(std::chrono::nanoseconds(8333333 - duration));
+			// If we were too fast, sleep peacefully @80hz
+			if (duration <= 12222222.f)
+				std::this_thread::sleep_for(std::chrono::nanoseconds(12222222 - duration));
 		}
 	}
 
