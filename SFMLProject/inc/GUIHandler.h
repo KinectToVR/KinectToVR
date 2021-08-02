@@ -556,26 +556,30 @@ public:
 			VirtualHips::settings.astartt && KinectSettings::isDriverPresent)
 		{
 			auto st = new std::thread([this]
-			{
-				std::this_thread::sleep_for(std::chrono::seconds(3));
-				TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-				spawnDefaultLowerBodyTrackers();
+				{
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+					TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+					spawnDefaultLowerBodyTrackers();
 
-				showPostTrackerInitUI();
+					showPostTrackerInitUI();
 
-				TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+					TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-				modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
-				TDegreeButton->SetValue(KinectSettings::cpoints);
-				TrackersConfigSaveButton->Show(true);
-				TrackersCalibButton->Show(true);
-				expcalibbutton->Show(!KinectSettings::isKinectPSMS);
+					modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
+					TDegreeButton->SetValue(KinectSettings::cpoints);
+					TrackersConfigSaveButton->Show(true);
+					TrackersCalibButton->Show(true);
+					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
 
-				space_label->Show(true);
-				AutoStartTrackers->Show(true);
-				KinectSettings::initialised = true;
-			});
+					space_label->Show(true);
+					AutoStartTrackers->Show(true);
+					KinectSettings::initialised = true;
+				});
 		}
+		else if (!KinectSettings::isDriverPresent)
+			LOG(INFO) << "Not autospawning trackers as the server is not yet connected.";
+		else if (KinectSettings::initialised)
+			LOG(INFO) << "Not autospawning trackers as they are already initialised.";
 	}
 
 	void setTrackerButtonSignals(vr::IVRSystem*& m_VRSystem)
