@@ -101,7 +101,7 @@ void KinectV2Handler::initialiseSkeleton()
 
 void KinectV2Handler::initialiseColor()
 {
-https: //github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
+	//https://github.com/UnaNancyOwen/Kinect2Sample/blob/master/sample/CoordinateMapper/app.h
 	if (colorFrameReader)
 		colorFrameReader->Release();
 	// Open Color Reader
