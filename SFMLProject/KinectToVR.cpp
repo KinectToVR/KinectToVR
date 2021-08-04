@@ -720,8 +720,9 @@ void processLoop(KinectHandlerBase& kinect)
 				" and suitable role has not been found and will be added separately.";
 
 			// Add the tracker and overwrite id
+			auto tracker_base = KinectSettings::trackerVector.at(i).getTrackerBase();
 			auto add_tracker_response =
-				add_tracker(KinectSettings::trackerVector.at(i).getTrackerBase());
+				add_tracker(tracker_base);
 			KinectSettings::trackerVector.at(i).id = add_tracker_response.id;
 
 			if (add_tracker_response.result == ktvr::K2ResponseMessageCode_OK)
@@ -743,8 +744,9 @@ void processLoop(KinectHandlerBase& kinect)
 				KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i + 3);
 
 				// Compose the response
+				auto tracker_base_ns = KinectSettings::trackerVector.at(i).getTrackerBase();
 				if (auto add_tracker_response_ns =
-					add_tracker(KinectSettings::trackerVector.at(i).getTrackerBase()); 
+					add_tracker(tracker_base_ns); 
 					add_tracker_response_ns.result == ktvr::K2ResponseMessageCode_OK)
 				{
 					LOG(INFO) << "Tracker with serial " +

@@ -52,3 +52,5 @@ external/openvr/
 external/eigen/
 
 external/KTVR
+
+external/glm/

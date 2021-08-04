@@ -855,14 +855,6 @@ namespace KinectSettings
 				trackerVector.at(1).updatePositionFilters();
 				trackerVector.at(2).updatePositionFilters();
 
-				// Update trackers + filters
-				
-				// Okie, this would be in a loop, really...
-				// but somehow it captures wrong trackers ids...
-				// so for now it will be one-by-one
-
-				// Also now we DON'T WANT replies
-
 				// Update pose w/ filtering
 				// WAIST TRACKER (0)
 				if (matrixes_calibrated)
@@ -915,21 +907,198 @@ namespace KinectSettings
 					trackerVector.at(flip ? 2 : 1).getTrackerBase(
 						posOption, t_NoOrientationTrackingFilter).pose);
 
-				// Okie, this would be in a loop, really...
-				// but somehow it captures only the last value from the loop then
-				// so for now it will be one-by-one
-				// This is in the loop because it may fail from time to time
+				// Update trackers + filters
 
+				//std::array poses_array =
+
+				//	matrixes_calibrated ?
+
+				//std::array{
+
+				//	// WAIST TRACKER (0)
+				//	std::make_pair(
+				//		trackerVector.at(0).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(0).getTrackerBase
+				//			(
+				//				calibration_rotation,
+				//				calibration_translation,
+				//				calibration_origin,
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// LEFT TRACKER (1)
+				//	std::make_pair(
+				//		trackerVector.at(1).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 2 : 1).getTrackerBase
+				//			(
+				//				calibration_rotation,
+				//				calibration_translation,
+				//				calibration_origin,
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// RIGHT TRACKER (2)
+				//	std::make_pair(
+				//		trackerVector.at(2).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 1 : 2).getTrackerBase
+				//			(
+				//				calibration_rotation,
+				//				calibration_translation,
+				//				calibration_origin,
+				//				posOption, 
+				//				t_NoOrientationTrackingFilter
+				//			).pose))
+				//}
+
+				//	: // Good ol ternary
+
+				//std::array{
+
+				//	// WAIST TRACKER (0)
+				//	std::make_pair(
+				//		trackerVector.at(0).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(0).
+				//			getTrackerBase(
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// LEFT TRACKER (1)
+				//	std::make_pair(
+				//		trackerVector.at(1).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 2 : 1).
+				//			getTrackerBase(
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// RIGHT TRACKER (2)
+				//	std::make_pair(
+				//		trackerVector.at(2).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 1 : 2).
+				//			getTrackerBase(
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose))
+
+				//};
+
+				//// Update poses
+				//ktvr::update_tracker_pose<false>(
+				//	std::span{ poses_array }
+				//);
+
+				//// Update poses
+				//ktvr::update_tracker_pose<false>(
+
+				//matrixes_calibrated ?
+
+				//std::vector{
+
+				//	// WAIST TRACKER (0)
+				//	std::make_pair(
+				//		trackerVector.at(0).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(0).getTrackerBase
+				//			(
+				//				calibration_rotation,
+				//				calibration_translation,
+				//				calibration_origin,
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// LEFT TRACKER (1)
+				//	std::make_pair(
+				//		trackerVector.at(1).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 2 : 1).getTrackerBase
+				//			(
+				//				calibration_rotation,
+				//				calibration_translation,
+				//				calibration_origin,
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// RIGHT TRACKER (2)
+				//	std::make_pair(
+				//		trackerVector.at(2).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 1 : 2).getTrackerBase
+				//			(
+				//				calibration_rotation,
+				//				calibration_translation,
+				//				calibration_origin,
+				//				posOption, 
+				//				t_NoOrientationTrackingFilter
+				//			).pose))
+				//}
+
+				//	: // Good ol ternary
+
+				//std::vector{
+
+				//	// WAIST TRACKER (0)
+				//	std::make_pair(
+				//		trackerVector.at(0).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(0).
+				//			getTrackerBase(
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// LEFT TRACKER (1)
+				//	std::make_pair(
+				//		trackerVector.at(1).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 2 : 1).
+				//			getTrackerBase(
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose)),
+
+				//	// RIGHT TRACKER (2)
+				//	std::make_pair(
+				//		trackerVector.at(2).id,
+				//		ktvr::K2PosePacket(
+				//			trackerVector.at(flip ? 1 : 2).
+				//			getTrackerBase(
+				//				posOption,
+				//				t_NoOrientationTrackingFilter
+				//			).pose))
+
+				//});
+				
 				// Update status 1/1000 loops / ~8s
 				// or right after any change
 				for (int i = 0; i < 3; i++) { // try 3 times
 					if (p_loops >= 1000 ||
 						(initialised_bak != initialised)) {
 						// Update status in server
-						ktvr::set_tracker_state<false>(trackerVector.at(0).id, initialised);
-						ktvr::set_tracker_state<false>(trackerVector.at(1).id, initialised);
-						ktvr::set_tracker_state<false>(trackerVector.at(2).id, initialised);
 
+						/*std::array {
+								std::make_pair(trackerVector.at(0).id, initialised),
+								std::make_pair(trackerVector.at(1).id, initialised),
+								std::make_pair(trackerVector.at(2).id, initialised)
+						}*/;
+
+						ktvr::set_tracker_state<false>(
+							std::vector{
+								std::make_pair(trackerVector.at(0).id, initialised),
+								std::make_pair(trackerVector.at(1).id, initialised),
+								std::make_pair(trackerVector.at(2).id, initialised)
+							});
+						
 						// Update internal status
 						initialised_bak = initialised;
 

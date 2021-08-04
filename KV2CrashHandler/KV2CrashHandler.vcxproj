@@ -119,8 +119,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\ModKinect;$(KINECTSDK20_DIR)inc;</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\glm;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\ModKinect;$(KINECTSDK20_DIR)inc;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,8 +137,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\ModKinect;$(KINECTSDK20_DIR)inc;$(SolutionDir)KinectSDK-v2.0\AttachedContainer\SDK20\Microsoft SDKs\Kinect\v2.0_1409\inc</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\glm;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\ModKinect;$(KINECTSDK20_DIR)inc;$(SolutionDir)KinectSDK-v2.0\AttachedContainer\SDK20\Microsoft SDKs\Kinect\v2.0_1409\inc</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

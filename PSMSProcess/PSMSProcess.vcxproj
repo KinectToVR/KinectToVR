@@ -119,8 +119,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\glm;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -137,8 +137,8 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>BOOST_USE_WINDOWS_H;_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;NDEBUG;_CONSOLE%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\glm;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\eigen;$(SolutionDir)external\PSMoveService;$(ProjectDir)/inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\easylogging\src;$(SolutionDir)SFMLProject\inc\;$(SolutionDir)external\PSMoveService\include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
