@@ -517,9 +517,10 @@ public:
 
 	void setKinectButtonSignal(KinectHandlerBase& kinect)
 	{
-		reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&kinect]
+		reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&]
 		{
 			kinect.initialise();
+			updateKinectStatusLabel(kinect);
 		});
 
 		refreshpsmovesbuton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
