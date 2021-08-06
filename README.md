@@ -35,14 +35,19 @@ Follow **[GitHub Actions script](https://github.com/KinectToVR/KinectToVR/blob/e
    ```vcpkg install opencv3[world]:x64-windows boost:x64-windows glm:x64-windows curlpp:x64-windows cereal:x64-windows sfml:x64-windows sfgui:x64-windows glew:x64-windows```<br>
    (Now you may rest a bit, also consider using a drive other than ```C:```, it'll be about 6-7GB without cleaned buildtrees)
 
-- Clone the latest OpenVR and Eigen3 into ```external/```:<br>
+- Clone the latest OpenVR, GLM and Eigen3 into ```external/```:<br>
    ```git clone https://github.com/ValveSoftware/openvr external/openvr```<br>
    ```git clone https://gitlab.com/libeigen/eigen external/eigen```
+   ```git clone https://github.com/g-truc/glm external/glm```
+
+- Fix min/max error in GLM (unresolved with NOMINMAX for now)
+   ```sed -i '/#include <limits>/c\#include <limits>\n\n#undef min\n#undef max' external/glm/glm/gtx/component_wise.inl```
 
 - Clone the latest K2APP and setup shortcuts to external deps:<br>
    ```git clone https://github.com/KinectToVR/k2vr-application external/KTVR```<br>
    ```New-Item -ItemType Junction -Path external/KTVR/external/openvr -Target external/openvr```<br>
-   ```New-Item -ItemType Junction -Path external/KTVR/external/eigen -Target external/eigen```
+   ```New-Item -ItemType Junction -Path external/KTVR/external/eigen -Target external/eigen```<br>
+   ```New-Item -ItemType Junction -Path external/KTVR/external/glm -Target external/glm```
 
 - Setup GLog<br>
    ```git clone https://github.com/google/glog.git external/glog```<br>

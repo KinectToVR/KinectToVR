@@ -82,6 +82,10 @@ jobs:
       run: |
         git clone https://github.com/ValveSoftware/openvr.git/ external/openvr
         git clone https://gitlab.com/libeigen/eigen.git/ external/eigen
+        git clone https://github.com/g-truc/glm external/glm
+
+    - name: Fix min/max error in GLM
+      run: sed -i '/#include <limits>/c\#include <limits>\n\n#undef min\n#undef max' external/glm/glm/gtx/component_wise.inl
 
     - name: Clone and setup K2APP
       shell: powershell
@@ -89,6 +93,7 @@ jobs:
         git clone https://github.com/KinectToVR/k2vr-application external/KTVR
         New-Item -ItemType Junction -Path external/KTVR/external/openvr -Target external/openvr
         New-Item -ItemType Junction -Path external/KTVR/external/eigen -Target external/eigen
+        New-Item -ItemType Junction -Path external/KTVR/external/glm -Target external/glm
         New-Item -ItemType Junction -Path external/KTVR/external/glog -Target external/glog
         New-Item -ItemType Junction -Path external/KTVR/external/gflags -Target external/gflags
 
