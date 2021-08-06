@@ -162,6 +162,10 @@ namespace KinectSettings
 	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
 	extern bool isDriverPresent;
 	extern bool isKinectDrawn;
+	
+	extern bool OnTrackersSave[3];
+	extern bool EnabledTrackersSave[3];
+	
 	extern bool isSkeletonDrawn;
 	extern bool ignoreInferredPositions;
 	extern bool ignoreRotationSmoothing;
@@ -188,7 +192,7 @@ namespace KinectSettings
 	extern const int kinectV2Width;
 	extern bool rtconcalib;
 	extern double kinectToVRScale;
-	extern bool initialised;
+	extern bool initialised, initialised_bak;
 	extern bool psmbuttons[5][10];
 	extern float conID[2];
 	extern double hipRoleHeightAdjust;

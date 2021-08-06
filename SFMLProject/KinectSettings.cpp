@@ -116,6 +116,10 @@ namespace KinectSettings
 	float hmdYaw = 0;
 	float conID[2] = { 0, 1 };
 
+	// Default: all on, all enabled
+	bool OnTrackersSave[3] = { true, true, true };
+	bool EnabledTrackersSave[3] = { true, true, true };
+
 	vr::HmdVector3d_t hmdPosition = { 0, 0, 0 };
 	vr::HmdQuaternion_t hmdRotation = { 0, 0, 0, 0 };
 	vr::HmdMatrix34_t hmdAbsoluteTracking = {};
@@ -857,59 +861,65 @@ namespace KinectSettings
 
 				// Update pose w/ filtering
 				// WAIST TRACKER (0)
-				if (matrixes_calibrated)
-					ktvr::update_tracker_pose<false>(
-						trackerVector.at(0).getTrackerBase
-						(
-							calibration_rotation,
-							calibration_translation,
-							calibration_origin,
-							posOption, t_NoOrientationTrackingFilter
-						));
+				if (EnabledTrackersSave[0]) {
+					if (matrixes_calibrated)
+						ktvr::update_tracker_pose<false>(
+							trackerVector.at(0).getTrackerBase
+							(
+								calibration_rotation,
+								calibration_translation,
+								calibration_origin,
+								posOption, t_NoOrientationTrackingFilter
+							));
 
-				else ktvr::update_tracker_pose<false>(
-					trackerVector.at(0).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter));
+					else ktvr::update_tracker_pose<false>(
+						trackerVector.at(0).getTrackerBase(
+							posOption, t_NoOrientationTrackingFilter));
+				}
 
 				// Update pose w/ filtering
 				// LEFT TRACKER (1)
-				if (matrixes_calibrated)
-					ktvr::update_tracker_pose<false>(
+				if (EnabledTrackersSave[1]) {
+					if (matrixes_calibrated)
+						ktvr::update_tracker_pose<false>(
+							trackerVector.at(1).id,
+							ktvr::K2PosePacket(
+								trackerVector.at(flip ? 2 : 1).getTrackerBase
+								(
+									calibration_rotation,
+									calibration_translation,
+									calibration_origin,
+									posOption, t_NoOrientationTrackingFilter
+								).pose));
+
+					else ktvr::update_tracker_pose<false>(
 						trackerVector.at(1).id,
 						ktvr::K2PosePacket(
-						trackerVector.at(flip ? 2 : 1).getTrackerBase
-						(
-							calibration_rotation,
-							calibration_translation,
-							calibration_origin,
-							posOption, t_NoOrientationTrackingFilter
-						).pose));
-
-				else ktvr::update_tracker_pose<false>(
-					trackerVector.at(1).id,
-					ktvr::K2PosePacket(
-					trackerVector.at(flip ? 2 : 1).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter).pose));
+							trackerVector.at(flip ? 2 : 1).getTrackerBase(
+								posOption, t_NoOrientationTrackingFilter).pose));
+				}
 
 				// Update pose w/ filtering
 				// RIGHT TRACKER (2)
-				if (matrixes_calibrated)
-					ktvr::update_tracker_pose<false>(
+				if (EnabledTrackersSave[2]) {
+					if (matrixes_calibrated)
+						ktvr::update_tracker_pose<false>(
+							trackerVector.at(2).id,
+							ktvr::K2PosePacket(
+								trackerVector.at(flip ? 1 : 2).getTrackerBase
+								(
+									calibration_rotation,
+									calibration_translation,
+									calibration_origin,
+									posOption, t_NoOrientationTrackingFilter
+								).pose));
+
+					else ktvr::update_tracker_pose<false>(
 						trackerVector.at(2).id,
 						ktvr::K2PosePacket(
-						trackerVector.at(flip ? 1 : 2).getTrackerBase
-						(
-							calibration_rotation,
-							calibration_translation,
-							calibration_origin,
-							posOption, t_NoOrientationTrackingFilter
-						).pose));
-
-				else ktvr::update_tracker_pose<false>(
-					trackerVector.at(2).id,
-					ktvr::K2PosePacket(
-					trackerVector.at(flip ? 1 : 2).getTrackerBase(
-						posOption, t_NoOrientationTrackingFilter).pose));
+							trackerVector.at(flip ? 1 : 2).getTrackerBase(
+								posOption, t_NoOrientationTrackingFilter).pose));
+				}
 
 				// Update status 1/1000 loops / ~8s
 				// or right after any change
@@ -917,11 +927,15 @@ namespace KinectSettings
 					if (p_loops >= 1000 ||
 						(initialised_bak != initialised)) {
 						// Update status in server
-						
-						ktvr::set_tracker_state<false>(trackerVector.at(0).id, initialised);
-						ktvr::set_tracker_state<false>(trackerVector.at(1).id, initialised);
-						ktvr::set_tracker_state<false>(trackerVector.at(2).id, initialised);
-						
+
+						// Would be in a loop but somehow bugs everything if it is
+						if (EnabledTrackersSave[0])
+							ktvr::set_tracker_state<false>(trackerVector.at(0).id, OnTrackersSave[0] && initialised);
+						if (EnabledTrackersSave[1])
+							ktvr::set_tracker_state<false>(trackerVector.at(1).id, OnTrackersSave[1] && initialised);
+						if (EnabledTrackersSave[2])
+							ktvr::set_tracker_state<false>(trackerVector.at(2).id, OnTrackersSave[2] && initialised);
+
 						// Update internal status
 						initialised_bak = initialised;
 

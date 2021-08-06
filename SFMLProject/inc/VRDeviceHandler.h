@@ -28,18 +28,18 @@ enum class VirtualHipMode
 struct VirtualHipSettings
 {
 	// Seconds. How far behind the tracked point should the hips be so that they don't instantly follow every tiny movement
-	bool rtcalib = false;
+	bool AreMatricesCalibrated = false;
 
-	bool astartt = false;
-	float tryawst, kinpitchst;
-	int footOption, hipsOption, posOption = 3;
-	int bodyTrackingOption = 1;
+	bool AutoStartTrackers = false;
+	float CalibrationTrackersYawOffset, CalibrationKinectCalculatedPitch;
+	int SelectedFootTrackingOption, SelectedWaistTrackingOption, SelectedPositionalTrackingOption = 3;
+	int SelectedBodyTrackingOption = 1;
 	// --- Standing Settings ---
 	bool positionFollowsHMDLean = false;
 	// Determines whether the virtual hips in standing mode will stay above the foot trackers, or interpolate between the HMD and foot trackers on a direct slant
-	float hmdegree = 0.0;
-	float tdegree = 3;
-	double heightFromHMD = 0.00;
+	float HMDOrientationOffset = 0.0;
+	float CalibrationPointsNumber = 3;
+	double HeightFromHMD = 0.00;
 	// Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
 	bool positionAccountsForFootTrackers = false;
 	// If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
@@ -50,36 +50,39 @@ struct VirtualHipSettings
 	Eigen::Matrix<float, 3, 1> mauoffset_s;
 	Eigen::Vector3f caliborigin;
 
-	float rcR_matT_S[3][3];
-	float rcT_matT_S[3];
-	float hauoffset_s_S[3];
-	float mauoffset_s_S[3];
-	float caliborigin_S[3];
+	float RecoveredRotationMatrixSave[3][3];
+	float RecoveredTranslationVectorSave[3];
+	float ManualOffsetsSave[3];
+	float CalibrationOriginSave[3];
+	
+	bool OnTrackersSave[3] = { true, true, true };
+	bool EnabledTrackersSave[3] = { true, true, true };
 
 	template <class Archive>
 	void serialize(Archive& archive)
 	{
 		archive(
 			CEREAL_NVP(positionFollowsHMDLean),
-			CEREAL_NVP(hmdegree),
-			CEREAL_NVP(tdegree),
-			CEREAL_NVP(footOption),
-			CEREAL_NVP(hipsOption),
-			CEREAL_NVP(posOption),
-			CEREAL_NVP(bodyTrackingOption),
-			CEREAL_NVP(astartt),
-			CEREAL_NVP(tryawst),
-			CEREAL_NVP(kinpitchst),
+			CEREAL_NVP(HMDOrientationOffset),
+			CEREAL_NVP(CalibrationPointsNumber),
+			CEREAL_NVP(SelectedFootTrackingOption),
+			CEREAL_NVP(SelectedWaistTrackingOption),
+			CEREAL_NVP(SelectedPositionalTrackingOption),
+			CEREAL_NVP(SelectedBodyTrackingOption),
+			CEREAL_NVP(AutoStartTrackers),
+			CEREAL_NVP(CalibrationTrackersYawOffset),
+			CEREAL_NVP(CalibrationKinectCalculatedPitch),
 
-			CEREAL_NVP(rtcalib),
-			CEREAL_NVP(heightFromHMD),
-			CEREAL_NVP(positionAccountsForFootTrackers),
+			CEREAL_NVP(AreMatricesCalibrated),
+			CEREAL_NVP(HeightFromHMD),
 
-			CEREAL_NVP(caliborigin_S),
-			CEREAL_NVP(hauoffset_s_S),
-			CEREAL_NVP(mauoffset_s_S),
-			CEREAL_NVP(rcR_matT_S),
-			CEREAL_NVP(rcT_matT_S)
+			CEREAL_NVP(OnTrackersSave),
+			CEREAL_NVP(EnabledTrackersSave),
+
+			CEREAL_NVP(CalibrationOriginSave),
+			CEREAL_NVP(ManualOffsetsSave),
+			CEREAL_NVP(RecoveredRotationMatrixSave),
+			CEREAL_NVP(RecoveredTranslationVectorSave)
 		);
 	}
 };
@@ -88,12 +91,11 @@ void decomposeEigen(VirtualHipSettings& settings)
 {
 	for (int i = 0; i < 3; i++)
 	{
-		settings.rcT_matT_S[i] = settings.rcT_matT[i];
-		settings.hauoffset_s_S[i] = settings.hauoffset_s[i];
-		settings.mauoffset_s_S[i] = settings.mauoffset_s[i];
-		settings.caliborigin_S[i] = settings.caliborigin[i];
+		settings.RecoveredTranslationVectorSave[i] = settings.rcT_matT[i];
+		settings.ManualOffsetsSave[i] = settings.mauoffset_s[i];
+		settings.CalibrationOriginSave[i] = settings.caliborigin[i];
 		for (int j = 0; j < 3; j++)
-			settings.rcR_matT_S[i][j] = settings.rcR_matT.coeff(i, j);
+			settings.RecoveredRotationMatrixSave[i][j] = settings.rcR_matT.coeff(i, j);
 	}
 }
 
@@ -101,12 +103,11 @@ void recomposeEigen(VirtualHipSettings& settings)
 {
 	for (int i = 0; i < 3; i++)
 	{
-		settings.rcT_matT[i] = settings.rcT_matT_S[i];
-		settings.hauoffset_s[i] = settings.hauoffset_s_S[i];
-		settings.mauoffset_s[i] = settings.mauoffset_s_S[i];
-		settings.caliborigin[i] = settings.caliborigin_S[i];
+		settings.rcT_matT[i] = settings.RecoveredTranslationVectorSave[i];
+		settings.mauoffset_s[i] = settings.ManualOffsetsSave[i];
+		settings.caliborigin[i] = settings.CalibrationOriginSave[i];
 		for (int j = 0; j < 3; j++)
-			settings.rcR_matT.coeffRef(i, j) = settings.rcR_matT_S[i][j];
+			settings.rcR_matT.coeffRef(i, j) = settings.RecoveredRotationMatrixSave[i][j];
 	}
 }
 
@@ -162,34 +163,38 @@ namespace VirtualHips
 
 				recomposeEigen(settings);
 
-				KinectSettings::hroffset = settings.hmdegree;
-				KinectSettings::cpoints = settings.tdegree;
+				KinectSettings::hroffset = settings.HMDOrientationOffset;
+				KinectSettings::cpoints = settings.CalibrationPointsNumber;
 
 				KinectSettings::calibration_rotation = settings.rcR_matT;
 				KinectSettings::calibration_translation = settings.rcT_matT;
 
-				KinectSettings::huoffsets.v[0] = settings.heightFromHMD;
+				KinectSettings::huoffsets.v[0] = settings.HeightFromHMD;
 
-				KinectSettings::matrixes_calibrated = settings.rtcalib;
-				KinectSettings::calibration_trackers_yaw = settings.tryawst;
-				KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
-
-				KinectSettings::hauoffset.v[0] = settings.hauoffset_s(0);
-				KinectSettings::hauoffset.v[1] = settings.hauoffset_s(1);
-				KinectSettings::hauoffset.v[2] = settings.hauoffset_s(2);
-
+				KinectSettings::matrixes_calibrated = settings.AreMatricesCalibrated;
+				KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
+				KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
+				
 				KinectSettings::mauoffset.v[0] = settings.mauoffset_s(0);
 				KinectSettings::mauoffset.v[1] = settings.mauoffset_s(1);
 				KinectSettings::mauoffset.v[2] = settings.mauoffset_s(2);
 
-				footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(settings.footOption);
-				hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(settings.hipsOption);
-				positionFilterOption.filterOption = static_cast<positionalFilterOption>(settings.posOption);
-				bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(settings.bodyTrackingOption);
+				KinectSettings::OnTrackersSave[0] = settings.OnTrackersSave[0];
+				KinectSettings::OnTrackersSave[1] = settings.OnTrackersSave[1];
+				KinectSettings::OnTrackersSave[2] = settings.OnTrackersSave[2];
+
+				KinectSettings::EnabledTrackersSave[0] = settings.EnabledTrackersSave[0];
+				KinectSettings::EnabledTrackersSave[1] = settings.EnabledTrackersSave[1];
+				KinectSettings::EnabledTrackersSave[2] = settings.EnabledTrackersSave[2];
+
+				footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(settings.SelectedFootTrackingOption);
+				hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(settings.SelectedWaistTrackingOption);
+				positionFilterOption.filterOption = static_cast<positionalFilterOption>(settings.SelectedPositionalTrackingOption);
+				bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(settings.SelectedBodyTrackingOption);
 
 				KinectSettings::calibration_origin = settings.caliborigin;
 
-				LOG(INFO) << settings.tryawst << '\n' << settings.rcR_matT << '\n' <<
+				LOG(INFO) << settings.CalibrationTrackersYawOffset << '\n' << settings.rcR_matT << '\n' <<
 					KinectSettings::calibration_trackers_yaw << '\n' <<
 					KinectSettings::calibration_rotation << '\n';
 			}

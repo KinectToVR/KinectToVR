@@ -679,6 +679,9 @@ void processLoop(KinectHandlerBase& kinect)
 	/* update 3 default trackers <KinectSettings.h> */
 	for (int i = 0; i < 3; i++)
 	{
+		// Check if the tracker is enabled
+		if (!KinectSettings::EnabledTrackersSave[i]) continue;
+		
 		// We don't let the user overwrite serial here
 		auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
 
@@ -787,21 +790,21 @@ void processLoop(KinectHandlerBase& kinect)
 
 	// Select backed up or first (we may switch from KV1 to KV2, keeping config)
 	guiRef.coptbox->SelectItem(
-		VirtualHips::settings.footOption < guiRef.coptbox->GetItemCount() ? VirtualHips::settings.footOption : 0);
+		VirtualHips::settings.SelectedFootTrackingOption < guiRef.coptbox->GetItemCount() ? VirtualHips::settings.SelectedFootTrackingOption : 0);
 
-	guiRef.coptbox1->SelectItem(VirtualHips::settings.hipsOption);
-	guiRef.foptbox->SelectItem(VirtualHips::settings.posOption);
+	guiRef.coptbox1->SelectItem(VirtualHips::settings.SelectedWaistTrackingOption);
+	guiRef.foptbox->SelectItem(VirtualHips::settings.SelectedPositionalTrackingOption);
 
 	// Select automatically
 	guiRef.bodytrackingselectbox->SelectItem(0);
 	guiRef.refreshpsms();
 
 	// Select tracking option automatically
-	VirtualHips::settings.bodyTrackingOption = KinectSettings::isKinectPSMS
+	VirtualHips::settings.SelectedBodyTrackingOption = KinectSettings::isKinectPSMS
 		                                           ? k_PSMoveFullTracking
 		                                           : k_KinectFullTracking;
-	bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(VirtualHips::settings.bodyTrackingOption);
-	KinectSettings::positional_tracking_option = VirtualHips::settings.bodyTrackingOption;
+	bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(VirtualHips::settings.SelectedBodyTrackingOption);
+	KinectSettings::positional_tracking_option = VirtualHips::settings.SelectedBodyTrackingOption;
 
 	auto ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
@@ -959,7 +962,7 @@ void processLoop(KinectHandlerBase& kinect)
 		{
 			footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(guiRef.coptbox->
 				GetSelectedItem());
-			VirtualHips::settings.footOption = guiRef.coptbox->GetSelectedItem();
+			VirtualHips::settings.SelectedFootTrackingOption = guiRef.coptbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
@@ -968,14 +971,14 @@ void processLoop(KinectHandlerBase& kinect)
 		{
 			hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(guiRef.coptbox1->
 				GetSelectedItem());
-			VirtualHips::settings.hipsOption = guiRef.coptbox1->GetSelectedItem();
+			VirtualHips::settings.SelectedWaistTrackingOption = guiRef.coptbox1->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
 		if (positionFilterOption.filterOption != static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem()))
 		{
 			positionFilterOption.filterOption = static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem());
-			VirtualHips::settings.posOption = guiRef.foptbox->GetSelectedItem();
+			VirtualHips::settings.SelectedPositionalTrackingOption = guiRef.foptbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}
@@ -985,20 +988,20 @@ void processLoop(KinectHandlerBase& kinect)
 		{
 			bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
 				GetSelectedItem());
-			VirtualHips::settings.bodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
+			VirtualHips::settings.SelectedBodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
 
 			VirtualHips::saveSettings();
 		}*/
 
-		if (VirtualHips::settings.bodyTrackingOption == k_PSMoveFullTracking)
+		if (VirtualHips::settings.SelectedBodyTrackingOption == k_PSMoveFullTracking)
 			guiRef.psmidbox->Show(true);
 		else
 			guiRef.psmidbox->Show(false);
 
-		KinectSettings::feet_rotation_option = VirtualHips::settings.footOption;
-		KinectSettings::hips_rotation_option = VirtualHips::settings.hipsOption;
-		KinectSettings::posOption = VirtualHips::settings.posOption;
-		KinectSettings::positional_tracking_option = VirtualHips::settings.bodyTrackingOption;
+		KinectSettings::feet_rotation_option = VirtualHips::settings.SelectedFootTrackingOption;
+		KinectSettings::hips_rotation_option = VirtualHips::settings.SelectedWaistTrackingOption;
+		KinectSettings::posOption = VirtualHips::settings.SelectedPositionalTrackingOption;
+		KinectSettings::positional_tracking_option = VirtualHips::settings.SelectedBodyTrackingOption;
 
 		//KinectSettings::footRotationFilterOption::k_EnableOrientationFilter;
 
@@ -1040,37 +1043,34 @@ void spawnDefaultLowerBodyTrackers()
 	std::thread([&]
 	{
 		bool spawned[3] = {false};
-
+		
 		// Try 3 times
 		for (int i = 0; i < 3; i++)
 		{
-			// Add only lower body trackers from the vector
-			for (auto& tracker : KinectSettings::trackerVector)
+			// Add only default trackers from the vector (0-2)
+			for (int t = 0; t < 3; t++)
 			{
-				if (tracker.data.role == ktvr::Tracker_Waist ||
-					tracker.data.role == ktvr::Tracker_LeftFoot ||
-					tracker.data.role == ktvr::Tracker_RightFoot)
+				if (KinectSettings::EnabledTrackersSave[t])
 				{
 					if (const auto& m_result =
-						ktvr::set_tracker_state(tracker.id, true); // We WANT a reply
-						m_result.id == tracker.id && m_result.success)
+						ktvr::set_tracker_state(KinectSettings::trackerVector.at(t).id, true); // We WANT a reply
+						m_result.id == KinectSettings::trackerVector.at(t).id && m_result.success)
 					{
-						LOG(INFO) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(
-								tracker.id) +
+						LOG(INFO) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+								KinectSettings::trackerVector.at(t).id) +
 							" was successfully updated with status [active]";
-
-						spawned[tracker.id < 3 ? tracker.id : tracker.id - 3] = true;
+						spawned[t] = true;
 					}
 
-					else if (m_result.id != tracker.id && m_result.success)
-						LOG(ERROR) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(
-								tracker.id) +
+					else if (m_result.id != KinectSettings::trackerVector.at(t).id && m_result.success)
+						LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+								KinectSettings::trackerVector.at(t).id) +
 							" could not be spawned due to ID mismatch.";
 
 					else
 					{
-						LOG(ERROR) << "Tracker with serial " + tracker.data.serial + " and id " + std::to_string(
-								tracker.id) +
+						LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+								KinectSettings::trackerVector.at(t).id) +
 							" could not be spawned due to internal server error.";
 						if (!ktvr::GetLastError().empty())
 							LOG(ERROR) << "Last K2API error: " + ktvr::GetLastError();
@@ -1078,9 +1078,9 @@ void spawnDefaultLowerBodyTrackers()
 				}
 				else
 				{
-					LOG(INFO) << "Not spawning tracker with serial " + tracker.data.serial + " and id " +
-						std::to_string(tracker.id) +
-						" because the role does not apply to the lower-body-tracking class.";
+					spawned[t] = true; // Hacky hack
+					LOG(INFO) << "Not spawning tracker with serial " + KinectSettings::trackerVector.at(t).data.serial +
+						" because it is disabled in settings.";
 				}
 			}
 		}

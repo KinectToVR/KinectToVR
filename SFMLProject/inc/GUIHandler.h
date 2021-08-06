@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -68,12 +68,14 @@ public:
 		setLineWrapping();
 		packElementsIntoMainBox();
 		packElementsIntoAdvTrackerBox();
+		packElementsIntoTrackersBox();
 		packElementsIntoCalibrationBox();
 		setRequisitions();
 
 		mainNotebook->AppendPage(mainGUIBox, sfg::Label::Create(" Body Trackers "));
 		mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Offsets "));
 		mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Options "));
+		mainNotebook->AppendPage(trackersBox, sfg::Label::Create(" Trackers "));
 
 		guiWindow->Add(mainNotebook);
 		guiDesktop.Add(guiWindow);
@@ -554,7 +556,7 @@ public:
 	void ping_InitTrackers()
 	{
 		if (!KinectSettings::initialised && // If not done yet
-			VirtualHips::settings.astartt && KinectSettings::isDriverPresent)
+			VirtualHips::settings.AutoStartTrackers && KinectSettings::isDriverPresent)
 		{
 			auto st = new std::thread([this]
 				{
@@ -829,7 +831,7 @@ public:
 		//setHipScaleBox();
 		mainGUIBox->Pack(ShowSkeletonButton);
 
-		modeTitleBox110->Pack(sfg::Label::Create("Calibration Points (Reccomended: 3)"));
+		modeTitleBox110->Pack(sfg::Label::Create("Calibration Points (Recommended: 3)"));
 		modeTitleBox110->Pack(TDegreeButton);
 
 		mainGUIBox->Pack(modeTitleBox110);
@@ -937,18 +939,7 @@ public:
 		auto box11 = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 		box11->Pack(sfg::Label::Create("Positional tracking filter"));
 		box11->Pack(foptbox);
-
-		/*
-		* EKF is really nice if you are planning to stand in place
-		* Low pass filter is fot those, who have lit room and kinda bad tracking
-		* interpolation predicts kinect results so it makes you faster but
-		*    literally teleports trackers to next position, should be connected with lpf
-		* "Magic Touch" actually disables filters, but only on k2vr side
-		*    idk how it works in normal life, but driver should detect it
-		*    and apply it's own filters (driver's source code will stay unpublished
-		*    until arduvr is officially announced and promoted)
-		*/
-
+		
 		foptbox->AppendItem("Extended Kalman filter - smooths every jitter"); //use ekf in k2vr
 		foptbox->AppendItem("Low Pass filter - quite fast, adaptive smoothing"); //use lpf in k2vr
 		foptbox->AppendItem("Linear Interpolation - gentle, continuous smoothing"); //use glm::mix in k2vr
@@ -965,6 +956,59 @@ public:
 		advancedTrackerBox->Pack(astartbox);
 	}
 
+	void packElementsIntoTrackersBox()
+	{
+		// TODO:
+
+		sfg::Box::Ptr verticalBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+		verticalBox->Pack(
+			sfg::Label::Create("This tab allows you to enable/disable or turn on/off selected trackers."));
+		verticalBox->Pack(
+			sfg::Label::Create("Disabling a tracker turns it off, then prevents it from spawning the next SteamVR run."));
+		verticalBox->Pack(
+			sfg::Label::Create("When a tracker is turned off, it still will be added, but marked as inactive.\n\n\n"));
+		trackersBox->Pack(verticalBox);
+
+		// Create button spaces
+		sfg::Box::Ptr
+			hor_box = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL),
+			ver1_box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL),
+			ver2_box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL),
+			ver3_box = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
+
+		// Create button placeholders
+		sfg::Box::Ptr
+			ver1_box_p = sfg::Box::Create(),
+			ver2_box_p = sfg::Box::Create(),
+			ver3_box_p = sfg::Box::Create();
+
+		ver1_box_p->Pack(TurnOffTrackerButton[0]);
+		ver2_box_p->Pack(TurnOffTrackerButton[1]);
+		ver3_box_p->Pack(TurnOffTrackerButton[2]);
+		
+		ver1_box->Pack(DisableTrackerButton[0]);
+		ver1_box->Pack(sfg::Label::Create(" "));
+		ver1_box->Pack(ver1_box_p);
+		
+		ver2_box->Pack(DisableTrackerButton[1]);
+		ver2_box->Pack(sfg::Label::Create(" "));
+		ver2_box->Pack(ver2_box_p);
+		
+		ver3_box->Pack(DisableTrackerButton[2]);
+		ver3_box->Pack(sfg::Label::Create(" "));
+		ver3_box->Pack(ver3_box_p);
+		
+		// Pack both hor boxes into one ver
+		hor_box->Pack(ver1_box);
+		hor_box->Pack(sfg::Label::Create(" "));
+		hor_box->Pack(ver2_box);
+		hor_box->Pack(sfg::Label::Create(" "));
+		hor_box->Pack(ver3_box);
+
+		// Pack ver box into tab
+		trackersBox->Pack(hor_box);
+	}
+
 	void packElementsIntoCalibrationBox()
 	{
 		sfg::Box::Ptr verticalBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
@@ -973,7 +1017,7 @@ public:
 			sfg::Label::Create("This tab allows you to move and rotate trackers to fine tune the calibration values."));
 
 		verticalBox->Pack(
-			sfg::Label::Create("This is generally used to slighty adjust position and orientation of trackers."));
+			sfg::Label::Create("This is generally used to slightly adjust position and orientation of trackers."));
 		verticalBox->Pack(sfg::Label::Create("\nRotation is in degrees and position is declared in meters.\n "));
 
 		auto horizontalrPosBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
@@ -1166,6 +1210,33 @@ public:
 		CloseHandle(hSnapShot);
 	}
 
+	void updateSavedTrackersLabels()
+	{
+		using namespace VirtualHips;
+		
+		DisableTrackerButton[0]->SetLabel(
+			(std::string(settings.EnabledTrackersSave[0] ? "Disable" : "Enable") + std::string(" Waist Tracker")).c_str());
+		DisableTrackerButton[1]->SetLabel(
+			(std::string(settings.EnabledTrackersSave[1] ? "Disable" : "Enable") + std::string(" Left Foot Tracker")).c_str());
+		DisableTrackerButton[2]->SetLabel(
+			(std::string(settings.EnabledTrackersSave[2] ? "Disable" : "Enable") + std::string(" Right Foot Tracker")).c_str());
+
+		TurnOffTrackerButton[0]->SetLabel(
+			(std::string(settings.OnTrackersSave[0] ? "Turn Off" : "Turn On") + std::string(" Waist Tracker")).c_str());
+		TurnOffTrackerButton[1]->SetLabel(
+			(std::string(settings.OnTrackersSave[1] ? "Turn Off" : "Turn On") + std::string(" Left Foot Tracker")).c_str());
+		TurnOffTrackerButton[2]->SetLabel(
+			(std::string(settings.OnTrackersSave[2] ? "Turn Off" : "Turn On") + std::string(" Right Foot Tracker")).c_str());
+
+		for (int i = 0; i < 3; i++)
+			TurnOffTrackerButton[i]->Show(settings.EnabledTrackersSave[i]);
+	}
+
+	void showRestartNotice()
+	{
+		// TODO: Show the user that they need to restart steamvr for changes to take effect
+	}
+
 	void setVirtualHipsBoxSignals()
 	{
 		using namespace VirtualHips;
@@ -1174,21 +1245,37 @@ public:
 		DegreeButton->SetDigits(2);
 		TDegreeButton->SetDigits(0);
 
-		VirtualHipLockToHeadButton->GetSignal(sfg::RadioButton::OnToggle).Connect([this]
-			{
-				settings.positionAccountsForFootTrackers = !VirtualHipLockToHeadButton->IsActive();
-			}
-		);
-		VirtualHipLockToFeetButton->GetSignal(sfg::RadioButton::OnToggle).Connect([this]
-			{
-				settings.positionAccountsForFootTrackers = VirtualHipLockToFeetButton->IsActive();
-			}
-		);
+		for (int i = 0; i < 3; i++) {
+			DisableTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
+				{
+					settings.EnabledTrackersSave[i] = !settings.EnabledTrackersSave[i];
+					// OnOff one here because the state may change at runtime, spawning not
+					settings.OnTrackersSave[i] = settings.EnabledTrackersSave[i];
+					KinectSettings::OnTrackersSave[i] = settings.OnTrackersSave[i];
+					updateSavedTrackersLabels();
+					saveSettings();
 
+					// Force update
+					KinectSettings::initialised_bak = !KinectSettings::initialised;
+				});
+
+			TurnOffTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
+				{
+					settings.OnTrackersSave[i] = !settings.OnTrackersSave[i];
+					KinectSettings::OnTrackersSave[i] = settings.OnTrackersSave[i];
+					updateSavedTrackersLabels();
+					saveSettings();
+
+					// Force update
+					KinectSettings::initialised_bak = !KinectSettings::initialised;
+				});
+
+		}
+		
 		AutoStartTrackers->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
 		{
-			settings.astartt = !settings.astartt;
-			if (settings.astartt)
+			settings.AutoStartTrackers = !settings.AutoStartTrackers;
+			if (settings.AutoStartTrackers)
 			{
 				AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: YES");
 			}
@@ -1198,7 +1285,8 @@ public:
 			}
 		});
 
-		if (settings.astartt)
+		updateSavedTrackersLabels();
+		if (settings.AutoStartTrackers)
 		{
 			AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: YES");
 		}
@@ -1209,20 +1297,20 @@ public:
 
 		VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				settings.heightFromHMD = VirtualHipHeightFromHMDButton->GetValue();
+				settings.HeightFromHMD = VirtualHipHeightFromHMDButton->GetValue();
 				KinectSettings::huoffsets.v[0] = VirtualHipHeightFromHMDButton->GetValue();
 			}
 		);
 
 		DegreeButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				settings.hmdegree = DegreeButton->GetValue();
+				settings.HMDOrientationOffset = DegreeButton->GetValue();
 				KinectSettings::hroffset = DegreeButton->GetValue();
 			}
 		);
 		TDegreeButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
-				settings.tdegree = TDegreeButton->GetValue();
+				settings.CalibrationPointsNumber = TDegreeButton->GetValue();
 				KinectSettings::cpoints = TDegreeButton->GetValue();
 			}
 		);
@@ -1361,9 +1449,9 @@ public:
 								KinectSettings::calibration_origin = settings.caliborigin;
 								KinectSettings::calibration_rotation = settings.rcR_matT;
 								KinectSettings::calibration_translation = settings.rcT_matT;
-								KinectSettings::calibration_trackers_yaw = settings.tryawst;
+								KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
 
-								KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
+								KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
 								break;
 							}
 						}
@@ -1375,12 +1463,12 @@ public:
 							settings.caliborigin = KinectSettings::calibration_origin;
 							settings.rcR_matT = KinectSettings::calibration_rotation;
 							settings.rcT_matT = KinectSettings::calibration_translation;
-							settings.tryawst = glm::degrees(yawtmp);
-							settings.kinpitchst = pitchtmp;
+							settings.CalibrationTrackersYawOffset = glm::degrees(yawtmp);
+							settings.CalibrationKinectCalculatedPitch = pitchtmp;
 						}
 
 						KinectSettings::matrixes_calibrated = true;
-						settings.rtcalib = true;
+						settings.AreMatricesCalibrated = true;
 
 						TrackersCalibButton->SetLabel(
 							std::string(!KinectSettings::isCalibrating
@@ -1489,9 +1577,9 @@ public:
 							KinectSettings::calibration_origin = settings.caliborigin;
 							KinectSettings::calibration_rotation = settings.rcR_matT;
 							KinectSettings::calibration_translation = settings.rcT_matT;
-							KinectSettings::calibration_trackers_yaw = settings.tryawst;
+							KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
 
-							KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
+							KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
 						}
 
 						if (KinectSettings::isCalibrating)
@@ -1674,12 +1762,12 @@ public:
 
 							// Save our retrieved yaw (this one's in degrees)
 							KinectSettings::calibration_trackers_yaw = RetrievedYaw; // Use fixed one
-							settings.tryawst = KinectSettings::calibration_trackers_yaw;
+							settings.CalibrationTrackersYawOffset = KinectSettings::calibration_trackers_yaw;
 
 							// Pitch may require some tweaks, before it was about 180deg
 							KinectSettings::calibration_kinect_pitch =
 								glm::radians(KinectDirectionEigenEulerDegrees.x()); // We're using radsians
-							settings.kinpitchst = KinectSettings::calibration_kinect_pitch;
+							settings.CalibrationKinectCalculatedPitch = KinectSettings::calibration_kinect_pitch;
 
 							// In maualcalib it's hips position, although here it's gonna be 0
 							KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
@@ -1708,9 +1796,9 @@ public:
 							KinectSettings::calibration_origin = settings.caliborigin;
 							KinectSettings::calibration_rotation = settings.rcR_matT;
 							KinectSettings::calibration_translation = settings.rcT_matT;
-							KinectSettings::calibration_trackers_yaw = settings.tryawst;
+							KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
 
-							KinectSettings::calibration_kinect_pitch = settings.kinpitchst;
+							KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
 						}
 
 						/**********************************************************************************************/
@@ -1736,7 +1824,7 @@ public:
 						//	}
 
 						//	/*KinectSettings::calibration_trackers_yaw = glm::degrees(yaw);
-						//	settings.tryawst = glm::degrees(yaw);*/
+						//	settings.CalibrationTrackersYawOffset = glm::degrees(yaw);*/
 
 						//	LOG(INFO) << "GOT REAL LOOKATKINECT ORIENTATION YAW: " << glm::degrees(yaw);
 						//}
@@ -1744,7 +1832,7 @@ public:
 						/**********************************************************************************************/
 
 						KinectSettings::matrixes_calibrated = true;
-						settings.rtcalib = true;
+						settings.AreMatricesCalibrated = true;
 
 						TrackersCalibButton->SetLabel(
 							std::string(!KinectSettings::isCalibrating
@@ -1782,9 +1870,10 @@ private:
 	sfg::Box::Ptr mainGUIBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 	sfg::Box::Ptr calibrationBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Box::Ptr advancedTrackerBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
+	sfg::Box::Ptr trackersBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL, 5.f);
 
 	sfg::Adjustment::Ptr fontSizeAdjustment = sfg::Adjustment::Create();
-	sfg::Label::Ptr FontSizeScaleLabel = sfg::Label::Create("(WARNING, LAGS ON CHANGE) Font Size: ");
+	sfg::Label::Ptr FontSizeScaleLabel = sfg::Label::Create("UI Font Size: ");
 	sfg::SpinButton::Ptr FontSizeScale = sfg::SpinButton::Create(
 		sfg::Adjustment::Create(SFMLsettings::globalFontSize, 5.f, 100.f, .5f));
 	float lastFontSizeValue = SFMLsettings::globalFontSize;
@@ -1875,6 +1964,19 @@ private:
 	sfg::Button::Ptr CalibrationSaveButton = sfg::Button::Create("Save Calibration Values");
 	sfg::Button::Ptr ActivateVRSceneTypeButton = sfg::Button::Create("Show K2VR in the VR Bindings Menu!");
 
+	// Trackers --- W, L, R
+	sfg::Button::Ptr DisableTrackerButton[3] = {
+		sfg::Button::Create("Disable Waist Tracker"),
+		sfg::Button::Create("Disable Left Foot Tracker"),
+		sfg::Button::Create("Disable Right Foot Tracker")
+	};
+
+	sfg::Button::Ptr TurnOffTrackerButton[3] = {
+		sfg::Button::Create("Turn Off Waist Tracker"),
+		sfg::Button::Create("Turn Off Left Foot Tracker"),
+		sfg::Button::Create("Turn Off Right Foot Tracker")
+	};
+	
 	//Adv Trackers
 	sfg::Button::Ptr calibrateOffsetButton = sfg::Button::Create("Calibrate VR Offset");
 	sfg::Button::Ptr AddHandControllersToList = sfg::Button::Create("Add Hand Controllers");
@@ -1918,18 +2020,15 @@ private:
 	sfg::CheckButton::Ptr VirtualHipUseHMDYawButton = sfg::CheckButton::Create("Yaw");
 	sfg::CheckButton::Ptr VirtualHipUseHMDPitchButton = sfg::CheckButton::Create("Pitch");
 	sfg::CheckButton::Ptr VirtualHipUseHMDRollButton = sfg::CheckButton::Create("Roll");
-
-	sfg::RadioButton::Ptr VirtualHipLockToHeadButton = sfg::RadioButton::Create("Head");
-	sfg::RadioButton::Ptr VirtualHipLockToFeetButton = sfg::RadioButton::Create("Feet");
-
+	
 	sfg::SpinButton::Ptr VirtualHipHeightFromHMDButton = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -1000.f, 1000.f, 0.01f));
+		sfg::Adjustment::Create(VirtualHips::settings.HeightFromHMD, -1000.f, 1000.f, 0.01f));
 	sfg::CheckButton::Ptr VirtualHipFollowHMDLean = sfg::CheckButton::Create("Follow HMD Lean");
 
 	sfg::SpinButton::Ptr DegreeButton = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, -360.f, 360.f, 0.01f));
+		sfg::Adjustment::Create(VirtualHips::settings.HeightFromHMD, -360.f, 360.f, 0.01f));
 	sfg::SpinButton::Ptr TDegreeButton = sfg::SpinButton::Create(
-		sfg::Adjustment::Create(VirtualHips::settings.heightFromHMD, 2, 11, 1.f));
+		sfg::Adjustment::Create(VirtualHips::settings.HeightFromHMD, 2, 11, 1.f));
 
 	sfg::Button::Ptr VirtualHipConfigSaveButton = sfg::Button::Create("Save Settings");
 	sfg::Button::Ptr TrackersConfigSaveButton = sfg::Button::Create("Save Settings");
