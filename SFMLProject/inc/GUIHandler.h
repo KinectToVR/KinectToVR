@@ -522,7 +522,12 @@ public:
 		reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&]
 		{
 			kinect.initialise();
-			updateKinectStatusLabel(kinect);
+			KinectSettings::reconnecting = true;
+			
+			std::thread([&] {
+				std::this_thread::sleep_for(std::chrono::seconds(3));
+				updateKinectStatusLabel(kinect);
+				}).detach();
 		});
 
 		refreshpsmovesbuton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
@@ -1089,34 +1094,33 @@ public:
 	void updateKinectStatusLabel(KinectHandlerBase& kinect)
 	{
 		HRESULT status = kinect.getStatusResult();
-		if (kinect.isInitialised())
-		{
-			if (status == lastKinectStatus)
-				return; // No need to waste time updating it;
-			if (kinect.isPSMS)
+		if (status != lastKinectStatus || KinectSettings::reconnecting) {
+			if (kinect.isInitialised())
 			{
-				KinectStatusLabel->SetText("PSMoveService Mode!");
-			}
-			else
-			{
-				switch (status)
+				if (kinect.isPSMS)
 				{
-				case S_OK:
+					KinectStatusLabel->SetText("PSMoveService Mode!");
+				}
+				else
+				{
+					switch (status)
+					{
+					case S_OK:
 					{
 						KinectStatusLabel->SetText("Kinect Status: Success!");
 						break;
 					}
-				default:
-					KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
-					break;
+					default:
+						KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
+						break;
+					}
 				}
 			}
-		}
-		else
-			updateKinectStatusLabelDisconnected();
-		if (status != lastKinectStatus)
-		{
-			LOG(INFO) << "Kinect Status changed to: " << KinectStatusLabel->GetText().toAnsiString();
+			else
+				updateKinectStatusLabelDisconnected();
+
+			LOG(INFO) << "Kinect Status updated to: " << KinectStatusLabel->GetText().toAnsiString();
+			KinectSettings::reconnecting = false;
 			lastKinectStatus = status;
 		}
 	}

@@ -254,6 +254,9 @@ namespace KinectSettings
 
 	void serializeKinectSettings();
 	void writeKinectSettings();
+
+	// When a reconnect is pending
+	inline bool reconnecting = false;
 }
 
 namespace SFMLsettings
