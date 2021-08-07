@@ -354,6 +354,22 @@ void processLoop(KinectHandlerBase& kinect)
 	LOG(INFO) << "Kinect version is V" << static_cast<int>(kinect.kVersion);
 	KinectSettings::kinectVersion = kinect.kVersion; //Set kinect version
 
+	// Connect to OpenVR at the very beginning
+	LOG(INFO) << "Attempting connection to vrsystem.... "; // DEBUG
+	vr::EVRInitError eError = vr::VRInitError_None;
+	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
+
+	if (eError != vr::VRInitError_None) {
+		LOG(ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
+		MessageBoxA(nullptr,
+			std::string(
+				"Couldn't initialise VR system. (Code " + std::to_string(eError) + ")\n\nPlease check if SteamVR is installed (or running) and try again."
+			).c_str(),
+			"IVRSystem Init Failure!",
+			MB_OK);
+		raise(SIGINT); // Forcefully exit after OK
+	}
+
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
 	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion,
@@ -605,22 +621,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 	VRcontroller rightController(vr::TrackedControllerRole_RightHand);
 	VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
-
-	LOG(INFO) << "Attempting connection to vrsystem.... "; // DEBUG
-	vr::EVRInitError eError = vr::VRInitError_None;
-	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
-
-	if (eError != vr::VRInitError_None) {
-		LOG(ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
-		MessageBoxA(nullptr,
-			std::string(
-				"Couldn't initialise VR system. (Code " + std::to_string(eError) + ")\n\nPlease check if SteamVR is installed (or running) and try again."
-			).c_str(),
-			"IVRSystem Init Failure!",
-			MB_OK);
-		raise(SIGINT); // Forcefully exit after OK
-	}
-
+	
 	// Initialise the VR Device Handler (For settings)
 	VRDeviceHandler vrDeviceHandler(m_VRSystem);
 	if (eError == vr::VRInitError_None)
