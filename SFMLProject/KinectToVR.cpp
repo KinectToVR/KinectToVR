@@ -172,16 +172,9 @@ vr::HmdQuaternion_t kinectQuaternionFromRads()
 }
 
 void updateTrackerInitGuiSignals(GUIHandler& guiRef,
-                                 vr::IVRSystem*& m_VRsystem)
+	vr::IVRSystem*& m_VRsystem)
 {
-	if constexpr (true)
-	{
-		guiRef.setTrackerButtonSignals(m_VRsystem);
-	}
-	else
-	{
-		guiRef.updateTrackerInitButtonLabelFail();
-	}
+	guiRef.setTrackerButtonSignals(m_VRsystem);
 }
 
 void limitVRFramerate(double& endFrameMilliseconds)
