@@ -632,11 +632,6 @@ public:
 		ping_InitTrackers();
 	}
 
-	void updateTrackerInitButtonLabelFail()
-	{
-		TrackerInitButton->SetLabel("Input Emulator not connected! Can't init trackers");
-	}
-
 	void setReconnectControllerButtonSignal(VRcontroller& left, VRcontroller& right, vr::IVRSystem*& sys
 	)
 	{
@@ -1257,6 +1252,9 @@ public:
 
 					// Force update
 					KinectSettings::initialised_bak = !KinectSettings::initialised;
+
+					// Force restart
+					ktvr::request_vr_restart("Please restart SteamVR for current trackers configuration change to take effect.");
 				});
 
 			TurnOffTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
