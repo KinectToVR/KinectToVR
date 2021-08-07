@@ -1258,7 +1258,7 @@ public:
 					KinectSettings::initialised_bak = !KinectSettings::initialised;
 
 					// Force restart
-					ktvr::request_vr_restart("Please restart SteamVR for current trackers configuration change to take effect.");
+					ktvr::request_vr_restart("SteamVR needs to be restarted to enable/disable trackers properly.");
 				});
 
 			TurnOffTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
