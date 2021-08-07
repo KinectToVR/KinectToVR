@@ -610,7 +610,16 @@ void processLoop(KinectHandlerBase& kinect)
 	vr::EVRInitError eError = vr::VRInitError_None;
 	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 
-	LOG_IF(eError != vr::VRInitError_None, ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
+	if (eError != vr::VRInitError_None) {
+		LOG(ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
+		MessageBoxA(nullptr,
+			std::string(
+				"Couldn't initialise VR system. (Code " + std::to_string(eError) + ")\n\nPlease check if SteamVR is installed (or running) and try again."
+			).c_str(),
+			"IVRSystem Init Failure!",
+			MB_OK);
+		raise(SIGINT); // Forcefully exit after OK
+	}
 
 	// Initialise the VR Device Handler (For settings)
 	VRDeviceHandler vrDeviceHandler(m_VRSystem);
