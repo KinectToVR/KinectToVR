@@ -46,8 +46,8 @@ jobs:
     - name : Install [glm, curlpp, cereal]
       run : vcpkg install glm:x64-windows curlpp:x64-windows cereal:x64-windows
       
-    - name : Install [sfml, sfgui, glew]
-      run : vcpkg install sfml:x64-windows sfgui:x64-windows glew:x64-windows
+    - name : Install [sfml, glew]
+      run : vcpkg install sfml:x64-windows glew:x64-windows
 
     - name: Clear vcpkg downloads
       shell: powershell
@@ -83,9 +83,18 @@ jobs:
         git clone https://github.com/ValveSoftware/openvr.git/ external/openvr
         git clone https://gitlab.com/libeigen/eigen.git/ external/eigen
         git clone https://github.com/g-truc/glm external/glm
+        git clone https://github.com/KimihikoAkayasaki/SFGUI external/SFGUI
 
     - name: Fix min/max error in GLM
       run: sed -i '/#include <limits>/c\#include <limits>\n\n#undef min\n#undef max' external/glm/glm/gtx/component_wise.inl
+
+    - name: Setup and build SFGUI
+      run: |
+        cd external/SFGUI
+        mkdir build
+        cd build
+        cmake "-DBUILD_SHARED_LIBS=ON -DCMAKE_TOOLCHAIN_FILE=D:/a/KinectToVR/KinectToVR/vcpkg/scripts/buildsystems/vcpkg.cmake" ..
+        msbuild SFGUI.vcxproj "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
 
     - name: Clone and setup K2APP
       shell: powershell

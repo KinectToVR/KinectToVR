@@ -111,7 +111,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
@@ -135,7 +135,8 @@ xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serializat
 
 xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
-</Command>
+
+xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -172,7 +173,7 @@ xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -198,7 +199,8 @@ xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serializat
 
 xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
-</Command>
+
+xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
