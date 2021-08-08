@@ -660,10 +660,11 @@ namespace KinectSettings
 
 						if (feet_rotation_option == k_EnableOrientationFilter ||
 							feet_rotation_option == k_EnableOrientationFilter_WithoutYaw)
-							pitchShift = M_PI / 3.f; // Normal offset
+							pitchShift = M_PI / 3.0; // Normal offset
 
-						else if (feet_rotation_option == k_EnableOrientationFilter_Software)
-							pitchShift = M_PI / 6.f; // Special offset (if any), 0.f to nullify
+						if (feet_rotation_option == k_EnableOrientationFilter_Software ||
+							(feet_rotation_option == k_EnableOrientationFilter && kinectVersion == 2))
+							pitchShift = M_PI / 12.0; // Special offset (if any), 0.f to nullify
 
 						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation)
 						{
