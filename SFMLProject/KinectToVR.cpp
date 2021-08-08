@@ -1094,6 +1094,9 @@ void spawnDefaultLowerBodyTrackers()
 
 			// Cause not checking anymore
 			KinectSettings::isServerFailure = true;
+			KinectSettings::spawned = false;
 		}
+		else // Notify that we're good now
+			KinectSettings::spawned = true;
 	}).detach();
 }
