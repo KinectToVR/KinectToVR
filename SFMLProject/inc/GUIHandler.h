@@ -82,8 +82,7 @@ public:
 
 		setScale();
 
-		bool b = guiDesktop.LoadThemeFromFile("main_theme.theme");
-
+		guiDesktop.LoadThemeFromFile(".theme");
 		guiDesktop.Update(0.f);
 	}
 
