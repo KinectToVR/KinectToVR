@@ -624,7 +624,10 @@ namespace KinectSettings
 						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, glm::radians(calibration_trackers_yaw), 0.f)),
 
 						yawFlipQuaternion =
-						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f)); // Just turn around the yaw
+						EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f)), // Just turn around the yaw
+
+						waistYawFlipQuaternion =
+						EigenUtils::EulersToQuat(Eigen::Vector3f(M_PI / 11.0, M_PI, M_PI)); // Turn around Y and Z + pitchShift
 
 				//TODO:
 				//// Construct an offset quaternion with the pitch offset
@@ -701,11 +704,11 @@ namespace KinectSettings
 							waist_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
 									pitchOn ? waist_ori_with_yaw.x() : pitchOffOffset, // Disable the pitch
-									waist_ori_with_yaw.y(),
+									-waist_ori_with_yaw.y(),
 									-waist_ori_with_yaw.z()));
 
 							// Apply the turn-around flip quaternion
-							waist_tracker_rot = yawFlipQuaternion * waist_tracker_rot;
+							waist_tracker_rot = waistYawFlipQuaternion * waist_tracker_rot;
 						}
 
 						// Apply to everything, even to the one without yaw
