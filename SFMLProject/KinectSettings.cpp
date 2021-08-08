@@ -186,135 +186,140 @@ namespace KinectSettings
 		{
 			auto loop_start_time = std::chrono::high_resolution_clock::now();
 
-			// RAW poses/oris are ones provided by kinect,
-			// without anything modified
-
-			// If we're using PSMS, let's just replace everything right away
-			if (positional_tracking_option == k_PSMoveFullTracking)
-			{
-				left_foot_raw_pose = .01f * glm::vec3(left_foot_psmove.Pose.Position.x,
-					left_foot_psmove.Pose.Position.y,
-					left_foot_psmove.Pose.Position.z);
-				right_foot_raw_pose = .01f * glm::vec3(right_foot_psmove.Pose.Position.x,
-					right_foot_psmove.Pose.Position.y,
-					right_foot_psmove.Pose.Position.z);
-				waist_raw_pose = .01f * glm::vec3(waist_psmove.Pose.Position.x, waist_psmove.Pose.Position.y,
-					waist_psmove.Pose.Position.z);
-
-				left_foot_raw_ori = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
-					left_foot_psmove.Pose.Orientation.x,
-					left_foot_psmove.Pose.Orientation.y,
-					left_foot_psmove.Pose.Orientation.z);
-				right_foot_raw_ori = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w,
-					right_foot_psmove.Pose.Orientation.x,
-					right_foot_psmove.Pose.Orientation.y,
-					right_foot_psmove.Pose.Orientation.z);
-				waist_raw_ori = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w, waist_psmove.Pose.Orientation.x,
-					waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
-			}
-
-			// Update poses for interfacing
-			kinect_m_positions[2].v[0] = waist_raw_pose.x;
-			kinect_m_positions[2].v[1] = waist_raw_pose.y;
-			kinect_m_positions[2].v[2] = waist_raw_pose.z;
-			kinect_m_positions[1].v[0] = left_hand_pose.x;
-			kinect_m_positions[1].v[1] = left_hand_pose.y;
-			kinect_m_positions[1].v[2] = left_hand_pose.z;
-			kinect_m_positions[0].v[0] = head_position.x;
-			kinect_m_positions[0].v[1] = head_position.y;
-			kinect_m_positions[0].v[2] = head_position.z;
-
 			/*****************************************************************************************/
-			// Resetting PSMoves orientations
+			// Compute poses and update trackers if we're running okay
 			/*****************************************************************************************/
-			const PSMPSMove left_psmove = left_move_controller, right_psmove = right_move_controller;
+			
+			if (// If the server is not crashed
+				!isServerFailure
+				 // If trackers are AFTER spawn
+				&& spawned) {
 
-			if (right_psmove.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
-				offset[0] = right_psmove.Pose.Orientation; //quaterion for further offset maths
+				// RAW poses/oris are ones provided by kinect,
+				// without anything modified
 
-			if (left_psmove.SelectButton == PSMButtonState_DOWN)
-				//we are recentering right psmove with select button
-				offset[1] = left_psmove.Pose.Orientation; //quaterion for further offset maths
+				// If we're using PSMS, let's just replace everything right away
+				if (positional_tracking_option == k_PSMoveFullTracking)
+				{
+					left_foot_raw_pose = .01f * glm::vec3(left_foot_psmove.Pose.Position.x,
+						left_foot_psmove.Pose.Position.y,
+						left_foot_psmove.Pose.Position.z);
+					right_foot_raw_pose = .01f * glm::vec3(right_foot_psmove.Pose.Position.x,
+						right_foot_psmove.Pose.Position.y,
+						right_foot_psmove.Pose.Position.z);
+					waist_raw_pose = .01f * glm::vec3(waist_psmove.Pose.Position.x, waist_psmove.Pose.Position.y,
+						waist_psmove.Pose.Position.z);
+
+					left_foot_raw_ori = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
+						left_foot_psmove.Pose.Orientation.x,
+						left_foot_psmove.Pose.Orientation.y,
+						left_foot_psmove.Pose.Orientation.z);
+					right_foot_raw_ori = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w,
+						right_foot_psmove.Pose.Orientation.x,
+						right_foot_psmove.Pose.Orientation.y,
+						right_foot_psmove.Pose.Orientation.z);
+					waist_raw_ori = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w, waist_psmove.Pose.Orientation.x,
+						waist_psmove.Pose.Orientation.y, waist_psmove.Pose.Orientation.z);
+				}
+
+				// Update poses for interfacing
+				kinect_m_positions[2].v[0] = waist_raw_pose.x;
+				kinect_m_positions[2].v[1] = waist_raw_pose.y;
+				kinect_m_positions[2].v[2] = waist_raw_pose.z;
+				kinect_m_positions[1].v[0] = left_hand_pose.x;
+				kinect_m_positions[1].v[1] = left_hand_pose.y;
+				kinect_m_positions[1].v[2] = left_hand_pose.z;
+				kinect_m_positions[0].v[0] = head_position.x;
+				kinect_m_positions[0].v[1] = head_position.y;
+				kinect_m_positions[0].v[2] = head_position.z;
+
+				/*****************************************************************************************/
+				// Resetting PSMoves orientations
+				/*****************************************************************************************/
+				const PSMPSMove left_psmove = left_move_controller, right_psmove = right_move_controller;
+
+				if (right_psmove.SelectButton == PSMButtonState_DOWN) //we are recentering right psmove with select button
+					offset[0] = right_psmove.Pose.Orientation; //quaterion for further offset maths
+
+				if (left_psmove.SelectButton == PSMButtonState_DOWN)
+					//we are recentering right psmove with select button
+					offset[1] = left_psmove.Pose.Orientation; //quaterion for further offset maths
 
 
-			if (left_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter left foot move with select button
-				move_ori_offset[0] = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
-					left_foot_psmove.Pose.Orientation.x,
-					left_foot_psmove.Pose.Orientation.y,
-					left_foot_psmove.Pose.Orientation.z);
+				if (left_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter left foot move with select button
+					move_ori_offset[0] = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
+						left_foot_psmove.Pose.Orientation.x,
+						left_foot_psmove.Pose.Orientation.y,
+						left_foot_psmove.Pose.Orientation.z);
 
-			if (right_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter right foot move with select button
-				move_ori_offset[1] = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w,
-					right_foot_psmove.Pose.Orientation.x,
-					right_foot_psmove.Pose.Orientation.y,
-					right_foot_psmove.Pose.Orientation.z);
+				if (right_foot_psmove.SelectButton == PSMButtonState_DOWN) //recenter right foot move with select button
+					move_ori_offset[1] = Eigen::Quaternionf(right_foot_psmove.Pose.Orientation.w,
+						right_foot_psmove.Pose.Orientation.x,
+						right_foot_psmove.Pose.Orientation.y,
+						right_foot_psmove.Pose.Orientation.z);
 
-			if (waist_psmove.SelectButton == PSMButtonState_DOWN) //recenter waist move with select button
-				move_ori_offset[2] = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w,
-					waist_psmove.Pose.Orientation.x,
-					waist_psmove.Pose.Orientation.y,
-					waist_psmove.Pose.Orientation.z);
+				if (waist_psmove.SelectButton == PSMButtonState_DOWN) //recenter waist move with select button
+					move_ori_offset[2] = Eigen::Quaternionf(waist_psmove.Pose.Orientation.w,
+						waist_psmove.Pose.Orientation.x,
+						waist_psmove.Pose.Orientation.y,
+						waist_psmove.Pose.Orientation.z);
 
-			/*****************************************************************************************/
-			// Resetting PSMoves orientations
-			/*****************************************************************************************/
+				/*****************************************************************************************/
+				// Resetting PSMoves orientations
+				/*****************************************************************************************/
 
-			using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
-			const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG) format: 0+360
-			const float facing = yaw - calibration_trackers_yaw; //get facing to kinect;
+				using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
+				const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG) format: 0+360
+				const float facing = yaw - calibration_trackers_yaw; //get facing to kinect;
 
-			// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
-			//       
-			//             FRONT                 Front is at 0deg
-			//              / \     KINECT       Kinect is at 30deg
-			//               |       /           
-			//               |      /            Assuming we're looking at front, we have facing -30
-			//               |     /             because: front:0deg, kinect:30deg -> 0-30 = -30deg        
-			//               |    /                             
-			//               |   /               flip activates itself if facing is between -155 and -205deg
-			//               |  /                and deactivates if facing is between 25 and -25deg
-			//              ---                  AND we're not using psms for tracking
-			//             CENTER                          
-			//              ---                         
-			//               |                          
-			//               |
+				// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
+				//       
+				//             FRONT                 Front is at 0deg
+				//              / \     KINECT       Kinect is at 30deg
+				//               |       /           
+				//               |      /            Assuming we're looking at front, we have facing -30
+				//               |     /             because: front:0deg, kinect:30deg -> 0-30 = -30deg        
+				//               |    /                             
+				//               |   /               flip activates itself if facing is between -155 and -205deg
+				//               |  /                and deactivates if facing is between 25 and -25deg
+				//              ---                  AND we're not using psms for tracking
+				//             CENTER                          
+				//              ---                         
+				//               |                          
+				//               |
 
-			// NOTE! I'm using:
-			// Pitch for rotation around +x
-			// Yaw for rotation around +y (yes, +)
-			// Roll for rotation around +z
-			// Just get used to it
+				// NOTE! I'm using:
+				// Pitch for rotation around +x
+				// Yaw for rotation around +y (yes, +)
+				// Roll for rotation around +z
+				// Just get used to it
 
-			// Disable flipping when we're in PSMS mode
-			// TODO: Add disabling flip via settings
-			if (positional_tracking_option == k_PSMoveFullTracking
-				|| !matrixes_calibrated) // If not calibrated yet, set flip to false too
-				flip = false;
-			else
-			{
-				// GUIHandler.h #3040, angle is 0-360deg
-				if ( //facing <= 25 && facing >= -25 || //if we use -180+180
-					(facing <= 25 && facing >= 0 || facing >= 345 && facing <= 360)) //if we use 0+360
+				// Disable flipping when we're in PSMS mode
+				// TODO: Add disabling flip via settings
+				if (positional_tracking_option == k_PSMoveFullTracking
+					|| !matrixes_calibrated) // If not calibrated yet, set flip to false too
 					flip = false;
-				if ( //facing <= -155 && facing >= -205 || //if we use -180+180
-					facing >= 155 && facing <= 205) //if we use 0+360
-					flip = true;
-			}
+				else
+				{
+					// GUIHandler.h #3040, angle is 0-360deg
+					if ( //facing <= 25 && facing >= -25 || //if we use -180+180
+						(facing <= 25 && facing >= 0 || facing >= 345 && facing <= 360)) //if we use 0+360
+						flip = false;
+					if ( //facing <= -155 && facing >= -205 || //if we use -180+180
+						facing >= 155 && facing <= 205) //if we use 0+360
+						flip = true;
+				}
 
-
-			/*****************************************************************************************/
-			// Compose the string to send to driver
-			/*****************************************************************************************/
-
-			std::string tracker_data_string = [&]()-> std::string
-			{
-				std::stringstream S;
 
 				/*****************************************************************************************/
-				// Modify the orientation, depending on the currently applied option - WAIST
+				// Compose the string to send to driver
 				/*****************************************************************************************/
 
-				// Look at #220; orientations are already composed in psms mode
+					/*****************************************************************************************/
+					// Modify the orientation, depending on the currently applied option - WAIST
+					/*****************************************************************************************/
+
+					// Look at #220; orientations are already composed in psms mode
 				if (hips_rotation_option == k_EnableHipsOrientationFilter)
 					waist_tracker_rot = waist_raw_ori;
 
@@ -823,7 +828,7 @@ namespace KinectSettings
 				/*****************************************************************************************/
 				// Push RAW poses to trackers
 				/*****************************************************************************************/
-				
+
 				/*****************************************************************************************/
 				// Flip
 				/*****************************************************************************************/
@@ -994,15 +999,16 @@ namespace KinectSettings
 				// Swap poses for flip if needed and construct the message string, check if we're calibrated
 				/*****************************************************************************************/
 
-				return S.str();
-			}();
+			}
+			
+			/*****************************************************************************************/
+			// Compute poses and update trackers if we're running okay
+			/*****************************************************************************************/
 			
 			// Wait until certain loop time has passed
-			auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
+			if (auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
 				std::chrono::high_resolution_clock::now() - loop_start_time).count();
-
-			// If we were too fast, sleep peacefully @80hz
-			if (duration <= 12222222.f)
+				duration <= 12222222.f) // If we were too fast, sleep peacefully @80hz
 				std::this_thread::sleep_for(std::chrono::nanoseconds(12222222 - duration));
 		}
 	}
