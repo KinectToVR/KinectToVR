@@ -851,78 +851,115 @@ namespace KinectSettings
 				// Push RAW orientations to trackers / with Flip
 				/*****************************************************************************************/
 
-				trackerVector.at(0).pose.orientation = p_cast_type<glm::quat>(waist_tracker_rot);
-				trackerVector.at(flip ? 2 : 1).pose.orientation = p_cast_type<glm::quat>(left_tracker_rot);
-				trackerVector.at(flip ? 1 : 2).pose.orientation = p_cast_type<glm::quat>(right_tracker_rot);
-				
-				/*****************************************************************************************/
-				// Filters & update
-				/*****************************************************************************************/
+				// If poses & rots aren't frozen
+				if (!trackingPaused) {
 
-				trackerVector.at(0).updatePositionFilters();
-				trackerVector.at(1).updatePositionFilters();
-				trackerVector.at(2).updatePositionFilters();
+					trackerVector.at(0).pose.orientation = p_cast_type<glm::quat>(waist_tracker_rot);
+					trackerVector.at(flip ? 2 : 1).pose.orientation = p_cast_type<glm::quat>(left_tracker_rot);
+					trackerVector.at(flip ? 1 : 2).pose.orientation = p_cast_type<glm::quat>(right_tracker_rot);
 
-				// Update pose w/ filtering
-				// WAIST TRACKER (0)
-				if (EnabledTrackersSave[0]) {
-					if (matrixes_calibrated)
-						ktvr::update_tracker_pose<false>(
-							trackerVector.at(0).getTrackerBase
-							(
-								calibration_rotation,
-								calibration_translation,
-								calibration_origin,
-								posOption, t_NoOrientationTrackingFilter
-							));
+					// Update orientation filters
+					trackerVector.at(0).updateOrientationFilters();
+					trackerVector.at(1).updateOrientationFilters();
+					trackerVector.at(2).updateOrientationFilters();
 
-					else ktvr::update_tracker_pose<false>(
-						trackerVector.at(0).getTrackerBase(
-							posOption, t_NoOrientationTrackingFilter));
-				}
+					// If we're in flip, slow down the rotation a bit
+					trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation;
+					trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation;
+					trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation;
 
-				// Update pose w/ filtering
-				// LEFT TRACKER (1)
-				if (EnabledTrackersSave[1]) {
-					if (matrixes_calibrated)
-						ktvr::update_tracker_pose<false>(
+					/*****************************************************************************************/
+					// Filters & update
+					/*****************************************************************************************/
+
+					trackerVector.at(0).updatePositionFilters();
+					trackerVector.at(1).updatePositionFilters();
+					trackerVector.at(2).updatePositionFilters();
+
+					// Update pose w/ filtering
+					// WAIST TRACKER (0)
+					if (EnabledTrackersSave[0]) {
+						if (matrixes_calibrated)
+							ktvr::update_tracker_pose<false>(
+								trackerVector.at(0).getTrackerBase
+								(
+									calibration_rotation,
+									calibration_translation,
+									calibration_origin,
+									posOption, t_NoOrientationTrackingFilter
+								));
+
+						else ktvr::update_tracker_pose<false>(
+							trackerVector.at(0).getTrackerBase(
+								posOption, t_NoOrientationTrackingFilter));
+					}
+
+					// Update pose w/ filtering
+					// LEFT TRACKER (1)
+					if (EnabledTrackersSave[1]) {
+						if (matrixes_calibrated)
+							ktvr::update_tracker_pose<false>(
+								trackerVector.at(1).id,
+								ktvr::K2PosePacket(
+									trackerVector.at(flip ? 2 : 1).getTrackerBase
+									(
+										calibration_rotation,
+										calibration_translation,
+										calibration_origin,
+										posOption, t_NoOrientationTrackingFilter
+									).pose));
+
+						else ktvr::update_tracker_pose<false>(
 							trackerVector.at(1).id,
 							ktvr::K2PosePacket(
-								trackerVector.at(flip ? 2 : 1).getTrackerBase
-								(
-									calibration_rotation,
-									calibration_translation,
-									calibration_origin,
-									posOption, t_NoOrientationTrackingFilter
-								).pose));
+								trackerVector.at(flip ? 2 : 1).getTrackerBase(
+									posOption, t_NoOrientationTrackingFilter).pose));
+					}
 
-					else ktvr::update_tracker_pose<false>(
-						trackerVector.at(1).id,
-						ktvr::K2PosePacket(
-							trackerVector.at(flip ? 2 : 1).getTrackerBase(
-								posOption, t_NoOrientationTrackingFilter).pose));
-				}
+					// Update pose w/ filtering
+					// RIGHT TRACKER (2)
+					if (EnabledTrackersSave[2]) {
+						if (matrixes_calibrated)
+							ktvr::update_tracker_pose<false>(
+								trackerVector.at(2).id,
+								ktvr::K2PosePacket(
+									trackerVector.at(flip ? 1 : 2).getTrackerBase
+									(
+										calibration_rotation,
+										calibration_translation,
+										calibration_origin,
+										posOption, t_NoOrientationTrackingFilter
+									).pose));
 
-				// Update pose w/ filtering
-				// RIGHT TRACKER (2)
-				if (EnabledTrackersSave[2]) {
-					if (matrixes_calibrated)
-						ktvr::update_tracker_pose<false>(
+						else ktvr::update_tracker_pose<false>(
 							trackerVector.at(2).id,
 							ktvr::K2PosePacket(
-								trackerVector.at(flip ? 1 : 2).getTrackerBase
-								(
-									calibration_rotation,
-									calibration_translation,
-									calibration_origin,
-									posOption, t_NoOrientationTrackingFilter
-								).pose));
+								trackerVector.at(flip ? 1 : 2).getTrackerBase(
+									posOption, t_NoOrientationTrackingFilter).pose));
+					}
 
-					else ktvr::update_tracker_pose<false>(
-						trackerVector.at(2).id,
-						ktvr::K2PosePacket(
-							trackerVector.at(flip ? 1 : 2).getTrackerBase(
-								posOption, t_NoOrientationTrackingFilter).pose));
+				}
+
+				// If poses & rots are frozen
+				else
+				{
+					// Refresh the tracker
+					// WAIST TRACKER (0)
+					if (EnabledTrackersSave[0])
+						ktvr::refresh_tracker_pose<false>(
+							trackerVector.at(0).id);
+
+					// Refresh the tracker
+					// LEFT TRACKER (1)
+					if (EnabledTrackersSave[1])
+						ktvr::refresh_tracker_pose<false>(
+							trackerVector.at(1).id);
+
+					// Refresh the tracker
+					// RIGHT TRACKER (2)
+					if (EnabledTrackersSave[2])
+						ktvr::refresh_tracker_pose<false>(
+							trackerVector.at(2).id);
 				}
 
 				// Update status 1/1000 loops / ~8s

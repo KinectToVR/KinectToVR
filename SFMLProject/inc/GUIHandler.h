@@ -1007,6 +1007,10 @@ public:
 
 		// Pack ver box into tab
 		trackersBox->Pack(hor_box);
+
+		// Pack tracking pausing
+		trackersBox->Pack(sfg::Label::Create(" "));
+		trackersBox->Pack(pauseTrackingButton);
 	}
 
 	void packElementsIntoCalibrationBox()
@@ -1018,6 +1022,8 @@ public:
 
 		verticalBox->Pack(
 			sfg::Label::Create("This is generally used to slightly adjust position and orientation of trackers."));
+		verticalBox->Pack(
+			sfg::Label::Create("Note that offsets are absolute to the Kinect; they won't 'flip' with trackers."));
 		verticalBox->Pack(sfg::Label::Create("\nRotation is in degrees and position is declared in meters.\n "));
 
 		auto horizontalrPosBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
@@ -1244,6 +1250,13 @@ public:
 		DegreeButton->SetDigits(2);
 		TDegreeButton->SetDigits(0);
 
+		pauseTrackingButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
+			{
+				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
+				pauseTrackingButton->SetLabel(
+					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
+			});
+
 		for (int i = 0; i < 3; i++) {
 			DisableTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
 				{
@@ -1312,6 +1325,10 @@ public:
 		);
 		TDegreeButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
+				// Clip to 3 <---> 10
+				if (TDegreeButton->GetValue() < 3)TDegreeButton->SetValue(3);
+				if (TDegreeButton->GetValue() > 10)TDegreeButton->SetValue(10);
+			
 				settings.CalibrationPointsNumber = TDegreeButton->GetValue();
 				KinectSettings::cpoints = TDegreeButton->GetValue();
 			}
@@ -1978,6 +1995,8 @@ private:
 		sfg::Button::Create("Turn Off Left Foot Tracker"),
 		sfg::Button::Create("Turn Off Right Foot Tracker")
 	};
+
+	sfg::Button::Ptr pauseTrackingButton = sfg::Button::Create("Freeze Body Tracking in SteamVR");
 	
 	//Adv Trackers
 	sfg::Button::Ptr calibrateOffsetButton = sfg::Button::Create("Calibrate VR Offset");
