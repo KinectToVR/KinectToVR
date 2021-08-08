@@ -321,22 +321,22 @@ void updateServerStatus(GUIHandler& guiRef)
 			switch (KinectSettings::K2Drivercode)
 			{
 			case -1:
-				guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: EXCEPTION WHILE CHECKING (Code: -1)");
+				guiRef.DriverStatusLabel->SetText("\Uf071 SteamVR Driver Status: EXCEPTION WHILE CHECKING (Code: -1)");
 				break;
 			case -10:
 				guiRef.DriverStatusLabel->SetText(
-					"SteamVR Driver Status: SERVER CONNECTION ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
+					"\Uf071 SteamVR Driver Status: SERVER CONNECTION ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
 				break;
 			case 10:
 				guiRef.DriverStatusLabel->SetText(
-					"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
+					"\Uf071 SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
 				break;
 			case 1:
-				guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: Success!");
+				guiRef.DriverStatusLabel->SetText("\Uf00c SteamVR Driver Status: Success!");
 				KinectSettings::isDriverPresent = true;
 				break;
 			default:
-				guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: COULD NOT CONNECT TO K2API (Code: -11)");
+				guiRef.DriverStatusLabel->SetText("\Uf071 SteamVR Driver Status: COULD NOT CONNECT TO K2API (Code: -11)");
 				break;
 			}
 
