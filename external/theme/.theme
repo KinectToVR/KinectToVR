@@ -1,0 +1,28 @@
+Desktop{
+    BackgroundColor: #582C9100;
+}
+
+Window{
+	BackgroundColor: #22222200;
+    TitleBackgroundColor: #33333380;
+    BorderWidth: 4;
+    BorderColor: #33333380;
+}
+
+Notebook {
+	BackgroundColor: #12121222;
+}
+
+*{
+    Color: #FFFFFFFF;
+    BorderWidth:0;
+}
+
+ComboBox, SpinButton, Button, CheckButton {
+	BackgroundColor: #222222AA;
+}
+
+ComboBox:PRELIGHT, SpinButton:PRELIGHT, Button:PRELIGHT {
+	BackgroundColor: #444444AA;
+}
+
