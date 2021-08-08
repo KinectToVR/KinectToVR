@@ -259,6 +259,8 @@ namespace KinectSettings
 	inline bool reconnecting = false;
 	// If the tracing is paused
 	inline bool trackingPaused = false;
+	// If trackers are spawned
+	inline bool spawned = false;
 }
 
 namespace SFMLsettings
