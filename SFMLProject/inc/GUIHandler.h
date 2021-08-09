@@ -50,6 +50,7 @@ public:
 	sfg::Box::Ptr psmidbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL, 5.f);
 	sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Spawn Trackers");
 	sfg::Label::Ptr DriverStatusLabel = sfg::Label::Create("Driver Status: UNKNOWN (Code: -1)");
+	sfg::Button::Ptr pauseTrackingButton = sfg::Button::Create("Freeze Body Tracking in SteamVR");
 
 	GUIHandler()
 	{
@@ -445,10 +446,10 @@ public:
 			vr::EVRInitError eError = vr::VRInitError_None;
 			vr::VR_Shutdown();
 			LOG(INFO) << "(Workaround/Hack) Loading K2VR into bindings menu...";
-			m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
+			m_VRSystem = VR_Init(&eError, vr::VRApplication_Scene);
 			Sleep(100); // Necessary because of SteamVR timing occasionally being too quick to change the scenes
 			vr::VR_Shutdown();
-			m_VRSystem = VR_Init(&eError, vr::VRApplication_Background);
+			m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 			LOG_IF(eError != vr::EVRInitError::VRInitError_None, ERROR) <<
  " (Workaround/Hack) VR System failed to reinitialise, attempting again...";
 		}
@@ -691,9 +692,6 @@ public:
 
 	void getsvrposesnrots(vr::DriverPose_t in_out)
 	{
-		vr::EVRInitError error;
-		vr::IVRSystem* system = VR_Init(&error, vr::VRApplication_Background);
-
 		vr::TrackedDevicePose_t trackedDevicePose;
 		vr::TrackedDevicePose_t trackedControllerPose;
 		vr::VRControllerState_t controllerState;
@@ -702,7 +700,7 @@ public:
 		vr::HmdQuaternion_t quaternion;
 		vr::VRControllerState_t state;
 
-		system->GetControllerState(0, &state, sizeof(state));
+		vr::VRSystem()->GetControllerState(0, &state, sizeof(state));
 		vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
 		// print positiona data for the HMD.
 		poseMatrix = trackedDevicePose.mDeviceToAbsoluteTracking;
@@ -1356,15 +1354,7 @@ public:
 
 		TrackersCalibButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
 		{
-			vr::EVRInitError error;
-			vr::IVRSystem* csystem = VR_Init(&error, vr::VRApplication_Background);
-			vr::HmdMatrix34_t cposeMatrix;
-			vr::HmdVector3_t cposition;
-			vr::HmdQuaternion_t cquaternion;
-			vr::TrackedDevicePose_t ctrackedControllerPose;
-			vr::VRControllerState_t ccontrollerState;
-			vr::VRControllerState_t cstate;
-
+			
 			if (!KinectSettings::isCalibrating)
 			{
 				KinectSettings::isCalibrating = true;
@@ -1501,14 +1491,8 @@ public:
 				{
 					auto t1 = new std::thread([this]()
 					{
-						vr::EVRInitError error;
-						vr::IVRSystem* system = VR_Init(&error, vr::VRApplication_Background);
 						vr::TrackedDevicePose_t trackedDevicePose;
-						vr::TrackedDevicePose_t trackedControllerPose;
-						vr::VRControllerState_t controllerState;
-						vr::HmdMatrix34_t poseMatrix;
 						vr::HmdVector3_t position;
-						vr::HmdQuaternion_t quaternion;
 
 						std::vector<vr::DriverPose_t> spose;
 						std::vector<vr::HmdVector3d_t> hpose;
@@ -1995,7 +1979,6 @@ private:
 		sfg::Button::Create("Turn Off Right Foot Tracker")
 	};
 
-	sfg::Button::Ptr pauseTrackingButton = sfg::Button::Create("Freeze Body Tracking in SteamVR");
 	
 	//Adv Trackers
 	sfg::Button::Ptr calibrateOffsetButton = sfg::Button::Create("Calibrate VR Offset");

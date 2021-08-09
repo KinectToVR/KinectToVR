@@ -18,6 +18,7 @@
 #include <string>
 #include <thread>
 #include <SFGUI/Widgets.hpp>
+#include <SteamIVRInput.h>
 
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/algorithm/string.hpp>
@@ -355,7 +356,7 @@ void processLoop(KinectHandlerBase& kinect)
 	KinectSettings::kinectVersion = kinect.kVersion; //Set kinect version
 
 	// Connect to OpenVR at the very beginning
-	LOG(INFO) << "Attempting connection to vrsystem.... "; // DEBUG
+	LOG(INFO) << "Attempting connection to vrsystem... ";
 	vr::EVRInitError eError = vr::VRInitError_None;
 	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 
@@ -370,6 +371,21 @@ void processLoop(KinectHandlerBase& kinect)
 		raise(SIGINT); // Forcefully exit after OK
 	}
 
+	// Setup OpenVR actions
+	LOG(INFO) << "Attempting to set up IVR Input Actions...";
+	SteamIVRInput ivr_input;
+	if (!ivr_input.InitInputActions())
+	{
+		LOG(ERROR) << "Could not set up Input Actions. Please check the upper log for further information.";
+		MessageBoxA(nullptr,
+			std::string(
+				"Couldn't set up Input Actions.\n\nPlease check the log file for further information."
+			).c_str(),
+			"IVR Input Actions Init Failure!",
+			MB_OK);
+	}
+	else LOG(INFO) << "IVR Input Actions set up OK";
+	
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
 	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion,
@@ -905,6 +921,40 @@ void processLoop(KinectHandlerBase& kinect)
 		//Update VR Components
 		if (eError == vr::VRInitError_None)
 		{
+
+			/**********************************************/
+			// Here, update IVR Input actions
+			/**********************************************/
+
+			// Backup the current ( OLD ) data
+			bool bak_confirm_state = ivr_input.confirmAndSaveActionData().bState,
+				bak_mode_swap_state = ivr_input.modeSwapActionData().bState,
+				bak_freeze_state = ivr_input.trackerFreezeActionData().bState;
+
+			// Update all input actions
+			if (!ivr_input.UpdateActionStates())
+				LOG(ERROR) << "Could not update IVR Input Actions. Please check logs for further information.";
+
+			// Update the Tracking Freeze : flip-switch
+			if(ivr_input.trackerFreezeActionData().bState
+				!= bak_freeze_state) // Only if the state has changed
+			{
+				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
+				guiRef.pauseTrackingButton->SetLabel(
+					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
+			}
+
+
+
+
+
+
+
+			
+			/**********************************************/
+			// Here, update IVR Input actions
+			/**********************************************/
+			
 			rightController.update(deltaT);
 			leftController.update(deltaT);
 
