@@ -149,12 +149,12 @@ public:
 		// Calibration Set
 		m_calibrationActionSet.ulActionSet = m_CalibrationSetHandler;
 		m_calibrationActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
-		m_calibrationActionSet.nPriority = 0; // Remains unset
+		m_calibrationActionSet.nPriority = 0;
 
 		// Default Set
 		m_defaultActionSet.ulActionSet = m_DefaultSetHandler;
 		m_defaultActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
-		m_defaultActionSet.nPriority = 0; // Remains unset
+		m_defaultActionSet.nPriority = 0;
 
 		// Return OK
 		LOG(INFO) << "IVR Input Actions initialized OK";
@@ -169,7 +169,7 @@ public:
 
 		// Update Calibration ActionSet states
 		if (const auto error = vr::VRInput()->UpdateActionState(
-			&m_calibrationActionSet, sizeof m_calibrationActionSet, 4);
+			&m_calibrationActionSet, sizeof m_calibrationActionSet, 1);
 			error != vr::EVRInputError::VRInputError_None)
 		{
 			LOG(ERROR) << "ActionSet (Calibration) state update error: " << EVRInputErrorString[error];

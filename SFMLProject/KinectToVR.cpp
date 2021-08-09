@@ -358,7 +358,7 @@ void processLoop(KinectHandlerBase& kinect)
 	// Connect to OpenVR at the very beginning
 	LOG(INFO) << "Attempting connection to vrsystem... ";
 	vr::EVRInitError eError = vr::VRInitError_None;
-	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
+	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Scene);
 
 	if (eError != vr::VRInitError_None) {
 		LOG(ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
@@ -680,7 +680,7 @@ void processLoop(KinectHandlerBase& kinect)
 		rightController.Connect(m_VRSystem);
 
 		// Todo: implement binding system
-		guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
+		// guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
 	}
 
 	guiRef.updateVRStatusLabel(eError);
