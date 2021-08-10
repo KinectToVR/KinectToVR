@@ -674,12 +674,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 		guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
 		updateTrackerInitGuiSignals(guiRef, m_VRSystem);
-		//VRInput::initialiseVRInput();
 
-		leftController.Connect(m_VRSystem);
-		rightController.Connect(m_VRSystem);
-
-		// Todo: implement binding system
 		// guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
 	}
 
@@ -953,44 +948,11 @@ void processLoop(KinectHandlerBase& kinect)
 
 			
 			/**********************************************/
-			// Here, update IVR Input actions
+			// Here, update EVR Input actions
 			/**********************************************/
-			
-			rightController.update(deltaT);
-			leftController.update(deltaT);
 
+			// Update hmd
 			updateHMDPosAndRot(m_VRSystem);
-
-			VRInput::trackpadpose[0].x = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
-			VRInput::trackpadpose[0].y = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
-			VRInput::trackpadpose[1].x = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).x;
-			VRInput::trackpadpose[1].y = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad).y;
-			VRInput::confirmdatapose.bState = leftController.GetTriggerDown() || rightController.GetTriggerDown();
-
-			KinectSettings::isGripPressed[0] = rightController.GetGripDown();
-			KinectSettings::isGripPressed[1] = leftController.GetGrip();
-			KinectSettings::isTriggerPressed[0] = rightController.GetTrigger();
-			KinectSettings::isTriggerPressed[1] = leftController.GetTrigger();
-
-			// EWWWWWWWWW -------------
-			if (VRInput::legacyInputModeEnabled)
-			{
-				using namespace VRInput;
-				moveHorizontallyData.bActive = true;
-				auto leftStickValues = leftController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad);
-				moveHorizontallyData.x = leftStickValues.x;
-				moveHorizontallyData.y = leftStickValues.y;
-
-				moveVerticallyData.bActive = true;
-				auto rightStickValues = rightController.GetControllerAxisValue(vr::k_EButton_SteamVR_Touchpad);
-				moveVerticallyData.x = rightStickValues.x;
-				moveVerticallyData.y = rightStickValues.y;
-
-				confirmCalibrationData.bActive = true;
-				auto triggerDown = leftController.GetTriggerDown() || rightController.GetTriggerDown();
-				confirmCalibrationData.bState = triggerDown;
-			}
-			// -------------------------
 		}
 
 		renderWindow.clear(); //////////////////////////////////////////////////////

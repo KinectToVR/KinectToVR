@@ -324,34 +324,4 @@ namespace KVR
 	void saveSystemCalibration(const std::string& systemName, TrackingSystemCalibration calibration);
 }
 
-namespace VRInput
-{
-	// Switch to fall back to legacy controls when the new SteamVR Input system breaks.
-	extern bool legacyInputModeEnabled;
-
-	// Action Handles
-	extern vr::VRActionHandle_t moveHorizontallyHandle;
-	extern vr::VRActionHandle_t moveVerticallyHandle;
-	extern vr::VRActionHandle_t confirmCalibrationHandle;
-
-	// Calibration Sets
-	extern vr::VRActionSetHandle_t calibrationSetHandle;
-
-	// Action Sets
-	extern vr::VRActiveActionSet_t activeActionSet;
-
-	// Digital Action Data
-	extern vr::InputDigitalActionData_t confirmCalibrationData;
-
-	// Analog Action Data
-	extern vr::InputAnalogActionData_t moveHorizontallyData;
-	extern vr::InputAnalogActionData_t moveVerticallyData;
-
-	extern vr::InputAnalogActionData_t trackpadpose[2];
-	extern vr::InputDigitalActionData_t confirmdatapose;
-
-	bool initialiseVRInput();
-	void updateVRInput();
-}
-
 # define M_PI           3.14159265358979323846
