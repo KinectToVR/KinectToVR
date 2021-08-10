@@ -48,6 +48,7 @@ public:
 	sfg::Button::Ptr TrackerInitButton = sfg::Button::Create("Spawn Trackers");
 	sfg::Label::Ptr DriverStatusLabel = sfg::Label::Create("Driver Status: UNKNOWN (Code: -1)");
 	sfg::Button::Ptr pauseTrackingButton = sfg::Button::Create("Freeze Body Tracking in SteamVR");
+	sfg::Button::Ptr toggleFlipButton = sfg::Button::Create("Enable/Disable 'Flip' [CURRENT: ENABLED]");
 
 	GUIHandler()
 	{
@@ -977,6 +978,9 @@ public:
 		// Pack tracking pausing
 		trackersBox->Pack(sfg::Label::Create(" "));
 		trackersBox->Pack(pauseTrackingButton);
+		
+		// Pack flip toggle
+		trackersBox->Pack(toggleFlipButton);
 	}
 
 	void packElementsIntoCalibrationBox()
@@ -1223,6 +1227,17 @@ public:
 					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
 			});
 
+		toggleFlipButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
+			{
+				VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
+				KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
+				VirtualHips::saveSettings();
+				toggleFlipButton->SetLabel(
+					VirtualHips::settings.FlipEnabled ?
+					"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
+					"Enable/Disable 'Flip' [CURRENT: DISABLED]");
+			});
+
 		for (int i = 0; i < 3; i++) {
 			DisableTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
 				{
@@ -1275,6 +1290,11 @@ public:
 		{
 			AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: NO]");
 		}
+
+		toggleFlipButton->SetLabel(
+			VirtualHips::settings.FlipEnabled ?
+			"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
+			"Enable/Disable 'Flip' [CURRENT: DISABLED]");
 
 		VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
