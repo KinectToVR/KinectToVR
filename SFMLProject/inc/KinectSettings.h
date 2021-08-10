@@ -257,6 +257,8 @@ namespace KinectSettings
 	inline bool reconnecting = false;
 	// If the tracing is paused
 	inline bool trackingPaused = false;
+	// If the flip is enabled
+	inline bool FlipEnabled = true;
 	// If trackers are spawned
 	inline bool spawned = false;
 	// MCalibration derivatives
