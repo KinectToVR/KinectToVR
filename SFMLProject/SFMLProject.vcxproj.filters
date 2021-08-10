@@ -87,7 +87,7 @@
     <ClInclude Include="inc\TypeCast.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\SteamIVRInput.h">
+    <ClInclude Include="inc\SteamEVRInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

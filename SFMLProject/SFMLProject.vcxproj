@@ -200,7 +200,10 @@ xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serializat
 xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 
-xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"</Command>
+xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+
+xcopy /y /d "$(SolutionDir)external\bindings\action_manifest\action_manifest.json" "$(SolutionDir)$(Platform)\$(Configuration)\"
+xcopy /y /d "$(SolutionDir)external\bindings\legacy_bindings\*.json" "$(SolutionDir)$(Platform)\$(Configuration)\"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -228,7 +231,7 @@ xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(S
     <ClInclude Include="inc\PSMoveHandler.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
-    <ClInclude Include="inc\SteamIVRInput.h" />
+    <ClInclude Include="inc\SteamEVRInput.h" />
     <ClInclude Include="inc\TypeCast.h" />
     <ClInclude Include="inc\VectorMath.h" />
     <ClInclude Include="inc\VRController.h" />
