@@ -1471,7 +1471,7 @@ public:
 
 						TrackersCalibButton->SetLabel(
 							std::string(!KinectSettings::isCalibrating
-								            ? "Calibration aborted! Hit me 2 times to re-calibrate!"
+								            ? "Calibration aborted! Hit me to re-calibrate!"
 								            : "Done! Hit me 2 times to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
 
@@ -1829,7 +1829,7 @@ public:
 
 						TrackersCalibButton->SetLabel(
 							std::string(!KinectSettings::isCalibrating
-								            ? "Calibration aborted! Hit me 2 times to re-calibrate!"
+								            ? "Calibration aborted! Hit me to re-calibrate!"
 								            : "Done! Hit me 2 times to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
 
