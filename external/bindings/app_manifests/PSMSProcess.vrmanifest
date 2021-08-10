@@ -1,0 +1,16 @@
+{
+	"source" : "builtin",
+	"applications": [{
+		"app_key": "KinectToVR.K2EX",
+		"launch_type": "binary",
+		"binary_path_windows": "PSMSProcess.exe",
+		"is_dashboard_overlay": true,
+
+		"strings": {
+			"en_us": {
+				"name": "KinectToVR",
+				"description": "Full-Body Tracking for Kinect"
+			}
+		}
+	}]
+}
