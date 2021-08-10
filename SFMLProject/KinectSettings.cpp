@@ -817,18 +817,18 @@ namespace KinectSettings
 
 				// Waist
 				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[0];
-				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[1];
-				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[2];
+				trackerVector.at(0).positionOffset.y = manual_offsets[0][2].v[1];
+				trackerVector.at(0).positionOffset.z = manual_offsets[0][2].v[2];
 
 				// Left
 				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[0];
-				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[1];
-				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[2];
+				trackerVector.at(1).positionOffset.y = manual_offsets[0][1].v[1];
+				trackerVector.at(1).positionOffset.z = manual_offsets[0][1].v[2];
 
 				// Right
 				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[0];
-				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[1];
-				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[2];
+				trackerVector.at(2).positionOffset.y = manual_offsets[0][0].v[1];
+				trackerVector.at(2).positionOffset.z = manual_offsets[0][0].v[2];
 
 				/*****************************************************************************************/
 				// Push RAW poses to trackers
