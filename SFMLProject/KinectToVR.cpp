@@ -1,4 +1,4 @@
-#include <boost/asio.hpp>
+﻿#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -699,6 +699,15 @@ void processLoop(KinectHandlerBase& kinect)
 		// We don't let the user overwrite serial here
 		auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
 
+		// Retry if we didn't get any message
+		while(tracker_downloaded.result == ktvr::K2ResponseMessageCode_Invalid)
+		{
+			LOG(ERROR) << "Invalid response type while downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", retrying...";
+			tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
+			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		}
+		LOG(INFO) << "Downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", got a valid message.";
+		
 		// Check the role too
 		int _role = -1;
 		switch (i)
