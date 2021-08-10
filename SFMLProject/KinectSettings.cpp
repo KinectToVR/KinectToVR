@@ -41,7 +41,6 @@ namespace KinectSettings
 	bool isSkeletonDrawn = false;
 	bool isDriverPresent = false;
 	float svrhmdyaw = 0, calibration_kinect_pitch = 0;
-	int psmh, psmm;
 	int K2Drivercode = -1; //unknown
 	std::vector<int> psmindexidpsm[2];
 	int flashnow[2];
@@ -59,8 +58,7 @@ namespace KinectSettings
 	KVR::KinectJointType rightFootJointWithoutRotation = KVR::KinectJointType::AnkleRight;
 	bool isCalibrating = false;
 
-	PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
-	bool isGripPressed[2] = { false, false }, isTriggerPressed[2] = { false, false }; //0L, 1R
+	PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove;
 	bool initialised = false, initialised_bak = false, isKinectPSMS = false;
 	bool userChangingZero = false;
 	bool legacy = false;
@@ -112,7 +110,7 @@ namespace KinectSettings
 	int rightHandPlayspaceMovementButton = 0;
 	int leftFootPlayspaceMovementButton = 0;
 	int rightFootPlayspaceMovementButton = 0;
-	int psmmigi, psmhidari, psmyobu, psmatama;
+	int psm_right_id, psm_left_id, psm_waist_id;
 	float hmdYaw = 0;
 	float conID[2] = { 0, 1 };
 
