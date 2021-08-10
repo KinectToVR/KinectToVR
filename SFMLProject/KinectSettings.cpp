@@ -864,6 +864,7 @@ namespace KinectSettings
 				// If poses & rots aren't frozen
 				if (!trackingPaused) {
 
+					// Bring them back to default owners
 					trackerVector.at(0).pose.orientation = p_cast_type<glm::quat>(waist_tracker_rot);
 					trackerVector.at(flip ? 2 : 1).pose.orientation = p_cast_type<glm::quat>(left_tracker_rot);
 					trackerVector.at(flip ? 1 : 2).pose.orientation = p_cast_type<glm::quat>(right_tracker_rot);
