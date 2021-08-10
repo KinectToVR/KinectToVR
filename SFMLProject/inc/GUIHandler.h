@@ -1345,30 +1345,29 @@ public:
 
 						bool firstTime = true;
 						double yawtmp = 0, pitchtmp = 0;
-						while (!KinectSettings::isTriggerPressed[0] || !KinectSettings::isTriggerPressed[1])
+						while (!KinectSettings::calibration_confirm)
 						{
 							std::this_thread::sleep_for(std::chrono::milliseconds(300));
 							/******************************************************************************/
 							TrackersCalibButton->SetLabel(
 								std::string(
-									"Adjust position with Thumbsticks (LGrip: Fine adjust, RGrip: Switch to Rotation, Triggers: Confirm)")
+									"Adjust position (Defaults: LGrip:Fine tune, RGrip:Switch Modes, Triggers:Confirm)")
 								.c_str());
 							/******************************************************************************/
 
-							while (!KinectSettings::isGripPressed[0] && (!KinectSettings::isTriggerPressed[0] || !
-								KinectSettings::isTriggerPressed[1]))
+							while (!KinectSettings::calibration_modeSwap && !KinectSettings::calibration_confirm)
 							{
-								if (!KinectSettings::isGripPressed[1])
+								if (!KinectSettings::calibration_fineTune)
 								{
-									KinectSettings::calibration_translation(0) += VRInput::trackpadpose[1].x * .01f;
-									KinectSettings::calibration_translation(1) += VRInput::trackpadpose[0].y * .01f;
-									KinectSettings::calibration_translation(2) += -VRInput::trackpadpose[1].y * .01f;
+									KinectSettings::calibration_translation(0) += KinectSettings::calibration_leftJoystick[0] * .01f;
+									KinectSettings::calibration_translation(1) += KinectSettings:: calibration_rightJoystick[1] * .01f;
+									KinectSettings::calibration_translation(2) += -KinectSettings::calibration_leftJoystick[1] * .01f;
 								}
 								else
 								{
-									KinectSettings::calibration_translation(0) += VRInput::trackpadpose[1].x * .001f;
-									KinectSettings::calibration_translation(1) += VRInput::trackpadpose[0].y * .001f;
-									KinectSettings::calibration_translation(2) += -VRInput::trackpadpose[1].y * .001f;
+									KinectSettings::calibration_translation(0) += KinectSettings::calibration_leftJoystick[0] * .001f;
+									KinectSettings::calibration_translation(1) += KinectSettings::calibration_rightJoystick[1] * .001f;
+									KinectSettings::calibration_translation(2) += -KinectSettings::calibration_leftJoystick[1] * .001f;
 								}
 
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -1386,22 +1385,21 @@ public:
 							/******************************************************************************/
 							TrackersCalibButton->SetLabel(
 								std::string(
-									"Adjust rotation with Thumbsticks (LGrip: Fine adjust, RGrip: Switch to Position, Triggers: Confirm)")
+									"Adjust rotation (Defaults: LGrip:Fine tune, RGrip:Switch Modes, Triggers:Confirm)")
 								.c_str());
 							/******************************************************************************/
 
-							while (!KinectSettings::isGripPressed[0] && (!KinectSettings::isTriggerPressed[0] || !
-								KinectSettings::isTriggerPressed[1]))
+							while (!KinectSettings::calibration_modeSwap && !KinectSettings::calibration_confirm)
 							{
-								if (!KinectSettings::isGripPressed[1])
+								if (!KinectSettings::calibration_fineTune)
 								{
-									yawtmp += VRInput::trackpadpose[1].x * M_PI / 280.f;
-									pitchtmp += VRInput::trackpadpose[0].y * M_PI / 280.f;
+									yawtmp += KinectSettings::calibration_leftJoystick[0] * M_PI / 280.f;
+									pitchtmp += KinectSettings::calibration_rightJoystick[1] * M_PI / 280.f;
 								}
 								else
 								{
-									yawtmp += (VRInput::trackpadpose[1].x * M_PI / 280.f) * .1f;
-									pitchtmp += (VRInput::trackpadpose[0].y * M_PI / 280.f) * .1f;
+									yawtmp += (KinectSettings::calibration_leftJoystick[0] * M_PI / 280.f) * .1f;
+									pitchtmp += (KinectSettings::calibration_rightJoystick[1] * M_PI / 280.f) * .1f;
 								}
 
 								Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
@@ -1431,7 +1429,11 @@ public:
 								KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
 								break;
 							}
+
 						}
+
+						// Reset
+						KinectSettings::calibration_confirm = false;
 
 						std::this_thread::sleep_for(std::chrono::seconds(1));
 
