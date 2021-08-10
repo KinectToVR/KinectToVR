@@ -40,6 +40,7 @@ struct VirtualHipSettings
 	float HMDOrientationOffset = 0.0;
 	float CalibrationPointsNumber = 3;
 	double HeightFromHMD = 0.00;
+	bool FlipEnabled = true;
 	// Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
 	bool positionAccountsForFootTrackers = false;
 	// If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
@@ -63,6 +64,7 @@ struct VirtualHipSettings
 	{
 		archive(
 			CEREAL_NVP(positionFollowsHMDLean),
+			CEREAL_NVP(FlipEnabled),
 			CEREAL_NVP(HMDOrientationOffset),
 			CEREAL_NVP(CalibrationPointsNumber),
 			CEREAL_NVP(SelectedFootTrackingOption),
