@@ -939,8 +939,20 @@ void processLoop(KinectHandlerBase& kinect)
 				guiRef.pauseTrackingButton->SetLabel(
 					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
 			}
-
-
+			
+			// Update the Flip Toggle : flip-switch
+			// Only if the state has changed from 1 to 0: button was clicked
+			if(!evr_input.trackerFlipToggleData().bState && bak_flip_toggle_state)
+			{
+				VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
+				KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
+				VirtualHips::saveSettings();
+				guiRef.toggleFlipButton->SetLabel(
+					VirtualHips::settings.FlipEnabled ?
+					"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
+					"Enable/Disable 'Flip' [CURRENT: DISABLED]");
+			}
+			
 			// Update the Calibration:Confirm : one-time switch
 			// Only one-way switch this time
 			if (evr_input.confirmAndSaveActionData().bState)
