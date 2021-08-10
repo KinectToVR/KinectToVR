@@ -215,7 +215,6 @@ namespace KinectSettings
 	extern vr::HmdVector3d_t secondaryTrackingOriginOffset;
 	// Demonic offset, actual origin unknown. Probably evil and trying to destroy everything I love.
 	extern vr::HmdVector3d_t hauoffset, mauoffset;
-	extern int psmh, psmm;
 	extern vr::HmdQuaternion_t kinectRepRotation;
 	extern vr::HmdVector3d_t kinectRadRotation;
 	extern vr::HmdVector3d_t kinectRepPosition;
@@ -234,7 +233,7 @@ namespace KinectSettings
 	extern Eigen::Vector3f calibration_origin;
 	extern int cpoints;
 	extern bool matrixes_calibrated;
-	extern int psmmigi, psmhidari, psmyobu, psmatama;
+	extern int psm_right_id, psm_left_id, psm_waist_id, psmatama;
 
 	extern float hmdegree;
 	extern bool sensorConfigChanged;

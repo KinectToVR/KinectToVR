@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -38,10 +38,7 @@ public:
 	sfg::ComboBox::Ptr coptbox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr coptbox1 = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr foptbox = sfg::ComboBox::Create();
-
-	sfg::ComboBox::Ptr psmovebox = sfg::ComboBox::Create();
-	sfg::ComboBox::Ptr psmovebox1 = sfg::ComboBox::Create();
-
+	
 	sfg::ComboBox::Ptr bodytrackingselectbox = sfg::ComboBox::Create();
 
 	sfg::ComboBox::Ptr psmovebox_left = sfg::ComboBox::Create();
@@ -237,36 +234,22 @@ public:
 		{
 			KinectSettings::isSkeletonDrawn = !KinectSettings::isSkeletonDrawn;
 		});
-
-		psmovebox->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-		{
-			KinectSettings::psmh = psmovebox->GetSelectedItem();
-			KinectSettings::flashnow[0] = psmovebox->GetSelectedItem();
-			KinectSettings::flashnow[1] = true;
-		});
-
-		psmovebox1->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-		{
-			KinectSettings::psmm = psmovebox1->GetSelectedItem();
-			KinectSettings::flashnow[0] = psmovebox1->GetSelectedItem();
-			KinectSettings::flashnow[1] = true;
-		});
-
+		
 		psmovebox_left->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
-			KinectSettings::psmhidari = psmovebox_left->GetSelectedItem();
+			KinectSettings::psm_left_id = psmovebox_left->GetSelectedItem();
 			KinectSettings::flashnow[0] = psmovebox_left->GetSelectedItem();
 			KinectSettings::flashnow[1] = true;
 		});
 		psmovebox_right->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
-			KinectSettings::psmmigi = psmovebox_right->GetSelectedItem();
+			KinectSettings::psm_right_id = psmovebox_right->GetSelectedItem();
 			KinectSettings::flashnow[0] = psmovebox_right->GetSelectedItem();
 			KinectSettings::flashnow[1] = true;
 		});
 		psmovebox_waist->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
 		{
-			KinectSettings::psmyobu = psmovebox_waist->GetSelectedItem();
+			KinectSettings::psm_waist_id = psmovebox_waist->GetSelectedItem();
 			KinectSettings::flashnow[0] = psmovebox_waist->GetSelectedItem();
 			KinectSettings::flashnow[1] = true;
 		});
@@ -467,8 +450,6 @@ public:
 
 	void refreshpsms()
 	{
-		psmovebox->Clear();
-		psmovebox1->Clear();
 		psmovebox_left->Clear();
 		psmovebox_right->Clear();
 		psmovebox_waist->Clear();
@@ -480,40 +461,28 @@ public:
 		{
 			if (KinectSettings::KVRPSMoveData[i].isValidController)
 			{
-				psmovebox->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
-				psmovebox1->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 				psmovebox_left->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 				psmovebox_right->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 				psmovebox_waist->AppendItem("PSMove ID: " + boost::lexical_cast<std::string>(i));
 
-				KinectSettings::psmindexidpsm[0].push_back(psmovebox->GetItemCount() - 1);
+				KinectSettings::psmindexidpsm[0].push_back(psmovebox_left->GetItemCount() - 1);
 				KinectSettings::psmindexidpsm[1].push_back(i);
 			}
-		}
-		if (psmovebox->GetItemCount() >= 1)
-		{
-			psmovebox->SelectItem(0);
-			KinectSettings::psmh = 0;
-		}
-		if (psmovebox1->GetItemCount() >= 2)
-		{
-			psmovebox1->SelectItem(1);
-			KinectSettings::psmm = 1;
 		}
 		if (psmovebox_left->GetItemCount() >= 1)
 		{
 			psmovebox_left->SelectItem(0);
-			KinectSettings::psmhidari = 0;
+			KinectSettings::psm_left_id = 0;
 		}
 		if (psmovebox_right->GetItemCount() >= 2)
 		{
 			psmovebox_right->SelectItem(1);
-			KinectSettings::psmmigi = 1;
+			KinectSettings::psm_right_id = 1;
 		}
 		if (psmovebox_waist->GetItemCount() >= 3)
 		{
 			psmovebox_waist->SelectItem(2);
-			KinectSettings::psmyobu = 2;
+			KinectSettings::psm_waist_id = 2;
 		}
 	}
 
