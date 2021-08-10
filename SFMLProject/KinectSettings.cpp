@@ -308,6 +308,9 @@ namespace KinectSettings
 						flip = true;
 				}
 
+				// One-way change to false if disabled
+				if (!FlipEnabled)
+					flip = false; // Disable flip whatever reason the user wants to be bugged away //
 
 				/*****************************************************************************************/
 				// Compose the string to send to driver
