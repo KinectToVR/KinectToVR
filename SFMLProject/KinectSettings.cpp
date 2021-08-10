@@ -269,6 +269,7 @@ namespace KinectSettings
 				using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
 				const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG) format: 0+360
 				const float facing = yaw - calibration_trackers_yaw; //get facing to kinect;
+				const bool autocalib = (calibration_origin == Eigen::Vector3f(0, 0, 0)); // Zeros in auto
 
 				// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
 				//       
