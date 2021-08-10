@@ -874,7 +874,7 @@ namespace KinectSettings
 					trackerVector.at(1).updateOrientationFilters();
 					trackerVector.at(2).updateOrientationFilters();
 
-					// If we're in flip, slow down the rotation a bit
+					// Slow down the rotation a bit
 					trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation;
 					trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation;
 					trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation;
@@ -888,7 +888,7 @@ namespace KinectSettings
 					trackerVector.at(2).updatePositionFilters();
 
 					// Update pose w/ filtering
-					// WAIST TRACKER (0)
+					// WAIST TRACKER (NF_0)
 					if (EnabledTrackersSave[0]) {
 						if (matrixes_calibrated)
 							ktvr::update_tracker_pose<false>(
@@ -906,13 +906,13 @@ namespace KinectSettings
 					}
 
 					// Update pose w/ filtering
-					// LEFT TRACKER (1)
-					if (EnabledTrackersSave[1]) {
+					// LEFT TRACKER (NF_1)
+					if (EnabledTrackersSave[flip ? 2 : 1]) {
 						if (matrixes_calibrated)
 							ktvr::update_tracker_pose<false>(
-								trackerVector.at(1).id,
+								trackerVector.at(flip ? 2 : 1).id,
 								ktvr::K2PosePacket(
-									trackerVector.at(flip ? 2 : 1).getTrackerBase
+									trackerVector.at(1).getTrackerBase
 									(
 										calibration_rotation,
 										calibration_translation,
@@ -921,20 +921,20 @@ namespace KinectSettings
 									).pose));
 
 						else ktvr::update_tracker_pose<false>(
-							trackerVector.at(1).id,
+							trackerVector.at(flip ? 2 : 1).id,
 							ktvr::K2PosePacket(
-								trackerVector.at(flip ? 2 : 1).getTrackerBase(
+								trackerVector.at(1).getTrackerBase(
 									posOption, t_NoOrientationTrackingFilter).pose));
 					}
 
 					// Update pose w/ filtering
-					// RIGHT TRACKER (2)
-					if (EnabledTrackersSave[2]) {
+					// RIGHT TRACKER (NF_2)
+					if (EnabledTrackersSave[flip ? 1 : 2]) {
 						if (matrixes_calibrated)
 							ktvr::update_tracker_pose<false>(
-								trackerVector.at(2).id,
+								trackerVector.at(flip ? 1 : 2).id,
 								ktvr::K2PosePacket(
-									trackerVector.at(flip ? 1 : 2).getTrackerBase
+									trackerVector.at(2).getTrackerBase
 									(
 										calibration_rotation,
 										calibration_translation,
@@ -943,9 +943,9 @@ namespace KinectSettings
 									).pose));
 
 						else ktvr::update_tracker_pose<false>(
-							trackerVector.at(2).id,
+							trackerVector.at(flip ? 1 : 2).id,
 							ktvr::K2PosePacket(
-								trackerVector.at(flip ? 1 : 2).getTrackerBase(
+								trackerVector.at(2).getTrackerBase(
 									posOption, t_NoOrientationTrackingFilter).pose));
 					}
 
@@ -955,19 +955,19 @@ namespace KinectSettings
 				else
 				{
 					// Refresh the tracker
-					// WAIST TRACKER (0)
+					// WAIST TRACKER (NF_G_0)
 					if (EnabledTrackersSave[0])
 						ktvr::refresh_tracker_pose<false>(
 							trackerVector.at(0).id);
 
 					// Refresh the tracker
-					// LEFT TRACKER (1)
+					// LEFT TRACKER (NF_G_1)
 					if (EnabledTrackersSave[1])
 						ktvr::refresh_tracker_pose<false>(
 							trackerVector.at(1).id);
 
 					// Refresh the tracker
-					// RIGHT TRACKER (2)
+					// RIGHT TRACKER (NF_G_2)
 					if (EnabledTrackersSave[2])
 						ktvr::refresh_tracker_pose<false>(
 							trackerVector.at(2).id);
