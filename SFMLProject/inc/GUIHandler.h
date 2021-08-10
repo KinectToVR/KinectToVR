@@ -1258,22 +1258,22 @@ public:
 			settings.AutoStartTrackers = !settings.AutoStartTrackers;
 			if (settings.AutoStartTrackers)
 			{
-				AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: YES");
+				AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: YES]");
 			}
 			else
 			{
-				AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: NO");
+				AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: NO]");
 			}
 		});
 
 		updateSavedTrackersLabels();
 		if (settings.AutoStartTrackers)
 		{
-			AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: YES");
+			AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: YES]");
 		}
 		else
 		{
-			AutoStartTrackers->SetLabel("Initialise trackers automatically CURRENT: NO");
+			AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: NO]");
 		}
 
 		VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
