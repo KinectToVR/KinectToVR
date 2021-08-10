@@ -1,4 +1,4 @@
-﻿#include <boost/asio.hpp>
+#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -358,7 +358,7 @@ void processLoop(KinectHandlerBase& kinect)
 	// Connect to OpenVR at the very beginning
 	LOG(INFO) << "Attempting connection to vrsystem... ";
 	vr::EVRInitError eError = vr::VRInitError_None;
-	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Scene);
+	vr::IVRSystem* m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 
 	if (eError != vr::VRInitError_None) {
 		LOG(ERROR) << "IVRSystem could not be initialised: EVRInitError Code " << static_cast<int>(eError);
