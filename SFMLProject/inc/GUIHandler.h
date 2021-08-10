@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
