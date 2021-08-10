@@ -18,7 +18,7 @@
 #include <string>
 #include <thread>
 #include <SFGUI/Widgets.hpp>
-#include <SteamIVRInput.h>
+#include <SteamEVRInput.h>
 
 #include <boost/interprocess/managed_shared_memory.hpp>
 #include <boost/algorithm/string.hpp>
@@ -372,19 +372,19 @@ void processLoop(KinectHandlerBase& kinect)
 	}
 
 	// Setup OpenVR actions
-	LOG(INFO) << "Attempting to set up IVR Input Actions...";
-	SteamIVRInput ivr_input;
-	if (!ivr_input.InitInputActions())
+	LOG(INFO) << "Attempting to set up EVR Input Actions...";
+	SteamEVRInput evr_input;
+	if (!evr_input.InitInputActions())
 	{
 		LOG(ERROR) << "Could not set up Input Actions. Please check the upper log for further information.";
 		MessageBoxA(nullptr,
 			std::string(
 				"Couldn't set up Input Actions.\n\nPlease check the log file for further information."
 			).c_str(),
-			"IVR Input Actions Init Failure!",
+			"EVR Input Actions Init Failure!",
 			MB_OK);
 	}
-	else LOG(INFO) << "IVR Input Actions set up OK";
+	else LOG(INFO) << "EVR Input Actions set up OK";
 	
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
@@ -923,21 +923,22 @@ void processLoop(KinectHandlerBase& kinect)
 		{
 
 			/**********************************************/
-			// Here, update IVR Input actions
+			// Here, update EVR Input actions
 			/**********************************************/
 
 			// Backup the current ( OLD ) data
-			bool bak_confirm_state = ivr_input.confirmAndSaveActionData().bState,
-				bak_mode_swap_state = ivr_input.modeSwapActionData().bState,
-				bak_freeze_state = ivr_input.trackerFreezeActionData().bState;
+			bool bak_confirm_state = evr_input.confirmAndSaveActionData().bState,
+				bak_mode_swap_state = evr_input.modeSwapActionData().bState,
+				bak_freeze_state = evr_input.trackerFreezeActionData().bState,
+				bak_flip_toggle_state = evr_input.trackerFlipToggleData().bState;
 
 			// Update all input actions
-			if (!ivr_input.UpdateActionStates())
-				LOG(ERROR) << "Could not update IVR Input Actions. Please check logs for further information.";
+			if (!evr_input.UpdateActionStates())
+				LOG(ERROR) << "Could not update EVR Input Actions. Please check logs for further information.";
 
 			// Update the Tracking Freeze : flip-switch
-			if(ivr_input.trackerFreezeActionData().bState
-				!= bak_freeze_state) // Only if the state has changed
+			// Only if the state has changed from 1 to 0: button was clicked
+			if (!evr_input.trackerFreezeActionData().bState && bak_freeze_state)
 			{
 				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
 				guiRef.pauseTrackingButton->SetLabel(

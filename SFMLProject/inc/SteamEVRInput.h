@@ -32,20 +32,21 @@ inline std::string EVRInputErrorString[] = {
 // Action strings set in action_manifest.json
 
 // Required
-constexpr auto k_actionSetCalibration = "/actions/calibration"; // Calibration
-constexpr auto k_actionSetDefault = "/actions/default"; // Other
+constexpr auto k_actionSetDefault = "/actions/default"; // Default
 
-constexpr auto k_actionLeftJoystick = "/actions/calibration/in/LeftJoystick"; // Left-hand Move/Rotate Controls
-constexpr auto k_actionRightJoystick = "/actions/calibration/in/RightJoystick"; // Right-hand Move/Rotate Controls
+constexpr auto k_actionLeftJoystick = "/actions/default/in/LeftJoystick"; // Left-hand Move/Rotate Controls
+constexpr auto k_actionRightJoystick = "/actions/default/in/RightJoystick"; // Right-hand Move/Rotate Controls
 
-constexpr auto k_actionConfirmAndSave = "/actions/calibration/in/ConfirmAndSave"; // Confirm and Save
-constexpr auto k_actionModeSwap = "/actions/calibration/in/ModeSwap"; // Swap Move/Rotate Modes
+constexpr auto k_actionConfirmAndSave = "/actions/default/in/ConfirmAndSave"; // Confirm and Save
+constexpr auto k_actionModeSwap = "/actions/default/in/ModeSwap"; // Swap Move/Rotate Modes
+constexpr auto k_actionFineTune = "/actions/default/in/FineTune"; // Fine-tuning
 
 // Optional
 constexpr auto k_actionTrackerFreeze = "/actions/default/in/TrackerFreeze"; // Freeze Trackers
+constexpr auto k_actionFlipToggle = "/actions/default/in/FlipToggle"; // Toggle Flip
 
-// Main SteamIVRInput class
-class SteamIVRInput {
+// Main SteamEVRInput class
+class SteamEVRInput {
 public:
 
 	// Note: SteamVR must be initialized beforehand.
@@ -110,6 +111,15 @@ public:
 			LOG(ERROR) << "Action handle error: " << EVRInputErrorString[error];
 			return false;
 		}
+
+		// Get action handle for Fine-tuning
+		error = vr::VRInput()->GetActionHandle(k_actionFineTune,
+			&m_FineTuneHandler);
+		if (error != vr::EVRInputError::VRInputError_None)
+		{
+			LOG(ERROR) << "Action handle error: " << EVRInputErrorString[error];
+			return false;
+		}
 		
 		// Get action handle for Tracker Freeze
 		error = vr::VRInput()->GetActionHandle(k_actionTrackerFreeze,
@@ -119,19 +129,19 @@ public:
 			LOG(ERROR) << "Action handle error: " << EVRInputErrorString[error];
 			return false;
 		}
+
+		// Get action handle for Flip Toggle
+		error = vr::VRInput()->GetActionHandle(k_actionFlipToggle,
+			&m_FlipToggleHandler);
+		if (error != vr::EVRInputError::VRInputError_None)
+		{
+			LOG(ERROR) << "Action handle error: " << EVRInputErrorString[error];
+			return false;
+		}
 		
 		/**********************************************/
 		// Here, setup every action set handle
 		/**********************************************/
-		
-		// Get set handle for Calibration Set
-		error = vr::VRInput()->GetActionSetHandle(k_actionSetCalibration,
-			&m_CalibrationSetHandler);
-		if (error != vr::EVRInputError::VRInputError_None)
-		{
-			LOG(ERROR) << "ActionSet handle error: " << EVRInputErrorString[error];
-			return false;
-		}
 
 		// Get set handle Default Set
 		error = vr::VRInput()->GetActionSetHandle(k_actionSetDefault,
@@ -141,23 +151,18 @@ public:
 			LOG(ERROR) << "ActionSet handle error: " << EVRInputErrorString[error];
 			return false;
 		}
-
+		
 		/**********************************************/
 		// Here, setup action-set handler
 		/**********************************************/
-
-		// Calibration Set
-		m_calibrationActionSet.ulActionSet = m_CalibrationSetHandler;
-		m_calibrationActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
-		m_calibrationActionSet.nPriority = 0;
 
 		// Default Set
 		m_defaultActionSet.ulActionSet = m_DefaultSetHandler;
 		m_defaultActionSet.ulRestrictedToDevice = vr::k_ulInvalidInputValueHandle;
 		m_defaultActionSet.nPriority = 0;
-
+		
 		// Return OK
-		LOG(INFO) << "IVR Input Actions initialized OK";
+		LOG(INFO) << "EVR Input Actions initialized OK";
 		return true;
 	}
 	
@@ -167,15 +172,6 @@ public:
 		// Here, update main action sets' handles
 		/**********************************************/
 
-		// Update Calibration ActionSet states
-		if (const auto error = vr::VRInput()->UpdateActionState(
-			&m_calibrationActionSet, sizeof m_calibrationActionSet, 1);
-			error != vr::EVRInputError::VRInputError_None)
-		{
-			LOG(ERROR) << "ActionSet (Calibration) state update error: " << EVRInputErrorString[error];
-			return false;
-		}
-
 		// Update Default ActionSet states
 		if (const auto error = vr::VRInput()->UpdateActionState(
 			&m_defaultActionSet, sizeof m_defaultActionSet, 1);
@@ -184,7 +180,7 @@ public:
 			LOG(ERROR) << "ActionSet (Default) state update error: " << EVRInputErrorString[error];
 			return false;
 		}
-
+		
 		/**********************************************/
 		// Here, update the actions and grab data-s
 		/**********************************************/
@@ -214,6 +210,13 @@ public:
 		if (!GetModeSwapState())
 		{
 			LOG(INFO) << "Mode Swap Action is not active, can't update!";
+			return false;
+		}
+
+		// Update the fine tune
+		if (!GetFineTuneState())
+		{
+			LOG(INFO) << "Fine-tuning Action is not active, can't update!";
 			return false;
 		}
 
@@ -250,11 +253,23 @@ public:
 	{
 		return m_ModeSwapData;
 	}
+
+	[[nodiscard]] vr::InputDigitalActionData_t
+		fineTuneActionData() const
+	{
+		return m_FineTuneData;
+	}
 	
 	[[nodiscard]] vr::InputDigitalActionData_t
 		trackerFreezeActionData() const
 	{
 		return m_TrackerFreezeData;
+	}
+
+	[[nodiscard]] vr::InputDigitalActionData_t
+		trackerFlipToggleData() const
+	{
+		return m_FlipToggleData;
 	}
 
 private:
@@ -266,28 +281,27 @@ private:
 		m_LeftJoystickHandler = {},
 		m_RightJoystickHandler = {},
 		m_ConfirmAndSaveHandler = {},
-		m_ModeSwapHandler = {};
+		m_ModeSwapHandler = {},
+		m_FineTuneHandler = {};
 
 	// Tracking freeze actions
 	vr::VRActionHandle_t
-		m_TrackerFreezeHandler = {};
+		m_TrackerFreezeHandler = {},
+		m_FlipToggleHandler = {};
 
-	// Calibration set
-	vr::VRActionSetHandle_t m_CalibrationSetHandler = {};
-
-	// Tracking Freezing / Default set
+	// Tracking Default set
 	vr::VRActionSetHandle_t m_DefaultSetHandler = {};
-
+	
 	// The action sets
-	vr::VRActiveActionSet_t
-		m_calibrationActionSet = {},
-		m_defaultActionSet = {};
+	vr::VRActiveActionSet_t m_defaultActionSet = {};
 
 	// Buttons data
 	vr::InputDigitalActionData_t
 		m_ConfirmAndSaveData = {},
 		m_ModeSwapData = {},
-		m_TrackerFreezeData = {};
+		m_FineTuneData = {},
+		m_TrackerFreezeData = {},
+		m_FlipToggleData = {};
 
 	// Analogs data
 	vr::InputAnalogActionData_t
@@ -374,6 +388,26 @@ private:
 		return true;
 	}
 
+	// Update Mode Swap Action
+	bool GetFineTuneState()
+	{
+		// Update the action and grab data
+		if (const auto error = vr::VRInput()->
+			GetDigitalActionData(
+				m_FineTuneHandler,
+				&m_FineTuneData,
+				sizeof m_FineTuneData,
+				vr::k_ulInvalidInputValueHandle);
+			error != vr::EVRInputError::VRInputError_None)
+		{
+			LOG(ERROR) << "GetDigitalActionData call error: " << EVRInputErrorString[error];
+			return false;
+		}
+
+		// Return OK
+		return true;
+	}
+
 	// Update Tracker Freeze Action
 	bool GetTrackerFreezeState()
 	{
@@ -383,6 +417,26 @@ private:
 				m_TrackerFreezeHandler,
 				&m_TrackerFreezeData,
 				sizeof m_TrackerFreezeData,
+				vr::k_ulInvalidInputValueHandle);
+			error != vr::EVRInputError::VRInputError_None)
+		{
+			LOG(ERROR) << "GetDigitalActionData call error: " << EVRInputErrorString[error];
+			return false;
+		}
+
+		// Return OK
+		return true;
+	}
+
+	// Update Tracker Freeze Action
+	bool GetFlipToggleState()
+	{
+		// Update the action and grab data
+		if (const auto error = vr::VRInput()->
+			GetDigitalActionData(
+				m_FlipToggleHandler,
+				&m_FlipToggleData,
+				sizeof m_FlipToggleData,
 				vr::k_ulInvalidInputValueHandle);
 			error != vr::EVRInputError::VRInputError_None)
 		{
