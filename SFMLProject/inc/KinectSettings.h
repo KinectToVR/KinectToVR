@@ -156,10 +156,9 @@ namespace KinectSettings
 	static std::vector<K2VR_PSMoveData> KVR_PSMoves;
 	extern bool isCalibrating, isKinectPSMS, isServerFailure;
 	extern int K2Drivercode, kinectVersion;
-	extern PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
+	extern PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove;
 	extern Eigen::Quaternionf left_tracker_rot, right_tracker_rot, waist_tracker_rot;
 	extern Eigen::Quaternionf trackerSoftRot[2]; //Software-calculated
-	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
 	extern bool isDriverPresent;
 	extern bool isKinectDrawn;
 	
