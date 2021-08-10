@@ -1,0 +1,59 @@
+{
+  "default_bindings": [
+    {
+      "controller_type": "oculus_touch",
+      "binding_url": "input_profiles/kinecttovr.k2ex_oculus_touch.json"
+    }
+  ],
+  "actions": [
+    {
+      "name": "/actions/default/in/TrackerFreeze",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/FlipToggle",
+      "requirement": "optional",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/LeftJoystick",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/default/in/RightJoystick",
+      "type": "vector2"
+    },
+    {
+      "name": "/actions/default/in/ConfirmAndSave",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/ModeSwap",
+      "type": "boolean"
+    },
+    {
+      "name": "/actions/default/in/FineTune",
+      "type": "boolean"
+    }
+  ],
+  "action_sets": [
+    {
+      "name": "/actions/default",
+      "usage": "leftright"
+    }
+  ],
+  "localization": [
+    {
+      "language_tag": "en_US",
+      "/actions/default": "Input Actions",
+      "/actions/default/in/TrackerFreeze": "Freeze Trackers",
+      "/actions/default/in/FlipToggle": "Toggle Flip",
+      "/actions/default/in/LeftJoystick": "Left-hand Move/Rotate Controls",
+      "/actions/default/in/RightJoystick": "Right-hand Move/Rotate Controls",
+      "/actions/default/in/ConfirmAndSave": "Confirm and Save",
+      "/actions/default/in/ModeSwap": "Swap Move/Rotate Modes",
+      "/actions/default/in/FineTune": "Fine-tuning"
+    }
+  ]
+}
