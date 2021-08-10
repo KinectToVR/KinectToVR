@@ -941,11 +941,28 @@ void processLoop(KinectHandlerBase& kinect)
 			}
 
 
+			// Update the Calibration:Confirm : one-time switch
+			// Only one-way switch this time
+			if (evr_input.confirmAndSaveActionData().bState)
+				KinectSettings::calibration_confirm = true;
 
+			/*LOG_IF(evr_input.fineTuneActionData().bState, INFO) << "FineTune ON!";
+			LOG_IF(evr_input.fineTuneActionData().bActive, INFO) << "FineTune Action ACTIVE!";*/
 
+			// Update the Calibration:ModeSwap : one-time switch
+			// Only if the state has changed from 1 to 0: chord was done
+			KinectSettings::calibration_modeSwap =
+				(!evr_input.modeSwapActionData().bState && bak_mode_swap_state);
 
+			// Update the Calibration:FineTune : held switch
+			KinectSettings::calibration_fineTune = evr_input.fineTuneActionData().bState;
 
-
+			// Update the Calibration:Joystick : vector2 x2
+			KinectSettings::calibration_leftJoystick[0] = evr_input.leftJoystickActionData().x;
+			KinectSettings::calibration_leftJoystick[1] = evr_input.leftJoystickActionData().y;
+			
+			KinectSettings::calibration_rightJoystick[0] = evr_input.rightJoystickActionData().x;
+			KinectSettings::calibration_rightJoystick[1] = evr_input.rightJoystickActionData().y;
 			
 			/**********************************************/
 			// Here, update EVR Input actions

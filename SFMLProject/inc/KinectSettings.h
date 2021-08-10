@@ -259,6 +259,12 @@ namespace KinectSettings
 	inline bool trackingPaused = false;
 	// If trackers are spawned
 	inline bool spawned = false;
+	// MCalibration derivatives
+	inline bool calibration_confirm = false,
+		calibration_modeSwap = false,
+		calibration_fineTune = false;
+	inline float calibration_leftJoystick[2] = { 0.f,0.f },
+		calibration_rightJoystick[2] = { 0.f,0.f };
 }
 
 namespace SFMLsettings
