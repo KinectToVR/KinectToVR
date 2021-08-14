@@ -1206,12 +1206,7 @@ public:
 		for (int i = 0; i < 3; i++)
 			TurnOffTrackerButton[i]->Show(settings.EnabledTrackersSave[i]);
 	}
-
-	void showRestartNotice()
-	{
-		// TODO: Show the user that they need to restart steamvr for changes to take effect
-	}
-
+	
 	void setVirtualHipsBoxSignals()
 	{
 		using namespace VirtualHips;
