@@ -7,14 +7,6 @@
          "chords" : [
             {
                "inputs" : [
-                  [ "/user/hand/left/input/x", "click" ],
-                  [ "/user/hand/left/input/trigger", "click" ],
-                  [ "/user/hand/left/input/grip", "click" ]
-               ],
-               "output" : "/actions/default/in/trackerfreeze"
-            },
-            {
-               "inputs" : [
                   [ "/user/hand/left/input/trigger", "click" ],
                   [ "/user/hand/right/input/trigger", "click" ]
                ],
@@ -34,8 +26,16 @@
             },
             {
                "inputs" : [
-                  [ "/user/hand/right/input/grip", "click" ],
+                  [ "/user/hand/left/input/trigger", "click" ],
+                  [ "/user/hand/left/input/a", "click" ],
+                  [ "/user/hand/left/input/grip", "click" ]
+               ],
+               "output" : "/actions/default/in/trackerfreeze"
+            },
+            {
+               "inputs" : [
                   [ "/user/hand/right/input/trigger", "click" ],
+                  [ "/user/hand/right/input/grip", "click" ],
                   [ "/user/hand/right/input/a", "click" ]
                ],
                "output" : "/actions/default/in/fliptoggle"
@@ -65,7 +65,7 @@
             {
                "inputs" : {},
                "mode" : "button",
-               "path" : "/user/hand/left/input/x"
+               "path" : "/user/hand/left/input/a"
             },
             {
                "inputs" : {},
@@ -75,7 +75,7 @@
             {
                "inputs" : {},
                "mode" : "button",
-               "path" : "/user/hand/left/input/y"
+               "path" : "/user/hand/left/input/b"
             },
             {
                "inputs" : {},
@@ -88,8 +88,8 @@
                      "output" : "/actions/default/in/leftjoystick"
                   }
                },
-               "mode" : "joystick",
-               "path" : "/user/hand/left/input/joystick"
+               "mode" : "trackpad",
+               "path" : "/user/hand/left/input/trackpad"
             },
             {
                "inputs" : {
@@ -97,16 +97,16 @@
                      "output" : "/actions/default/in/rightjoystick"
                   }
                },
-               "mode" : "joystick",
-               "path" : "/user/hand/right/input/joystick"
+               "mode" : "trackpad",
+               "path" : "/user/hand/right/input/trackpad"
             }
          ]
       }
    },
    "category" : "steamvr_input",
-   "controller_type" : "oculus_touch",
+   "controller_type" : "knuckles",
    "description" : "",
-   "name" : "Default K2EX Bindings for Oculus Touch",
+   "name" : "Default K2EX Bindings for Index Controller",
    "options" : {},
    "simulated_actions" : []
 }

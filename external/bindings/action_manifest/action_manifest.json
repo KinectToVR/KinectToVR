@@ -3,6 +3,14 @@
     {
       "controller_type": "oculus_touch",
       "binding_url": "input_profiles/kinecttovr.k2ex_oculus_touch.json"
+    },
+    {
+      "controller_type": "knuckles",
+      "binding_url": "input_profiles/kinecttovr.k2ex_knuckles.json"
+    },
+    {
+      "controller_type": "vive_controller",
+      "binding_url": "input_profiles/kinecttovr.k2ex_vive_controller.json"
     }
   ],
   "actions": [
