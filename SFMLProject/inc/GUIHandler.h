@@ -889,10 +889,8 @@ public:
 		/*
 		* UNTIL TRIPING EXPLAINS WTF IS GOING ON HERE, IT'S COMMENTED OUT
 		*/
-
-		// Only if we're using kinect v1
-		if (KinectSettings::kinectVersion == 1)
-			coptbox->AppendItem("Math-Based Rotation");
+		
+		coptbox->AppendItem("Math-Based Rotation");
 
 		coptbox1->AppendItem("Enable Waist Rotation");
 		coptbox1->AppendItem("Disable Waist Rotation");
