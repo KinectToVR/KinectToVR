@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -1347,7 +1347,8 @@ public:
 			if (!KinectSettings::isCalibrating)
 			{
 				KinectSettings::isCalibrating = true;
-
+				KinectSettings::calibration_confirm = false;
+				
 				if (!KinectSettings::expcalib)
 				{
 					auto t1 = new std::thread([this]()
