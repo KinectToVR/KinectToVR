@@ -812,8 +812,7 @@ void processLoop(KinectHandlerBase& kinect)
 	guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
 
 	// Select backed up or first (we may switch from KV1 to KV2, keeping config)
-	guiRef.coptbox->SelectItem(
-		VirtualHips::settings.SelectedFootTrackingOption < guiRef.coptbox->GetItemCount() ? VirtualHips::settings.SelectedFootTrackingOption : 0);
+	guiRef.coptbox->SelectItem(VirtualHips::settings.SelectedFootTrackingOption);
 
 	guiRef.coptbox1->SelectItem(VirtualHips::settings.SelectedWaistTrackingOption);
 	guiRef.foptbox->SelectItem(VirtualHips::settings.SelectedPositionalTrackingOption);

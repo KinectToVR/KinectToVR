@@ -349,8 +349,7 @@ namespace KinectSettings
 
 				// If we're fully supporting the standard orientation option,
 				// to remove blocking, we'll check if the kinect version is v2 / is PSMS
-				if (feet_rotation_option == k_EnableOrientationFilter &&
-					(kinectVersion == 1 || positional_tracking_option == k_PSMoveFullTracking))
+				if (feet_rotation_option == k_EnableOrientationFilter)
 				{
 					if (positional_tracking_option == k_KinectFullTracking)
 					{
@@ -389,8 +388,7 @@ namespace KinectSettings
 
 				// If we're discarding yaw from our results, PSMS supported too
 				// to remove blocking, we'll check if the kinect version is v2 / is PSMS
-				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw &&
-					(kinectVersion == 1 || positional_tracking_option == k_PSMoveFullTracking))
+				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw)
 				{
 					if (positional_tracking_option == k_KinectFullTracking)
 					{
@@ -492,8 +490,7 @@ namespace KinectSettings
 
 				// If we have calculated the orientation by ourselves, aka math-based
 				// in addition, kinect v2 uses it too by default, so let's make it use this too
-				else if (feet_rotation_option == k_EnableOrientationFilter_Software ||
-					feet_rotation_option == k_EnableOrientationFilter && kinectVersion == 2)
+				else if (feet_rotation_option == k_EnableOrientationFilter_Software)
 				{
 					// Should actually work same as default option,
 					// though without later adjustments
@@ -514,75 +511,77 @@ namespace KinectSettings
 					}
 				}
 
-				// If we want yaw disabled on v2, we'll actually need to run math-based
-				// and additionally disable yaw on it. this is only for the v2
-				else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw && kinectVersion == 2)
-				{
-					// same as upper but without yaw
-					// Grab original orientations and make them euler angles
-					Eigen::Vector3f left_ori_with_yaw = EigenUtils::QuatToEulers(trackerSoftRot[0]);
-					Eigen::Vector3f right_ori_with_yaw = EigenUtils::QuatToEulers(trackerSoftRot[1]);
+				// MATH-BASED + DISABLE_YAW
+				// 
+				//// If we want yaw disabled on v2, we'll actually need to run math-based
+				//// and additionally disable yaw on it. this is only for the v2
+				//else if (feet_rotation_option == k_EnableOrientationFilter_WithoutYaw && kinectVersion == 2)
+				//{
+				//	// same as upper but without yaw
+				//	// Grab original orientations and make them euler angles
+				//	Eigen::Vector3f left_ori_with_yaw = EigenUtils::QuatToEulers(trackerSoftRot[0]);
+				//	Eigen::Vector3f right_ori_with_yaw = EigenUtils::QuatToEulers(trackerSoftRot[1]);
 
-					// Remove yaw from eulers
-					auto left_tracker_rot_wyaw_vector =
-						Eigen::Vector3f(
-							left_ori_with_yaw.x(),
-							0.f, // Disable the yaw
-							left_ori_with_yaw.z()),
+				//	// Remove yaw from eulers
+				//	auto left_tracker_rot_wyaw_vector =
+				//		Eigen::Vector3f(
+				//			left_ori_with_yaw.x(),
+				//			0.f, // Disable the yaw
+				//			left_ori_with_yaw.z()),
 
-						right_tracker_rot_wyaw_vector =
-						Eigen::Vector3f(
-							right_ori_with_yaw.x(),
-							0.f, // Disable the yaw
-							right_ori_with_yaw.z());
-
-
-					// Kind of a solution for flipping at too big X.
-					// Found out during testing,
-					// no other known mathematical reason (maybe except gimbal lock)
-
-					/****************************************************/
-
-					if (left_tracker_rot_wyaw_vector.x() <= 1.f
-						&& left_tracker_rot_wyaw_vector.x() >= 0
-						&& (left_tracker_rot_wyaw_vector.z() >= 1.f
-							|| left_tracker_rot_wyaw_vector.z() <= -1.f))
-
-						left_tracker_rot_wyaw_vector.y() += M_PI;
-
-					/****************************************************/
-
-					if (right_tracker_rot_wyaw_vector.x() <= 1.f
-						&& right_tracker_rot_wyaw_vector.x() >= 0
-
-						&& (right_tracker_rot_wyaw_vector.z() >= 1.f
-							|| right_tracker_rot_wyaw_vector.z() <= -1.f))
-
-						right_tracker_rot_wyaw_vector.y() += M_PI;
-
-					/****************************************************/
-
-					// Apply to the base
-					Eigen::Quaternionf
-						left_tracker_rot_wyaw = EigenUtils::EulersToQuat(
-							left_tracker_rot_wyaw_vector),
-
-						right_tracker_rot_wyaw = EigenUtils::EulersToQuat(
-							right_tracker_rot_wyaw_vector);
+				//		right_tracker_rot_wyaw_vector =
+				//		Eigen::Vector3f(
+				//			right_ori_with_yaw.x(),
+				//			0.f, // Disable the yaw
+				//			right_ori_with_yaw.z());
 
 
-					// If we're in flip mode, reverse and swap additionally
-					if (!flip)
-					{
-						left_tracker_rot = left_tracker_rot_wyaw;
-						right_tracker_rot = right_tracker_rot_wyaw;
-					}
-					else
-					{
-						right_tracker_rot = left_tracker_rot_wyaw.inverse();
-						left_tracker_rot = right_tracker_rot_wyaw.inverse();
-					}
-				}
+				//	// Kind of a solution for flipping at too big X.
+				//	// Found out during testing,
+				//	// no other known mathematical reason (maybe except gimbal lock)
+
+				//	/****************************************************/
+
+				//	if (left_tracker_rot_wyaw_vector.x() <= 1.f
+				//		&& left_tracker_rot_wyaw_vector.x() >= 0
+				//		&& (left_tracker_rot_wyaw_vector.z() >= 1.f
+				//			|| left_tracker_rot_wyaw_vector.z() <= -1.f))
+
+				//		left_tracker_rot_wyaw_vector.y() += M_PI;
+
+				//	/****************************************************/
+
+				//	if (right_tracker_rot_wyaw_vector.x() <= 1.f
+				//		&& right_tracker_rot_wyaw_vector.x() >= 0
+
+				//		&& (right_tracker_rot_wyaw_vector.z() >= 1.f
+				//			|| right_tracker_rot_wyaw_vector.z() <= -1.f))
+
+				//		right_tracker_rot_wyaw_vector.y() += M_PI;
+
+				//	/****************************************************/
+
+				//	// Apply to the base
+				//	Eigen::Quaternionf
+				//		left_tracker_rot_wyaw = EigenUtils::EulersToQuat(
+				//			left_tracker_rot_wyaw_vector),
+
+				//		right_tracker_rot_wyaw = EigenUtils::EulersToQuat(
+				//			right_tracker_rot_wyaw_vector);
+
+
+				//	// If we're in flip mode, reverse and swap additionally
+				//	if (!flip)
+				//	{
+				//		left_tracker_rot = left_tracker_rot_wyaw;
+				//		right_tracker_rot = right_tracker_rot_wyaw;
+				//	}
+				//	else
+				//	{
+				//		right_tracker_rot = left_tracker_rot_wyaw.inverse();
+				//		left_tracker_rot = right_tracker_rot_wyaw.inverse();
+				//	}
+				//}
 
 				/*****************************************************************************************/
 				// Modify the orientation, depending on the currently applied option
@@ -672,8 +671,7 @@ namespace KinectSettings
 							feet_rotation_option == k_EnableOrientationFilter_WithoutYaw)
 							pitchShift = M_PI / 3.0; // Normal offset
 
-						if (feet_rotation_option == k_EnableOrientationFilter_Software ||
-							(feet_rotation_option == k_EnableOrientationFilter && kinectVersion == 2))
+						if (feet_rotation_option == k_EnableOrientationFilter_Software)
 							pitchShift = M_PI / 12.0; // Special offset (if any), 0.f to nullify
 
 						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation)
