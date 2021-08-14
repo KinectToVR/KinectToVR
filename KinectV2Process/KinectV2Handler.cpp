@@ -789,28 +789,35 @@ void KinectV2Handler::updateSkeletalFilters()
 	// Add the results / Push to global
 	/***********************************************************************************************/
 	
-	// hips are ok
-	Eigen::Quaternionf kinect_waist_raw_ori = Eigen::Quaternionf(
+	// Check for identity / equality to quat_zero
+
+	if (Eigen::Quaternionf kinect_waist_raw_ori = Eigen::Quaternionf(
 		jointOrientations[JointType_SpineBase].Orientation.w,
 		jointOrientations[JointType_SpineBase].Orientation.x,
 		jointOrientations[JointType_SpineBase].Orientation.y,
-		jointOrientations[JointType_SpineBase].Orientation.z
-	);
-	
-	// Check for identity / equality to quat_zero
-
-	/*if (hFootRotF != glm::quat(1, 0, 0, 0) &&
-		hFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
-	//K/inectSettings::left_foot_raw_ori = hFootRotF;
-
-	/*if (mFootRotF != glm::quat(1, 0, 0, 0) &&
-		mFootRotF != glm::inverse(glm::quat(1, 0, 0, 0)))*/
-	//K/inectSettings::right_foot_raw_ori = mFootRotF;
-
-	// hips are ok, so check them
-	if (!kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
+		jointOrientations[JointType_SpineBase].Orientation.z);
+		!kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
 		!kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
 		KinectSettings::waist_raw_ori = kinect_waist_raw_ori;
+
+	if (Eigen::Quaternionf kinect_left_foot_raw_ori = Eigen::Quaternionf(
+		jointOrientations[JointType_FootLeft].Orientation.w,
+		jointOrientations[JointType_FootLeft].Orientation.x,
+		jointOrientations[JointType_FootLeft].Orientation.y,
+		jointOrientations[JointType_FootLeft].Orientation.z);
+		!kinect_left_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
+		!kinect_left_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
+		KinectSettings::left_foot_raw_ori = kinect_left_foot_raw_ori;
+
+	if (Eigen::Quaternionf kinect_right_foot_raw_ori = Eigen::Quaternionf(
+		jointOrientations[JointType_FootRight].Orientation.w,
+		jointOrientations[JointType_FootRight].Orientation.x,
+		jointOrientations[JointType_FootRight].Orientation.y,
+		jointOrientations[JointType_FootRight].Orientation.z);
+		!kinect_right_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
+		!kinect_right_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
+		KinectSettings::right_foot_raw_ori = kinect_right_foot_raw_ori;
+	
 }
 
 sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex)
