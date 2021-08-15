@@ -294,7 +294,6 @@ namespace KinectSettings
 				// Just get used to it
 
 				// Disable flipping when we're in PSMS mode
-				// TODO: Add disabling flip via settings
 				if (positional_tracking_option == k_PSMoveFullTracking
 					|| !matrixes_calibrated) // If not calibrated yet, set flip to false too
 					flip = false;
@@ -637,14 +636,8 @@ namespace KinectSettings
 							M_PI / 11.0, 
 							(autocalib ? M_PI : 0.f),
 							(autocalib ? M_PI : 0.f))); // Turn around Y and Z + pitchShift
-
-				//TODO:
-				//// Construct an offset quaternion with the pitch offset
-				//Eigen::Quaternionf rollOffsetQuaternion =
-				//	EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, 0.f, M_PI)); // Whole PI will flip them around (180deg)
-				//TODO:
-
-				// Temporary holder for the quaternion to begin
+					
+					// Temporary holder for the quaternion to begin
 					Eigen::Quaternionf temp_orientation[3] = {
 						left_tracker_rot,
 						right_tracker_rot,
@@ -680,12 +673,7 @@ namespace KinectSettings
 							// Grab original orientations and make them euler angles
 							Eigen::Vector3f left_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[0]);
 							Eigen::Vector3f right_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[1]);
-
-							//TODO:
-							//if (feet_rotation_option == k_EnableOrientationFilter_Software)
-							//	pitchOffOffset = M_PI / 2.0;
-							//TODO:
-
+							
 							// Remove pitch from eulers and apply to the parent
 							left_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
@@ -700,8 +688,8 @@ namespace KinectSettings
 									(autocalib ? -1.f : 1.f) * right_ori_with_yaw.z()));
 
 							// Apply the turn-around flip quaternion
-							right_tracker_rot = yawFlipQuaternion * right_tracker_rot;
 							left_tracker_rot = yawFlipQuaternion * left_tracker_rot;
+							right_tracker_rot = yawFlipQuaternion * right_tracker_rot;
 						}
 						if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
 						{
