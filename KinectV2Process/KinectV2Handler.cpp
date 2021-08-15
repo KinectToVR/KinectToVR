@@ -789,35 +789,39 @@ void KinectV2Handler::updateSkeletalFilters()
 	// Add the results / Push to global
 	/***********************************************************************************************/
 	
-	// Check for identity / equality to quat_zero
-
-	if (Eigen::Quaternionf kinect_waist_raw_ori = Eigen::Quaternionf(
+	KinectSettings::waist_raw_ori = Eigen::Quaternionf(
 		jointOrientations[JointType_SpineBase].Orientation.w,
 		jointOrientations[JointType_SpineBase].Orientation.x,
 		jointOrientations[JointType_SpineBase].Orientation.y,
 		jointOrientations[JointType_SpineBase].Orientation.z);
-		!kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
-		!kinect_waist_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
-		KinectSettings::waist_raw_ori = kinect_waist_raw_ori;
 
-	if (Eigen::Quaternionf kinect_left_foot_raw_ori = Eigen::Quaternionf(
-		jointOrientations[JointType_FootLeft].Orientation.w,
-		jointOrientations[JointType_FootLeft].Orientation.x,
-		jointOrientations[JointType_FootLeft].Orientation.y,
-		jointOrientations[JointType_FootLeft].Orientation.z);
-		!kinect_left_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
-		!kinect_left_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
-		KinectSettings::left_foot_raw_ori = kinect_left_foot_raw_ori;
+	// Yes, dear mathematician...
+	// I'm applying the main rotation to the offset, quite the reverse right?
+	// So, MS has decided that we're all are crabs. No jokes here. We're damn crabs.
+	// And so, I've decided to break all this and stay human. (Wait, or a cyborg?)
 
-	if (Eigen::Quaternionf kinect_right_foot_raw_ori = Eigen::Quaternionf(
-		jointOrientations[JointType_FootRight].Orientation.w,
-		jointOrientations[JointType_FootRight].Orientation.x,
-		jointOrientations[JointType_FootRight].Orientation.y,
-		jointOrientations[JointType_FootRight].Orientation.z);
-		!kinect_right_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0)) &&
-		!kinect_right_foot_raw_ori.isApprox(Eigen::Quaternionf(1, 0, 0, 0).inverse()))
-		KinectSettings::right_foot_raw_ori = kinect_right_foot_raw_ori;
-	
+	// Anyway, slerp is slowing down the afterparty kinect v2 which wants everyone
+	// to shake and express self greatness 
+	// (or just tracks every damn molecue which shakes due to the internal heat)
+
+	KinectSettings::left_foot_raw_ori = 
+		KinectSettings::left_foot_raw_ori.slerp(0.7,
+		Eigen::Quaternionf(
+		jointOrientations[JointType_AnkleLeft].Orientation.w,
+		jointOrientations[JointType_AnkleLeft].Orientation.x,
+		jointOrientations[JointType_AnkleLeft].Orientation.y,
+		jointOrientations[JointType_AnkleLeft].Orientation.z)
+		* EigenUtils::EulersToQuat(Eigen::Vector3f(0.0, M_PI / 2.0, 0.0)));
+
+	KinectSettings::right_foot_raw_ori =
+		KinectSettings::right_foot_raw_ori.slerp(0.7,
+		Eigen::Quaternionf(
+			jointOrientations[JointType_AnkleRight].Orientation.w,
+			jointOrientations[JointType_AnkleRight].Orientation.x,
+			jointOrientations[JointType_AnkleRight].Orientation.y,
+		jointOrientations[JointType_AnkleRight].Orientation.z)
+		* EigenUtils::EulersToQuat(Eigen::Vector3f(0.0, -M_PI / 2.0, 0.0)));
+
 }
 
 sf::Vector3f KinectV2Handler::zeroKinectPosition(int trackedSkeletonIndex)
