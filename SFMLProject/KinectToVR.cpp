@@ -700,11 +700,23 @@ void processLoop(KinectHandlerBase& kinect)
 		auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
 
 		// Retry if we didn't get any message
+		int tries = 0; // Yeah...
 		while(tracker_downloaded.result == ktvr::K2ResponseMessageCode_Invalid)
 		{
 			LOG(ERROR) << "Invalid response type while downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", retrying...";
 			tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+
+			// Check how many times we have tried
+			if(tries > 3) // assume 3+1, starting from 0
+			{
+				LOG(INFO) << "LHR-CB9AD1T" + std::to_string(i) + " couldn't be downloaded after >3 tries. Giving up...";
+
+				// Cause not checking anymore
+				KinectSettings::isServerFailure = true;
+				KinectSettings::spawned = false;
+			}
+			tries++; // Maybe one more?
 		}
 		LOG(INFO) << "Downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", got a valid message.";
 		
