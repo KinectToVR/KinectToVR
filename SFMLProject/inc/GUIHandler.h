@@ -923,8 +923,6 @@ public:
 
 	void packElementsIntoTrackersBox()
 	{
-		// TODO:
-
 		sfg::Box::Ptr verticalBox = sfg::Box::Create(sfg::Box::Orientation::VERTICAL);
 		verticalBox->Pack(
 			sfg::Label::Create("This tab allows you to enable/disable or turn on/off selected trackers."));
@@ -1545,14 +1543,12 @@ public:
 							ispose.vecPosition[2] = out(2);
 
 							for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::kinect_m_positions[0].v[i];
-
-							// Tell we got it? May be removed TODO: TODO:
+							
 							TrackersCalibButton->SetLabel(
 								std::string(
 									"Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "!")
 								.c_str());
 							std::this_thread::sleep_for(std::chrono::seconds(1));
-							// Tell we got it? May be removed TODO: TODO:
 
 							spose.push_back(ispose);
 							hpose.push_back(ihpose);
