@@ -1118,8 +1118,8 @@ public:
 					default:
 					{
 						std::wstring wideresult(kinect.statusResultString(status).begin(), kinect.statusResultString(status).end());
-						KinectStatusLabel->SetText(wchat_t(0x26A0) + std::wstring(L" Kinect Status: ERROR ") + wideresult
-										+ std::wstring(L" ") + wchat_t(0x26A0));
+						KinectStatusLabel->SetText(wchar_t(0x26A0) + std::wstring(L" Kinect Status: ERROR ") + wideresult
+										+ std::wstring(L" ") + wchar_t(0x26A0));
 						break;
 					}
 					}
@@ -1140,8 +1140,8 @@ public:
 			SteamVRStatusLabel->SetText(L"SteamVR Status: Success!");
 		else
 			SteamVRStatusLabel->SetText(
-				wchat_t(0x26A0) + std::wstring(L"SteamVR Status: ERROR ") + std::to_wstring(eError) + std::wstring(L" ") +
-				wchat_t(0x26A0) + std::wstring(L"\nPlease restart K2VR with SteamVR successfully running!"));
+				wchar_t(0x26A0) + std::wstring(L"SteamVR Status: ERROR ") + std::to_wstring(eError) + std::wstring(L" ") +
+				wchar_t(0x26A0) + std::wstring(L"\nPlease restart K2VR with SteamVR running!"));
 	}
 
 	void updateWithNewWindowSize(sf::Vector2f size)
