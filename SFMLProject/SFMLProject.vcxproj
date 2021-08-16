@@ -136,7 +136,9 @@ xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serializat
 xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 
-xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"</Command>
+xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+
+xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(Configuration)\sounds\"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -203,7 +205,9 @@ xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\
 xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
 
 xcopy /y /d "$(SolutionDir)external\bindings\action_manifest\action_manifest.json" "$(SolutionDir)$(Platform)\$(Configuration)\"
-xcopy /y /d "$(SolutionDir)external\bindings\legacy_bindings\*.json" "$(SolutionDir)$(Platform)\$(Configuration)\input_profiles\"</Command>
+xcopy /y /d "$(SolutionDir)external\bindings\legacy_bindings\*.json" "$(SolutionDir)$(Platform)\$(Configuration)\input_profiles\"
+
+xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(Configuration)\sounds\"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
