@@ -1104,7 +1104,7 @@ public:
 			{
 				if (kinect.isPSMS)
 				{
-					KinectStatusLabel->SetText("\uf00c PSMoveService Mode!");
+					KinectStatusLabel->SetText(L"\uf00c PSMoveService Mode!");
 				}
 				else
 				{
@@ -1112,12 +1112,15 @@ public:
 					{
 					case S_OK:
 					{
-						KinectStatusLabel->SetText("\uf00c Kinect Status: Success!");
+						KinectStatusLabel->SetText(L"\uf00c Kinect Status: Success!");
 						break;
 					}
 					default:
-						KinectStatusLabel->SetText("\uf071 Kinect Status: ERROR " + kinect.statusResultString(status));
+					{
+						std::wstring wideresult(kinect.statusResultString(status).begin(), kinect.statusResultString(status).end());
+						KinectStatusLabel->SetText(L"\uf071 Kinect Status: ERROR " + wideresult);
 						break;
+					}
 					}
 				}
 			}
@@ -1133,11 +1136,11 @@ public:
 	void updateVRStatusLabel(vr::EVRInitError eError)
 	{
 		if (eError == vr::VRInitError_None)
-			SteamVRStatusLabel->SetText("\uf00c SteamVR Status: Success!");
+			SteamVRStatusLabel->SetText(L"\uf00c SteamVR Status: Success!");
 		else
 			SteamVRStatusLabel->SetText(
-				"\uf071 SteamVR Status: ERROR " + std::to_string(eError) +
-				"\nPlease restart K2VR with SteamVR successfully running!");
+				L"\uf071 SteamVR Status: ERROR " + std::to_wstring(eError) +
+				L"\nPlease restart K2VR with SteamVR successfully running!");
 	}
 
 	void updateWithNewWindowSize(sf::Vector2f size)
