@@ -1,4 +1,4 @@
-#include <boost/asio.hpp>
+﻿#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -345,8 +345,10 @@ void updateServerStatus(GUIHandler& guiRef)
 			}
 
 			guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent
-				                                   ? sfg::Widget::State::NORMAL
-				                                   : sfg::Widget::State::INSENSITIVE);
+				? sfg::Widget::State::NORMAL
+				: sfg::Widget::State::INSENSITIVE);
+			if (!KinectSettings::isDriverPresent)
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
 			guiRef.ping_InitTrackers();
 		}
 	}).detach();
@@ -388,6 +390,9 @@ void processLoop(KinectHandlerBase& kinect)
 			MB_OK);
 	}
 	else LOG(INFO) << "EVR Input Actions set up OK";
+
+	// Load sounds
+	KinectSettings::k2ex_LoadSounds();
 	
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
@@ -633,6 +638,9 @@ void processLoop(KinectHandlerBase& kinect)
 	GUIHandler guiRef;
 	// ----------------------------------------------------
 
+	// We've run through all this; greet the user
+	KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_startup);
+
 	// Update kinect status
 	guiRef.updateKinectStatusLabel(kinect);
 	// Reconnect Kinect Event Signal
@@ -808,6 +816,7 @@ void processLoop(KinectHandlerBase& kinect)
 					KinectSettings::isServerFailure = true;
 					guiRef.DriverStatusLabel->SetText(
 						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
+					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
 				}
 			}
 		}
@@ -856,9 +865,11 @@ void processLoop(KinectHandlerBase& kinect)
 			/************************************************/
 		}
 
-		if (KinectSettings::isServerFailure)
+		if (KinectSettings::isServerFailure) {
 			guiRef.DriverStatusLabel->SetText(
 				"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
+			KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
+		}
 
 		//Clear the debug text display
 		SFMLsettings::debugDisplayTextStream.str(std::string());
@@ -959,6 +970,7 @@ void processLoop(KinectHandlerBase& kinect)
 			if (!evr_input.trackerFreezeActionData().bState && bak_freeze_state)
 			{
 				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle);
 				guiRef.pauseTrackingButton->SetLabel(
 					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
 			}
@@ -970,6 +982,7 @@ void processLoop(KinectHandlerBase& kinect)
 				VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
 				KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
 				VirtualHips::saveSettings();
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle);
 				guiRef.toggleFlipButton->SetLabel(
 					VirtualHips::settings.FlipEnabled ?
 					"Enable/Disable 'Flip' [CURRENT: ENABLED]" :

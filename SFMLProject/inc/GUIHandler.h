@@ -49,6 +49,7 @@ public:
 	sfg::Label::Ptr DriverStatusLabel = sfg::Label::Create("Driver Status: UNKNOWN (Code: -1)");
 	sfg::Button::Ptr pauseTrackingButton = sfg::Button::Create("Freeze Body Tracking in SteamVR");
 	sfg::Button::Ptr toggleFlipButton = sfg::Button::Create("Enable/Disable 'Flip' [CURRENT: ENABLED]");
+	sfg::Button::Ptr toggleSoundsButton = sfg::Button::Create("Enable/Disable Sounds [CURRENT: ENABLED]");
 
 	GUIHandler()
 	{
@@ -75,7 +76,7 @@ public:
 		mainNotebook->AppendPage(calibrationBox, sfg::Label::Create(" Offsets "));
 		mainNotebook->AppendPage(advancedTrackerBox, sfg::Label::Create(" Options "));
 		mainNotebook->AppendPage(trackersBox, sfg::Label::Create(" Trackers "));
-
+		
 		guiWindow->Add(mainNotebook);
 		guiDesktop.Add(guiWindow);
 
@@ -536,6 +537,7 @@ public:
 			auto st = new std::thread([this]
 				{
 					std::this_thread::sleep_for(std::chrono::seconds(3));
+					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
 					TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
 					spawnDefaultLowerBodyTrackers();
 
@@ -548,9 +550,7 @@ public:
 					TrackersConfigSaveButton->Show(true);
 					TrackersCalibButton->Show(true);
 					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
-
-					space_label->Show(true);
-					AutoStartTrackers->Show(true);
+					
 					KinectSettings::initialised = true;
 				});
 		}
@@ -576,6 +576,7 @@ public:
 					// Spawn
 				}
 				*/
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
 				TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
 				spawnDefaultLowerBodyTrackers();
 
@@ -588,14 +589,13 @@ public:
 				TrackersConfigSaveButton->Show(true);
 				TrackersCalibButton->Show(true);
 				expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
-
-				space_label->Show(true);
-				AutoStartTrackers->Show(true);
+				
 				KinectSettings::initialised = true;
 			}
 			else
 			{
 				KinectSettings::initialised = false;
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_destroyed);
 				TrackerInitButton->SetLabel("Spawn Trackers");
 			}
 		});
@@ -911,14 +911,10 @@ public:
 		foptbox->AppendItem("No filter - realtime results, no smoothing");
 
 		advancedTrackerBox->Pack(box11);
-		advancedTrackerBox->Pack(space_label);
 
-		sfg::Box::Ptr astartbox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
-		astartbox->Pack(AutoStartTrackers);
-
-		space_label->Show(false);
-		AutoStartTrackers->Show(false);
-		advancedTrackerBox->Pack(astartbox);
+		// Pack sound toggle
+		advancedTrackerBox->Pack(sfg::Label::Create(" "));
+		advancedTrackerBox->Pack(toggleSoundsButton);
 	}
 
 	void packElementsIntoTrackersBox()
@@ -971,8 +967,11 @@ public:
 		// Pack ver box into tab
 		trackersBox->Pack(hor_box);
 
-		// Pack tracking pausing
+		// Pack autostart
 		trackersBox->Pack(sfg::Label::Create(" "));
+		trackersBox->Pack(AutoStartTrackers);
+		
+		// Pack tracking pausing
 		trackersBox->Pack(pauseTrackingButton);
 		
 		// Pack flip toggle
@@ -1083,13 +1082,18 @@ public:
 						break;
 					}
 					default:
+					{
 						KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
+						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_kinect_error);
 						break;
+					}
 					}
 				}
 			}
-			else
+			else {
 				updateKinectStatusLabelDisconnected();
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_kinect_error);
+			}
 
 			LOG(INFO) << "Kinect Status updated to: " << KinectStatusLabel->GetText().toAnsiString();
 			KinectSettings::reconnecting = false;
@@ -1214,6 +1218,7 @@ public:
 		pauseTrackingButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
 			{
 				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle);
 				pauseTrackingButton->SetLabel(
 					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
 			});
@@ -1223,10 +1228,23 @@ public:
 				VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
 				KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
 				VirtualHips::saveSettings();
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle);
 				toggleFlipButton->SetLabel(
 					VirtualHips::settings.FlipEnabled ?
 					"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
 					"Enable/Disable 'Flip' [CURRENT: DISABLED]");
+			});
+
+		toggleSoundsButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
+			{
+				VirtualHips::settings.SoundsEnabled = !VirtualHips::settings.SoundsEnabled;
+				KinectSettings::k2ex_SoundsEnabled = VirtualHips::settings.SoundsEnabled;
+			
+				VirtualHips::saveSettings();
+				toggleSoundsButton->SetLabel(
+					VirtualHips::settings.SoundsEnabled ?
+					"Enable/Disable Sounds [CURRENT: ENABLED]" :
+					"Enable/Disable Sounds [CURRENT: DISABLED]");
 			});
 
 		for (int i = 0; i < 3; i++) {
@@ -1287,6 +1305,11 @@ public:
 			"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
 			"Enable/Disable 'Flip' [CURRENT: DISABLED]");
 
+		toggleSoundsButton->SetLabel(
+			VirtualHips::settings.SoundsEnabled ?
+			"Enable/Disable Sounds [CURRENT: ENABLED]" :
+			"Enable/Disable Sounds [CURRENT: DISABLED]");
+
 		VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
 				settings.HeightFromHMD = VirtualHipHeightFromHMDButton->GetValue();
@@ -1339,6 +1362,7 @@ public:
 			{
 				KinectSettings::isCalibrating = true;
 				KinectSettings::calibration_confirm = false;
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_start);
 				
 				if (!KinectSettings::expcalib)
 				{
@@ -1385,6 +1409,8 @@ public:
 								std::this_thread::sleep_for(std::chrono::milliseconds(5));
 								if (!KinectSettings::isCalibrating) break;
 							}
+							if (!KinectSettings::calibration_confirm && KinectSettings::isCalibrating)
+								KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
 
 							if (firstTime)
 								KinectSettings::calibration_origin = Eigen::Vector3f(
@@ -1430,6 +1456,8 @@ public:
 
 								if (!KinectSettings::isCalibrating) break;
 							}
+							if (!KinectSettings::calibration_confirm && KinectSettings::isCalibrating)
+								KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
 
 							if (!KinectSettings::isCalibrating)
 							{
@@ -1460,12 +1488,18 @@ public:
 
 						KinectSettings::matrixes_calibrated = true;
 						settings.AreMatricesCalibrated = true;
+						
+						if (KinectSettings::isCalibrating)
+							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
+						else
+							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
 
 						TrackersCalibButton->SetLabel(
 							std::string(!KinectSettings::isCalibrating
 								            ? "Calibration aborted! Hit me to re-calibrate!"
-								            : "Done! Hit me 2 times to re-calibrate!").c_str());
+								            : "Done! Hit me to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+						KinectSettings::isCalibrating = false;
 
 						saveSettings();
 					});
@@ -1501,6 +1535,7 @@ public:
 										": Move somewhere else! "
 										"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
 									c_str());
+								KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
 								std::this_thread::sleep_for(std::chrono::seconds(1));
 								if (!KinectSettings::isCalibrating) break;
 							}
@@ -1516,6 +1551,7 @@ public:
 										": Please stand still!"
 										"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
 									c_str());
+								KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_stand);
 								std::this_thread::sleep_for(std::chrono::seconds(1));
 								if (!KinectSettings::isCalibrating) break;
 							}
@@ -1548,6 +1584,7 @@ public:
 								std::string(
 									"Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "!")
 								.c_str());
+							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_point_captured);
 							std::this_thread::sleep_for(std::chrono::seconds(1));
 
 							spose.push_back(ispose);
@@ -1817,20 +1854,24 @@ public:
 						KinectSettings::matrixes_calibrated = true;
 						settings.AreMatricesCalibrated = true;
 
+						if(KinectSettings::isCalibrating)
+							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
+						else
+							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
+
 						TrackersCalibButton->SetLabel(
 							std::string(!KinectSettings::isCalibrating
 								            ? "Calibration aborted! Hit me to re-calibrate!"
-								            : "Done! Hit me 2 times to re-calibrate!").c_str());
+								            : "Done! Hit me to re-calibrate!").c_str());
 						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+						KinectSettings::isCalibrating = false;
 
 						saveSettings();
 					});
 				}
 			}
 			else
-			{
 				KinectSettings::isCalibrating = false;
-			}
 
 			saveSettings();
 		});

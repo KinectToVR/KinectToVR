@@ -41,6 +41,7 @@ struct VirtualHipSettings
 	float CalibrationPointsNumber = 3;
 	double HeightFromHMD = 0.00;
 	bool FlipEnabled = true;
+	bool SoundsEnabled = true;
 	// Meters. Hips are by default projected downwards from the HMD, by 72cm (adjustable by user)
 	bool positionAccountsForFootTrackers = false;
 	// If false, Hip tracker always stays bolted to directly under the HMD with no horizontal shift
@@ -65,6 +66,7 @@ struct VirtualHipSettings
 		archive(
 			CEREAL_NVP(positionFollowsHMDLean),
 			CEREAL_NVP(FlipEnabled),
+			CEREAL_NVP(SoundsEnabled),
 			CEREAL_NVP(HMDOrientationOffset),
 			CEREAL_NVP(CalibrationPointsNumber),
 			CEREAL_NVP(SelectedFootTrackingOption),
@@ -167,6 +169,8 @@ namespace VirtualHips
 
 				KinectSettings::hroffset = settings.HMDOrientationOffset;
 				KinectSettings::cpoints = settings.CalibrationPointsNumber;
+				
+				KinectSettings::k2ex_SoundsEnabled = settings.SoundsEnabled;
 
 				KinectSettings::calibration_rotation = settings.rcR_matT;
 				KinectSettings::calibration_translation = settings.rcT_matT;

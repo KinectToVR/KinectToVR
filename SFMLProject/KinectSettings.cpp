@@ -754,7 +754,7 @@ namespace KinectSettings
 				/*****************************************************************************************/
 				// Modify the orientation, add the calibration yaw value (Look At Kinect, even if artificial)
 				/*****************************************************************************************/
-
+				
 				/*****************************************************************************************/
 				// Modify the orientation, add the calibration pitch value (Kinect perspective, even if artificial)
 				/*****************************************************************************************/

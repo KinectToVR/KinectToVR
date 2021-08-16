@@ -14,6 +14,10 @@
 #include <PSMoveClient_CAPI.h>
 #include <EigenGLHelpers.h>
 
+#include <Windows.h>
+#include <mmsystem.h>
+#include <filesystem>
+
 // Hook into KTVR and use its K2STracker object
 // (for easier tracker management)
 // This also gives us some built-in filters
@@ -267,6 +271,66 @@ namespace KinectSettings
 		calibration_fineTune = false;
 	inline float calibration_leftJoystick[2] = { 0.f,0.f },
 		calibration_rightJoystick[2] = { 0.f,0.f };
+
+	// https://stackoverflow.com/questions/8498300/allow-for-range-based-for-with-enum-classes
+	enum class IK2EXSoundType
+	{
+		k2ex_sound_invalid, // always first, not mapped
+		k2ex_sound_startup,
+		k2ex_sound_trackers_spawned,
+		k2ex_sound_trackers_destroyed,
+		k2ex_sound_calibration_start,
+		k2ex_sound_calibration_complete,
+		k2ex_sound_calibration_aborted,
+		k2ex_sound_calibration_tick_move,
+		k2ex_sound_calibration_tick_stand,
+		k2ex_sound_calibration_point_captured,
+		k2ex_sound_tracking_freeze_toggle,
+		k2ex_sound_flip_toggle,
+		k2ex_sound_server_error,
+		k2ex_sound_kinect_error,
+		k2ex_sound_count // always last, not mapped
+	};
+
+	inline bool k2ex_SoundsEnabled = true;
+	inline const boost::unordered_map<IK2EXSoundType, const char*>
+		IK2EXSoundType_String = boost::assign::map_list_of
+		(IK2EXSoundType::k2ex_sound_startup, "k2ex_startup")
+		(IK2EXSoundType::k2ex_sound_trackers_spawned, "k2ex_trackers_spawned")
+		(IK2EXSoundType::k2ex_sound_trackers_destroyed, "k2ex_trackers_destroyed")
+		(IK2EXSoundType::k2ex_sound_calibration_start, "k2ex_calibration_start")
+		(IK2EXSoundType::k2ex_sound_calibration_complete, "k2ex_calibration_complete")
+		(IK2EXSoundType::k2ex_sound_calibration_aborted, "k2ex_calibration_aborted")
+		(IK2EXSoundType::k2ex_sound_calibration_tick_move, "k2ex_calibration_tick_move")
+		(IK2EXSoundType::k2ex_sound_calibration_tick_stand, "k2ex_calibration_tick_stand")
+		(IK2EXSoundType::k2ex_sound_calibration_point_captured, "k2ex_calibration_point_captured")
+		(IK2EXSoundType::k2ex_sound_tracking_freeze_toggle, "k2ex_tracking_freeze_toggle")
+		(IK2EXSoundType::k2ex_sound_flip_toggle, "k2ex_flip_toggle")
+		(IK2EXSoundType::k2ex_sound_server_error, "k2ex_server_error")
+		(IK2EXSoundType::k2ex_sound_kinect_error, "k2ex_kinect_error");
+
+	// Sounds
+	inline void k2ex_LoadSounds()
+	{
+		if (k2ex_SoundsEnabled)
+			for (int i = (int)IK2EXSoundType::k2ex_sound_invalid + 1; i < (int)IK2EXSoundType::k2ex_sound_count; i++) {
+				if (!std::filesystem::exists((std::string("sounds\\") + IK2EXSoundType_String.at(static_cast<IK2EXSoundType>(i)) + ".wav").c_str()))
+					LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(static_cast<IK2EXSoundType>(i)) + ".wav" + "] was not found inside sounds/ folder.";
+			}
+	}
+
+	// Play sound
+	inline void k2ex_PlaySound(IK2EXSoundType sound)
+	{
+		if (k2ex_SoundsEnabled) {
+			if (std::filesystem::exists((std::string("sounds\\") + IK2EXSoundType_String.at(sound) + ".wav").c_str())) {
+				if (!PlaySoundA((std::string("sounds\\") + IK2EXSoundType_String.at(sound) + ".wav").c_str(), NULL, SND_FILENAME | SND_ASYNC))
+					LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(sound) + ".wav" + "] could not be played.";
+			}
+			else
+				LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(sound) + ".wav" + "] was not found inside sounds/ folder.";
+		}
+	}
 }
 
 namespace SFMLsettings
