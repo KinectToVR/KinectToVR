@@ -1,4 +1,4 @@
-﻿#include <boost/asio.hpp>
+#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -32,7 +32,10 @@
 // KinectToVR API include, from K2APP
 #include <KinectToVR_API.h>
 
+// WinSock and WinMedia
+
 #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "winmm.lib")
 
 using namespace KVR;
 
