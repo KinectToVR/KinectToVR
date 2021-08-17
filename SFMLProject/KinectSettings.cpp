@@ -866,9 +866,9 @@ namespace KinectSettings
 					trackerVector.at(2).updateOrientationFilters();
 
 					// Slow down the rotation a bit
-					trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation.normalized();
-					trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation.normalized();
-					trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation.normalized();
+					trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation;
+					trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation;
+					trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation;
 
 					/*****************************************************************************************/
 					// Filters & update
@@ -885,11 +885,11 @@ namespace KinectSettings
 					trackerVector.at(0).pose.orientation = ktvr::quaternion_normal(trackerVector.at(0).pose.orientation);
 					trackerVector.at(0).pose.position = ktvr::vector3_normal(trackerVector.at(0).pose.position);
 					
-					trackerVector.at(1).pose.orientation = ktvr::quaternion_normal(trackerVector.at(0).pose.orientation);
-					trackerVector.at(1).pose.position = ktvr::vector3_normal(trackerVector.at(0).pose.position);
+					trackerVector.at(1).pose.orientation = ktvr::quaternion_normal(trackerVector.at(1).pose.orientation);
+					trackerVector.at(1).pose.position = ktvr::vector3_normal(trackerVector.at(1).pose.position);
 					
-					trackerVector.at(2).pose.orientation = ktvr::quaternion_normal(trackerVector.at(0).pose.orientation);
-					trackerVector.at(2).pose.position = ktvr::vector3_normal(trackerVector.at(0).pose.position);
+					trackerVector.at(2).pose.orientation = ktvr::quaternion_normal(trackerVector.at(2).pose.orientation);
+					trackerVector.at(2).pose.position = ktvr::vector3_normal(trackerVector.at(2).pose.position);
 						
 					// Update pose w/ filtering
 					// WAIST TRACKER (NF_0)
