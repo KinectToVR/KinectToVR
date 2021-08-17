@@ -24,6 +24,7 @@
 #include <../KTVR/KinectToVR/K2STracker.h>
 
 // Casting Eigen<->GLM<->OpenVR
+#include <codecvt>
 #include <TypeCast.h>
 
 enum KinectVersion
@@ -131,6 +132,18 @@ static struct bodyTrackingOpt
 {
 	bodyTrackingOption trackingOption;
 } bodyTrackingOption_s;
+
+inline std::wstring s2ws(const std::string& utf8Str)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+	return conv.from_bytes(utf8Str);
+}
+
+inline std::string ws2s(const std::wstring& utf16Str)
+{
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+	return conv.to_bytes(utf16Str);
+}
 
 namespace KinectSettings
 {
