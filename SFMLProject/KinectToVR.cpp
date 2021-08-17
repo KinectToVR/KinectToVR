@@ -1,4 +1,4 @@
-﻿#include <boost/asio.hpp>
+#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -165,7 +165,7 @@ void updateFilePath()
 	std::wstring filePathString(directoryFilePath);
 	SFMLsettings::fileDirectoryPath = filePathString;
 
-	LOG(INFO) << "File Directory Path Set to " << filePathString;
+	LOG(INFO) << "File Directory Path Set to " << ws2s(filePathString);
 }
 
 vr::HmdQuaternion_t kinectQuaternionFromRads()
@@ -228,7 +228,7 @@ bool testConnection(const bool log)
 				"], response code: " << test_response.result;
 
 			// Log some data if needed
-			LOG_IF(log, INFO) <<
+			LOG_IF(INFO, log) <<
 				"\nTested ping time: " << full_time << " [micros], " <<
 
 				"call time: " <<
