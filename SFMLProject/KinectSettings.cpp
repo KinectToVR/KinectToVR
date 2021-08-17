@@ -798,9 +798,9 @@ namespace KinectSettings
 				// Push RAW poses to trackers
 				/*****************************************************************************************/
 
-				trackerVector.at(0).pose.position = waist_raw_pose.normalized();
-				trackerVector.at(1).pose.position = left_foot_raw_pose.normalized();
-				trackerVector.at(2).pose.position = right_foot_raw_pose.normalized();
+				trackerVector.at(0).pose.position = waist_raw_pose;
+				trackerVector.at(1).pose.position = left_foot_raw_pose;
+				trackerVector.at(2).pose.position = right_foot_raw_pose;
 
 				/*****************************************************************************************/
 				// Push offset poses to trackers
