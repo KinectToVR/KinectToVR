@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -516,19 +516,7 @@ public:
 			refreshpsms();
 		});
 	}
-
-	static std::wstring s2ws(const std::string& s)
-	{
-		int len;
-		int slength = static_cast<int>(s.length()) + 1;
-		len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, nullptr, 0);
-		auto buf = new wchar_t[len];
-		MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, buf, len);
-		std::wstring r(buf);
-		delete[] buf;
-		return r;
-	}
-
+	
 	void ping_InitTrackers()
 	{
 		if (!KinectSettings::initialised && // If not done yet
