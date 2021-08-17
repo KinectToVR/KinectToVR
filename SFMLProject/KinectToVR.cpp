@@ -1,4 +1,4 @@
-#include <boost/asio.hpp>
+﻿#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -719,14 +719,15 @@ void processLoop(KinectHandlerBase& kinect)
 			std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
 			// Check how many times we have tried
-			if(tries > 3) // assume 3+1, starting from 0
+			if(tries > 5) // assume 5+1, starting from 0
 			{
-				LOG(INFO) << "LHR-CB9AD1T" + std::to_string(i) + " couldn't be downloaded after >3 tries. Giving up...";
+				LOG(INFO) << "LHR-CB9AD1T" + std::to_string(i) + " couldn't be downloaded after >5 tries. Giving up...";
 
 				// Cause not checking anymore
 				KinectSettings::isServerFailure = true;
 				KinectSettings::spawned = false;
 			}
+			std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Please, wait!
 			tries++; // Maybe one more?
 		}
 		LOG(INFO) << "Downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", got a valid message.";
