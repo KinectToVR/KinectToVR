@@ -111,7 +111,7 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\gflags\vcbuild\include;$(SolutionDir)external\glog\src;$(SolutionDir)external\glog\vcbuild;$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ShowIncludes>false</ShowIncludes>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
@@ -175,7 +175,7 @@ xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(C
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\gflags\vcbuild\include;$(SolutionDir)external\glog\src;$(SolutionDir)external\glog\vcbuild;$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
@@ -251,6 +251,7 @@ xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(C
     <ClCompile Include="KinectJoint.cpp" />
     <ClCompile Include="KinectSettings.cpp" />
     <ClCompile Include="KinectToVR.cpp" />
+    <ClCompile Include="logging.cpp" />
     <ClCompile Include="MathEigen.cpp" />
     <ClCompile Include="Math_Utility.cpp" />
     <ClCompile Include="stdafx.cpp">
