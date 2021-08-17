@@ -93,11 +93,12 @@ namespace KinectSettings
 		return x;
 	}
 
-	glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose
+	glm::vec3 head_position, left_hand_pose, mHandPose, hElPose
 		, mElPose,
 		lastPose[3][2];
 	Eigen::Quaternionf left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
 	Eigen::Quaternionf trackerSoftRot[2];
+	Eigen::Vector3f left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose;
 	vr::HmdQuaternion_t hmdRot;
 
 	const int kinectV2Height = 1920;
@@ -199,13 +200,17 @@ namespace KinectSettings
 				// If we're using PSMS, let's just replace everything right away
 				if (positional_tracking_option == k_PSMoveFullTracking)
 				{
-					left_foot_raw_pose = .01f * glm::vec3(left_foot_psmove.Pose.Position.x,
+					left_foot_raw_pose = .01f * Eigen::Vector3f(
+						left_foot_psmove.Pose.Position.x,
 						left_foot_psmove.Pose.Position.y,
 						left_foot_psmove.Pose.Position.z);
-					right_foot_raw_pose = .01f * glm::vec3(right_foot_psmove.Pose.Position.x,
+					right_foot_raw_pose = .01f * Eigen::Vector3f(
+						right_foot_psmove.Pose.Position.x,
 						right_foot_psmove.Pose.Position.y,
 						right_foot_psmove.Pose.Position.z);
-					waist_raw_pose = .01f * glm::vec3(waist_psmove.Pose.Position.x, waist_psmove.Pose.Position.y,
+					waist_raw_pose = .01f * Eigen::Vector3f(
+						waist_psmove.Pose.Position.x, 
+						waist_psmove.Pose.Position.y,
 						waist_psmove.Pose.Position.z);
 
 					left_foot_raw_ori = Eigen::Quaternionf(left_foot_psmove.Pose.Orientation.w,
@@ -221,9 +226,9 @@ namespace KinectSettings
 				}
 
 				// Update poses for interfacing
-				kinect_m_positions[2].v[0] = waist_raw_pose.x;
-				kinect_m_positions[2].v[1] = waist_raw_pose.y;
-				kinect_m_positions[2].v[2] = waist_raw_pose.z;
+				kinect_m_positions[2].v[0] = waist_raw_pose.x();
+				kinect_m_positions[2].v[1] = waist_raw_pose.y();
+				kinect_m_positions[2].v[2] = waist_raw_pose.z();
 				kinect_m_positions[1].v[0] = left_hand_pose.x;
 				kinect_m_positions[1].v[1] = left_hand_pose.y;
 				kinect_m_positions[1].v[2] = left_hand_pose.z;
@@ -793,28 +798,28 @@ namespace KinectSettings
 				// Push RAW poses to trackers
 				/*****************************************************************************************/
 
-				trackerVector.at(0).pose.position = waist_raw_pose;
-				trackerVector.at(1).pose.position = left_foot_raw_pose;
-				trackerVector.at(2).pose.position = right_foot_raw_pose;
+				trackerVector.at(0).pose.position = waist_raw_pose.normalized();
+				trackerVector.at(1).pose.position = left_foot_raw_pose.normalized();
+				trackerVector.at(2).pose.position = right_foot_raw_pose.normalized();
 
 				/*****************************************************************************************/
 				// Push offset poses to trackers
 				/*****************************************************************************************/
 
 				// Waist
-				trackerVector.at(0).positionOffset.x = manual_offsets[0][2].v[0];
-				trackerVector.at(0).positionOffset.y = manual_offsets[0][2].v[1];
-				trackerVector.at(0).positionOffset.z = manual_offsets[0][2].v[2];
+				trackerVector.at(0).positionOffset.x() = manual_offsets[0][2].v[0];
+				trackerVector.at(0).positionOffset.y() = manual_offsets[0][2].v[1];
+				trackerVector.at(0).positionOffset.z() = manual_offsets[0][2].v[2];
 
 				// Left
-				trackerVector.at(1).positionOffset.x = manual_offsets[0][1].v[0];
-				trackerVector.at(1).positionOffset.y = manual_offsets[0][1].v[1];
-				trackerVector.at(1).positionOffset.z = manual_offsets[0][1].v[2];
+				trackerVector.at(1).positionOffset.x() = manual_offsets[0][1].v[0];
+				trackerVector.at(1).positionOffset.y() = manual_offsets[0][1].v[1];
+				trackerVector.at(1).positionOffset.z() = manual_offsets[0][1].v[2];
 
 				// Right
-				trackerVector.at(2).positionOffset.x = manual_offsets[0][0].v[0];
-				trackerVector.at(2).positionOffset.y = manual_offsets[0][0].v[1];
-				trackerVector.at(2).positionOffset.z = manual_offsets[0][0].v[2];
+				trackerVector.at(2).positionOffset.x() = manual_offsets[0][0].v[0];
+				trackerVector.at(2).positionOffset.y() = manual_offsets[0][0].v[1];
+				trackerVector.at(2).positionOffset.z() = manual_offsets[0][0].v[2];
 
 				/*****************************************************************************************/
 				// Push RAW poses to trackers
@@ -851,9 +856,9 @@ namespace KinectSettings
 				if (!trackingPaused) {
 
 					// Bring them back to default owners
-					trackerVector.at(0).pose.orientation = p_cast_type<glm::quat>(waist_tracker_rot);
-					trackerVector.at(flip ? 2 : 1).pose.orientation = p_cast_type<glm::quat>(left_tracker_rot);
-					trackerVector.at(flip ? 1 : 2).pose.orientation = p_cast_type<glm::quat>(right_tracker_rot);
+					trackerVector.at(0).pose.orientation = waist_tracker_rot;
+					trackerVector.at(flip ? 2 : 1).pose.orientation = left_tracker_rot;
+					trackerVector.at(flip ? 1 : 2).pose.orientation = right_tracker_rot;
 
 					// Update orientation filters
 					trackerVector.at(0).updateOrientationFilters();
@@ -861,9 +866,9 @@ namespace KinectSettings
 					trackerVector.at(2).updateOrientationFilters();
 
 					// Slow down the rotation a bit
-					trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation;
-					trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation;
-					trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation;
+					trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation.normalized();
+					trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation.normalized();
+					trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation.normalized();
 
 					/*****************************************************************************************/
 					// Filters & update
@@ -872,7 +877,20 @@ namespace KinectSettings
 					trackerVector.at(0).updatePositionFilters();
 					trackerVector.at(1).updatePositionFilters();
 					trackerVector.at(2).updatePositionFilters();
+					
+					/*****************************************************************************************/
+					// Normalize
+					/*****************************************************************************************/
 
+					trackerVector.at(0).pose.orientation = ktvr::quaternion_normal(trackerVector.at(0).pose.orientation);
+					trackerVector.at(0).pose.position = ktvr::vector3_normal(trackerVector.at(0).pose.position);
+					
+					trackerVector.at(1).pose.orientation = ktvr::quaternion_normal(trackerVector.at(0).pose.orientation);
+					trackerVector.at(1).pose.position = ktvr::vector3_normal(trackerVector.at(0).pose.position);
+					
+					trackerVector.at(2).pose.orientation = ktvr::quaternion_normal(trackerVector.at(0).pose.orientation);
+					trackerVector.at(2).pose.position = ktvr::vector3_normal(trackerVector.at(0).pose.position);
+						
 					// Update pose w/ filtering
 					// WAIST TRACKER (NF_0)
 					if (EnabledTrackersSave[0]) {
@@ -1008,7 +1026,7 @@ namespace KinectSettings
 	void serializeKinectSettings()
 	{
 		std::ifstream is(KVR::fileToDirPath(CFG_NAME));
-		LOG(INFO) << "Attempted CFG load: " << KVR::fileToDirPath(CFG_NAME) << '\n';
+		LOG(INFO) << "Attempted CFG load: " << ws2s(KVR::fileToDirPath(CFG_NAME)) << '\n';
 		//CHECK IF VALID
 		if (is.fail())
 		{
@@ -1141,7 +1159,7 @@ namespace KVR
 			nullptr);
 		return std::wstring(_wgetenv(L"APPDATA")) + L"\\KinectToVR\\" + relativeFilePath;
 	}
-
+	
 	std::wstring ToUTF16(const std::string& data)
 	{
 		return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(data);
@@ -1163,7 +1181,7 @@ namespace KVR
 	{
 		std::wstring trackingSystemConfig = ToUTF16(systemName) + L".tracking";
 		std::ifstream is(fileToDirPath(trackingSystemConfig));
-		LOG(INFO) << "Attempted tracking system load: " << fileToDirPath(trackingSystemConfig) << '\n';
+		LOG(INFO) << "Attempted tracking system load: " << ws2s(fileToDirPath(trackingSystemConfig)) << '\n';
 
 		TrackingSystemCalibration calibration;
 
