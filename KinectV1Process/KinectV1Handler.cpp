@@ -461,17 +461,17 @@ void KinectV1Handler::updateSkeletalData()
 			jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::ElbowRight)].z
 		);
-		KinectSettings::left_foot_raw_pose = glm::vec3(
+		KinectSettings::left_foot_raw_pose = Eigen::Vector3f(
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z
 		);
-		KinectSettings::right_foot_raw_pose = glm::vec3(
+		KinectSettings::right_foot_raw_pose = Eigen::Vector3f(
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z
 		);
-		KinectSettings::waist_raw_pose = glm::vec3(
+		KinectSettings::waist_raw_pose = Eigen::Vector3f(
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].x,
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].y,
 			jointPositions[convertJoint(KVR::KinectJointType::SpineBase)].z
@@ -741,8 +741,10 @@ void KinectV1Handler::updateSkeletalData()
 
 		// Additionally slerp for smoother orientation,
 		// @see https://eigen.tuxfamily.org/dox/classEigen_1_1QuaternionBase.html
-		KinectSettings::trackerSoftRot[0] = KinectSettings::trackerSoftRot[0].slerp(0.37, calculatedLeftFootOrientation);
-		KinectSettings::trackerSoftRot[1] = KinectSettings::trackerSoftRot[1].slerp(0.37, calculatedRightFootOrientation);
+		KinectSettings::trackerSoftRot[0] = 
+			ktvr::quaternion_normal(KinectSettings::trackerSoftRot[0]).slerp(0.37, ktvr::quaternion_normal(calculatedLeftFootOrientation));
+		KinectSettings::trackerSoftRot[1] = 
+			ktvr::quaternion_normal(KinectSettings::trackerSoftRot[1]).slerp(0.37, ktvr::quaternion_normal(calculatedRightFootOrientation));
 		
 		/***********************************************************************************************/
 		// Add the results / Push to global

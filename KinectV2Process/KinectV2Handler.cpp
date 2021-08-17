@@ -530,17 +530,17 @@ void KinectV2Handler::updateSkeletalFilters()
 		joints[JointType_ElbowRight].Position.Y,
 		joints[JointType_ElbowRight].Position.Z
 	);
-	KinectSettings::left_foot_raw_pose = glm::vec3(
+	KinectSettings::left_foot_raw_pose = Eigen::Vector3f(
 		joints[JointType_AnkleLeft].Position.X,
 		joints[JointType_AnkleLeft].Position.Y,
 		joints[JointType_AnkleLeft].Position.Z
 	);
-	KinectSettings::right_foot_raw_pose = glm::vec3(
+	KinectSettings::right_foot_raw_pose = Eigen::Vector3f(
 		joints[JointType_AnkleRight].Position.X,
 		joints[JointType_AnkleRight].Position.Y,
 		joints[JointType_AnkleRight].Position.Z
 	);
-	KinectSettings::waist_raw_pose = glm::vec3(
+	KinectSettings::waist_raw_pose = Eigen::Vector3f(
 		joints[JointType_SpineBase].Position.X,
 		joints[JointType_SpineBase].Position.Y,
 		joints[JointType_SpineBase].Position.Z
@@ -775,15 +775,17 @@ void KinectV2Handler::updateSkeletalFilters()
 	// Apply the fine-tuning to global variable
 	calculatedLeftFootOrientation = leftFootFineTuneQuaternion * calculatedLeftFootOrientation;
 	calculatedRightFootOrientation = rightFootFineTuneQuaternion * calculatedRightFootOrientation;
-
+	
 	/***********************************************************************************************/
 	// Add the results / Push to global
 	/***********************************************************************************************/
 
 	// Additionally slerp for smoother orientation,
 	// @see https://eigen.tuxfamily.org/dox/classEigen_1_1QuaternionBase.html
-	KinectSettings::trackerSoftRot[0] = KinectSettings::trackerSoftRot[0].slerp(0.37, calculatedLeftFootOrientation);
-	KinectSettings::trackerSoftRot[1] = KinectSettings::trackerSoftRot[1].slerp(0.37, calculatedRightFootOrientation);
+	KinectSettings::trackerSoftRot[0] = 
+		ktvr::quaternion_normal(KinectSettings::trackerSoftRot[0]).slerp(0.37, ktvr::quaternion_normal(calculatedLeftFootOrientation));
+	KinectSettings::trackerSoftRot[1] = 
+		ktvr::quaternion_normal(KinectSettings::trackerSoftRot[1]).slerp(0.37, ktvr::quaternion_normal(calculatedRightFootOrientation));
 
 	/***********************************************************************************************/
 	// Add the results / Push to global
