@@ -261,10 +261,12 @@ namespace KinectSettings
 	void updateKinectQuaternion();
 
 	extern std::string KVRversion;
-	extern glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose, mElPose,
+	extern glm::vec3 head_position, left_hand_pose, mHandPose, hElPose, mElPose,
 	                 lastPose[3][2];
 	extern Eigen::Quaternionf left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
 
+	extern Eigen::Vector3f left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose;
+	
 	void sendipc();
 
 	void serializeKinectSettings();
