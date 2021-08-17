@@ -13,6 +13,8 @@
 #include <cereal/cereal.hpp>
 #include <KinectSettings.h>
 
+#include <fstream>
+
 #include <cereal/cereal.hpp>
 #include <cereal/archives/binary.hpp>
 #include <boost/serialization/array.hpp>
@@ -150,7 +152,7 @@ namespace VirtualHips
 	void retrieveSettings()
 	{
 		std::ifstream is(KVR::fileToDirPath(settingsConfig));
-		LOG(INFO) << "Attempted to load settings at " << KVR::fileToDirPath(settingsConfig);
+		LOG(INFO) << "Attempted to load settings at " << ws2s(KVR::fileToDirPath(settingsConfig));
 
 		if (is.fail())
 		{
@@ -159,7 +161,7 @@ namespace VirtualHips
 		}
 		else
 		{
-			LOG(INFO) << settingsConfig << " load attempted!";
+			LOG(INFO) << ws2s(settingsConfig) << " load attempted!";
 			try
 			{
 				cereal::JSONInputArchive archive(is);
@@ -206,7 +208,7 @@ namespace VirtualHips
 			}
 			catch (cereal::Exception e)
 			{
-				LOG(ERROR) << settingsConfig << "SETTINGS FILE LOAD JSON ERROR: " << e.what();
+				LOG(ERROR) << ws2s(settingsConfig) << "SETTINGS FILE LOAD JSON ERROR: " << e.what();
 			}
 		}
 	}

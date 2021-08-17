@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -435,7 +435,7 @@ public:
 			Sleep(100); // Necessary because of SteamVR timing occasionally being too quick to change the scenes
 			vr::VR_Shutdown();
 			m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
-			LOG_IF(eError != vr::EVRInitError::VRInitError_None, ERROR) <<
+			LOG_IF(ERROR, eError != vr::EVRInitError::VRInitError_None) <<
  " (Workaround/Hack) VR System failed to reinitialise, attempting again...";
 		}
 		while (m_VRSystem == nullptr); // Potential Segfault if not actually initialised and used later on

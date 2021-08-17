@@ -92,7 +92,7 @@ void KinectV1Handler::initialise()
 		kinectImageData
 			= std::make_unique<GLubyte[]>(KinectSettings::kinectWidth * KinectSettings::kinectHeight * 4); // BGRA
 		initialised = initKinect();
-		LOG_IF(initialised, INFO) << "Kinect initialised successfully!";
+		LOG_IF(INFO, initialised) << "Kinect initialised successfully!";
 		if (!initialised) throw FailedKinectInitialisation;
 	}
 	catch (std::exception& e)
@@ -285,7 +285,9 @@ bool KinectV1Handler::initKinect()
 	//Initialise Sensor
 	HRESULT hr = kinectSensor->NuiInitialize(NUI_INITIALIZE_FLAG_USES_DEPTH_AND_PLAYER_INDEX
 		| NUI_INITIALIZE_FLAG_USES_SKELETON);
-	LOG_IF(FAILED(hr), ERROR) << "Kinect sensor failed to initialise!";
+
+	if (FAILED(hr))
+		LOG(ERROR) << "Kinect sensor failed to initialise!";
 	else
 		LOG(INFO) << "Kinect sensor opened successfully.";
 	/*

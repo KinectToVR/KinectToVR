@@ -4,11 +4,9 @@
 #include <assert.h>
 
 #include <SFML/System/Vector3.hpp>
-#include <KinectSettings.h>
 #include "Kinect.h"
 #include <openvr_types.h>
 #include "VectorMath.h"
-
 #include "SmoothingParameters.h"
 
 // Joint Filter 
