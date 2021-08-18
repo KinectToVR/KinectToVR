@@ -274,6 +274,8 @@ namespace KinectSettings
 
 	// When a reconnect is pending
 	inline bool reconnecting = false;
+	inline bool trackersAdded = false;
+	inline bool soundPlaying = false;
 	// If the tracing is paused
 	inline bool trackingPaused = false;
 	// If the flip is enabled
@@ -337,13 +339,15 @@ namespace KinectSettings
 	// Play sound
 	inline void k2ex_PlaySound(IK2EXSoundType sound)
 	{
-		if (k2ex_SoundsEnabled) {
+		if (k2ex_SoundsEnabled && !soundPlaying) {
+			soundPlaying = true;
 			if (std::filesystem::exists((std::string("sounds\\") + IK2EXSoundType_String.at(sound) + ".wav").c_str())) {
 				if (!PlaySoundA((std::string("sounds\\") + IK2EXSoundType_String.at(sound) + ".wav").c_str(), NULL, SND_FILENAME | SND_ASYNC))
 					LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(sound) + ".wav" + "] could not be played.";
 			}
 			else
 				LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(sound) + ".wav" + "] was not found inside sounds/ folder.";
+			soundPlaying = false;
 		}
 	}
 }
