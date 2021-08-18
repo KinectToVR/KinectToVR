@@ -11,6 +11,14 @@
     {
       "controller_type": "vive_controller",
       "binding_url": "input_profiles/kinecttovr.k2ex_vive_controller.json"
+    },
+    {
+      "controller_type": "hpmotioncontroller",
+      "binding_url": "input_profiles/kinecttovr.k2ex_hpmotioncontroller.json"
+    },
+    {
+      "controller_type": "holographic_controller",
+      "binding_url": "input_profiles/kinecttovr.k2ex_holographic_controller.json"
     }
   ],
   "actions": [
