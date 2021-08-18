@@ -57,17 +57,11 @@ void processKeyEvents(sf::Event event)
 {
 	switch (event.key.code)
 	{
-	case sf::Keyboard::A:
-		toggle(KinectSettings::isKinectDrawn);
+	case sf::Keyboard::A: // Example
 		break;
 	default:
 		break;
 	}
-}
-
-void toggle(bool& b)
-{
-	b = !b;
 }
 
 // Get the horizontal and vertical screen sizes in pixel
