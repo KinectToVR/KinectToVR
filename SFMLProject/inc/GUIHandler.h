@@ -1465,7 +1465,7 @@ public:
 
 						std::this_thread::sleep_for(std::chrono::seconds(1));
 
-						if (!KinectSettings::isCalibrating)
+						if (KinectSettings::isCalibrating)
 						{
 							settings.caliborigin = KinectSettings::calibration_origin;
 							settings.rcR_matT = KinectSettings::calibration_rotation;
