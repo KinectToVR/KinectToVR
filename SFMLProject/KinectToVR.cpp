@@ -694,132 +694,148 @@ void processLoop(KinectHandlerBase& kinect)
 	// Add trackers (Try to download via serial / add)
 	/************************************************/
 
-	LOG(INFO) << "Adding trackers now...";
+	LOG(INFO) << "Registering trackers now...";
 
-	// Generate the default trackers here
-	/* update 3 default trackers <KinectSettings.h> */
-	for (int i = 0; i < 3; i++)
-	{
-		// Check if the tracker is enabled
-		if (!KinectSettings::EnabledTrackersSave[i]) continue;
-		
-		// We don't let the user overwrite serial here
-		auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
+	// K2Driver is now auto-adding default lower body trackers.
+	// That means that ids are: W-0 L-1 R-2
+	// We may skip downloading them then ^_~
 
-		// Retry if we didn't get any message
-		int tries = 0; // Yeah...
-		while(tracker_downloaded.result == ktvr::K2ResponseMessageCode_Invalid)
-		{
-			LOG(ERROR) << "Invalid response type while downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", retrying...";
-			tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
-			std::this_thread::sleep_for(std::chrono::milliseconds(200));
+	// Setup default IDs
+	KinectSettings::trackerVector.at(0).id = 0; // W
+	KinectSettings::trackerVector.at(1).id = 1; // L
+	KinectSettings::trackerVector.at(2).id = 2; // R
+	
+	LOG(INFO) << "KinectToVR will be using K2Driver's default prepended trackers!";
+	KinectSettings::trackersAdded = true;
+	
+	// REMOVED AFTER c93de0c7c7b18779cfd03550c597b4880b1900aa
 
-			// Check how many times we have tried
-			if(tries > 5) // assume 5+1, starting from 0
-			{
-				LOG(INFO) << "LHR-CB9AD1T" + std::to_string(i) + " couldn't be downloaded after >5 tries. Giving up...";
+	//// Generate the default trackers here
+	///* update 3 default trackers <KinectSettings.h> */
+	//for (int i = 0; i < 3; i++)
+	//{
+	//	// Check if the tracker is enabled
+	//	if (!KinectSettings::EnabledTrackersSave[i]) continue;
+	//	
+	//	// We don't let the user overwrite serial here
+	//	auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
 
-				// Cause not checking anymore
-				KinectSettings::isServerFailure = true;
-				KinectSettings::spawned = false;
-			}
-			std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Please, wait!
-			tries++; // Maybe one more?
-		}
-		LOG(INFO) << "Downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", got a valid message.";
-		
-		// Check the role too
-		int _role = -1;
-		switch (i)
-		{
-		case 0: // Waist
-			_role = ktvr::Tracker_Waist;
-			break;
-		case 1: // LFoot
-			_role = ktvr::Tracker_LeftFoot;
-			break;
-		case 2: // RFoot
-			_role = ktvr::Tracker_RightFoot;
-			break;
-		}
+	//	// Retry if we didn't get any message
+	//	int tries = 0; // Yeah...
+	//	while(tracker_downloaded.result == ktvr::K2ResponseMessageCode_Invalid)
+	//	{
+	//		LOG(ERROR) << "Invalid response type while downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", retrying...";
+	//		tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
+	//		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-		// If tracker's been found
-		KinectSettings::trackersAdded = true;
-		if (tracker_downloaded.result == ktvr::K2ResponseMessageCode_OK &&
-			tracker_downloaded.messageType == ktvr::K2ResponseMessage_Tracker &&
-			tracker_downloaded.tracker_base.data.role == _role)
-		{
-			KinectSettings::trackerID[i] = tracker_downloaded.id;
-			KinectSettings::trackerSerial[i] = tracker_downloaded.tracker_base.data.serial;
+	//		// Check how many times we have tried
+	//		if(tries > 5) // assume 5+1, starting from 0
+	//		{
+	//			LOG(INFO) << "LHR-CB9AD1T" + std::to_string(i) + " couldn't be downloaded after >5 tries. Giving up...";
 
-			KinectSettings::trackerVector.at(i).id = tracker_downloaded.id;
-			KinectSettings::trackerVector.at(i).data = tracker_downloaded.tracker_base.data;
-			KinectSettings::trackerVector.at(i).pose = tracker_downloaded.tracker_base.pose;
+	//			// Cause not checking anymore
+	//			KinectSettings::isServerFailure = true;
+	//			KinectSettings::spawned = false;
+	//		}
+	//		std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Please, wait!
+	//		tries++; // Maybe one more?
+	//	}
+	//	LOG(INFO) << "Downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", got a valid message.";
+	//	
+	//	// Check the role too
+	//	int _role = -1;
+	//	switch (i)
+	//	{
+	//	case 0: // Waist
+	//		_role = ktvr::Tracker_Waist;
+	//		break;
+	//	case 1: // LFoot
+	//		_role = ktvr::Tracker_LeftFoot;
+	//		break;
+	//	case 2: // RFoot
+	//		_role = ktvr::Tracker_RightFoot;
+	//		break;
+	//	}
 
-			LOG(INFO) << "Tracker with serial " +
-				("LHR-CB9AD1T" + std::to_string(i)) +
-				" has been found with id " + std::to_string(tracker_downloaded.id) + " and will be used from now on.";
-		}
-		else
-		{
-			LOG(INFO) << "Tracker with serial " +
-				("LHR-CB9AD1T" + std::to_string(i)) +
-				" and suitable role has not been found and will be added separately.";
+	//	// If tracker's been found
+	//	KinectSettings::trackersAdded = true;
+	//	if (tracker_downloaded.result == ktvr::K2ResponseMessageCode_OK &&
+	//		tracker_downloaded.messageType == ktvr::K2ResponseMessage_Tracker &&
+	//		tracker_downloaded.tracker_base.data.role == _role)
+	//	{
+	//		KinectSettings::trackerID[i] = tracker_downloaded.id;
+	//		KinectSettings::trackerSerial[i] = tracker_downloaded.tracker_base.data.serial;
 
-			// Add the tracker and overwrite id
-			auto tracker_base = KinectSettings::trackerVector.at(i).getTrackerBase();
-			auto add_tracker_response =
-				add_tracker(tracker_base);
-			KinectSettings::trackerVector.at(i).id = add_tracker_response.id;
+	//		KinectSettings::trackerVector.at(i).id = tracker_downloaded.id;
+	//		KinectSettings::trackerVector.at(i).data = tracker_downloaded.tracker_base.data;
+	//		KinectSettings::trackerVector.at(i).pose = tracker_downloaded.tracker_base.pose;
 
-			if (add_tracker_response.result == ktvr::K2ResponseMessageCode_OK)
-			{
-				LOG(INFO) << "Tracker with serial " +
-					("LHR-CB9AD1T" + std::to_string(i)) +
-					" has been added successfully.";
+	//		LOG(INFO) << "Tracker with serial " +
+	//			("LHR-CB9AD1T" + std::to_string(i)) +
+	//			" has been found with id " + std::to_string(tracker_downloaded.id) + " and will be used from now on.";
+	//	}
+	//	else
+	//	{
+	//		LOG(INFO) << "Tracker with serial " +
+	//			("LHR-CB9AD1T" + std::to_string(i)) +
+	//			" and suitable role has not been found and will be added separately.";
 
-				KinectSettings::trackerID[i] = add_tracker_response.id;
-				KinectSettings::trackerSerial[i] = add_tracker_response.tracker_base.data.serial;
-			}
-			else if (add_tracker_response.result == ktvr::K2ResponseMessageCode_AlreadyPresent)
-			{
-				LOG(INFO) << "Tracker with serial " +
-					("LHR-CB9AD1T" + std::to_string(i)) +
-					" is already present. Changing the last serial digit by +3...";
+	//		// Add the tracker and overwrite id
+	//		auto tracker_base = KinectSettings::trackerVector.at(i).getTrackerBase();
+	//		auto add_tracker_response =
+	//			add_tracker(tracker_base);
+	//		KinectSettings::trackerVector.at(i).id = add_tracker_response.id;
 
-				// Change the serial
-				KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i + 3);
+	//		if (add_tracker_response.result == ktvr::K2ResponseMessageCode_OK)
+	//		{
+	//			LOG(INFO) << "Tracker with serial " +
+	//				("LHR-CB9AD1T" + std::to_string(i)) +
+	//				" has been added successfully.";
 
-				// Compose the response
-				auto tracker_base_ns = KinectSettings::trackerVector.at(i).getTrackerBase();
-				if (auto add_tracker_response_ns =
-					add_tracker(tracker_base_ns); 
-					add_tracker_response_ns.result == ktvr::K2ResponseMessageCode_OK)
-				{
-					LOG(INFO) << "Tracker with serial " +
-						("LHR-CB9AD1T" + std::to_string(i + 3)) +
-						" has been added successfully.";
+	//			KinectSettings::trackerID[i] = add_tracker_response.id;
+	//			KinectSettings::trackerSerial[i] = add_tracker_response.tracker_base.data.serial;
+	//		}
+	//		else if (add_tracker_response.result == ktvr::K2ResponseMessageCode_AlreadyPresent)
+	//		{
+	//			LOG(INFO) << "Tracker with serial " +
+	//				("LHR-CB9AD1T" + std::to_string(i)) +
+	//				" is already present. Changing the last serial digit by +3...";
 
-					KinectSettings::trackerVector.at(i).id = add_tracker_response_ns.id;
-					KinectSettings::trackerID[i] = add_tracker_response_ns.id;
-					KinectSettings::trackerSerial[i] = add_tracker_response_ns.tracker_base.data.serial;
-				}
-				else
-				{
-					LOG(INFO) << "Tracker with serial " +
-						("LHR-CB9AD1T" + std::to_string(i + 3)) +
-						" could not be added. Giving up...";
+	//			// Change the serial
+	//			KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i + 3);
 
-					// Cause not checking anymore
-					KinectSettings::isServerFailure = true;
-					guiRef.DriverStatusLabel->SetText(
-						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
-					KinectSettings::trackersAdded = false;
-				}
-			}
-		}
-	}
+	//			// Compose the response
+	//			auto tracker_base_ns = KinectSettings::trackerVector.at(i).getTrackerBase();
+	//			if (auto add_tracker_response_ns =
+	//				add_tracker(tracker_base_ns); 
+	//				add_tracker_response_ns.result == ktvr::K2ResponseMessageCode_OK)
+	//			{
+	//				LOG(INFO) << "Tracker with serial " +
+	//					("LHR-CB9AD1T" + std::to_string(i + 3)) +
+	//					" has been added successfully.";
+
+	//				KinectSettings::trackerVector.at(i).id = add_tracker_response_ns.id;
+	//				KinectSettings::trackerID[i] = add_tracker_response_ns.id;
+	//				KinectSettings::trackerSerial[i] = add_tracker_response_ns.tracker_base.data.serial;
+	//			}
+	//			else
+	//			{
+	//				LOG(INFO) << "Tracker with serial " +
+	//					("LHR-CB9AD1T" + std::to_string(i + 3)) +
+	//					" could not be added. Giving up...";
+
+	//				// Cause not checking anymore
+	//				KinectSettings::isServerFailure = true;
+	//				guiRef.DriverStatusLabel->SetText(
+	//					"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
+	//				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
+	//				KinectSettings::trackersAdded = false;
+	//			}
+	//		}
+	//	}
+	//}
+
+	// REMOVED AFTER c93de0c7c7b18779cfd03550c597b4880b1900aa
 
 	/************************************************/
 	// Add trackers (Try to download via serial / add)
