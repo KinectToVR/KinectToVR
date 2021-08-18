@@ -747,6 +747,14 @@ namespace KinectSettings
 						right_tracker_rot = temp_orientation[1];
 						waist_tracker_rot = temp_orientation[2];
 					}
+
+					if(!autocalib)
+					{
+						left_tracker_rot = left_tracker_rot * 
+							EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f));
+						right_tracker_rot = right_tracker_rot *
+							EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f));
+					}
 				}
 				// If we're using PSMoves, apply the manual offset
 				else if (positional_tracking_option == k_PSMoveFullTracking)
