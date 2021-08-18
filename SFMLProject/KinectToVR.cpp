@@ -1,4 +1,4 @@
-﻿#include <boost/asio.hpp>
+#include <boost/asio.hpp>
 #include "stdafx.h"
 #include "KinectToVR.h"
 #include "VRHelper.h"
@@ -700,6 +700,8 @@ void processLoop(KinectHandlerBase& kinect)
 	// Add trackers (Try to download via serial / add)
 	/************************************************/
 
+	LOG(INFO) << "Adding trackers now...";
+
 	// Generate the default trackers here
 	/* update 3 default trackers <KinectSettings.h> */
 	for (int i = 0; i < 3; i++)
@@ -748,6 +750,7 @@ void processLoop(KinectHandlerBase& kinect)
 		}
 
 		// If tracker's been found
+		KinectSettings::trackersAdded = true;
 		if (tracker_downloaded.result == ktvr::K2ResponseMessageCode_OK &&
 			tracker_downloaded.messageType == ktvr::K2ResponseMessage_Tracker &&
 			tracker_downloaded.tracker_base.data.role == _role)
@@ -818,6 +821,7 @@ void processLoop(KinectHandlerBase& kinect)
 					guiRef.DriverStatusLabel->SetText(
 						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
 					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
+					KinectSettings::trackersAdded = false;
 				}
 			}
 		}
@@ -1127,55 +1131,61 @@ void spawnDefaultLowerBodyTrackers()
 		bool spawned[3] = {false};
 		
 		// Try 3 times
-		for (int i = 0; i < 3; i++)
-		{
-			// Add only default trackers from the vector (0-2)
-			for (int t = 0; t < 3; t++)
+		if (KinectSettings::trackersAdded) {
+			for (int i = 0; i < 3; i++)
 			{
-				if (KinectSettings::EnabledTrackersSave[t])
+				// Add only default trackers from the vector (0-2)
+				for (int t = 0; t < 3; t++)
 				{
-					if (const auto& m_result =
-						ktvr::set_tracker_state(KinectSettings::trackerVector.at(t).id, true); // We WANT a reply
-						m_result.id == KinectSettings::trackerVector.at(t).id && m_result.success)
+					if (KinectSettings::EnabledTrackersSave[t])
 					{
-						LOG(INFO) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
-								KinectSettings::trackerVector.at(t).id) +
-							" was successfully updated with status [active]";
-						spawned[t] = true;
+						if (KinectSettings::trackerVector.at(t).id != -1) {
+							if (const auto& m_result =
+								ktvr::set_tracker_state(KinectSettings::trackerVector.at(t).id, true); // We WANT a reply
+								m_result.id == KinectSettings::trackerVector.at(t).id && m_result.success)
+							{
+								LOG(INFO) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+									KinectSettings::trackerVector.at(t).id) +
+									" was successfully updated with status [active]";
+								spawned[t] = true;
+							}
+
+							else if (m_result.id != KinectSettings::trackerVector.at(t).id && m_result.success)
+								LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+									KinectSettings::trackerVector.at(t).id) +
+								" could not be spawned due to ID mismatch.";
+
+							else
+							{
+								LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+									KinectSettings::trackerVector.at(t).id) +
+									" could not be spawned due to internal server error.";
+								if (!ktvr::GetLastError().empty())
+									LOG(ERROR) << "Last K2API error: " + ktvr::GetLastError();
+							}
+						}
+						else LOG(ERROR) << "Not spawning active tracker since its id is -1";
 					}
-
-					else if (m_result.id != KinectSettings::trackerVector.at(t).id && m_result.success)
-						LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
-								KinectSettings::trackerVector.at(t).id) +
-							" could not be spawned due to ID mismatch.";
-
 					else
 					{
-						LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
-								KinectSettings::trackerVector.at(t).id) +
-							" could not be spawned due to internal server error.";
-						if (!ktvr::GetLastError().empty())
-							LOG(ERROR) << "Last K2API error: " + ktvr::GetLastError();
+						spawned[t] = true; // Hacky hack
+						LOG(INFO) << "Not spawning tracker with serial " + KinectSettings::trackerVector.at(t).data.serial +
+							" because it is disabled in settings.";
 					}
 				}
-				else
-				{
-					spawned[t] = true; // Hacky hack
-					LOG(INFO) << "Not spawning tracker with serial " + KinectSettings::trackerVector.at(t).data.serial +
-						" because it is disabled in settings.";
-				}
 			}
-		}
 
-		if (!spawned[0] || !spawned[1] || !spawned[2])
-		{
-			LOG(INFO) << "One or more trackers couldn't be spawned after 3 tries. Giving up...";
+			if (!spawned[0] || !spawned[1] || !spawned[2])
+			{
+				LOG(INFO) << "One or more trackers couldn't be spawned after 3 tries. Giving up...";
 
-			// Cause not checking anymore
-			KinectSettings::isServerFailure = true;
-			KinectSettings::spawned = false;
+				// Cause not checking anymore
+				KinectSettings::isServerFailure = true;
+				KinectSettings::spawned = false;
+			}
+			else // Notify that we're good now
+				KinectSettings::spawned = true;
 		}
-		else // Notify that we're good now
-			KinectSettings::spawned = true;
+		else LOG(INFO) << "Not spawning trackers since they're not yet added";
 	}).detach();
 }
