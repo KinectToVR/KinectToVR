@@ -854,22 +854,31 @@ void processLoop(KinectHandlerBase& kinect)
 	auto ipcThread = new boost::thread(KinectSettings::sendipc);
 	ipcThread->detach();
 
+	int p_loops = 0; // for checking the server
 	while (renderWindow.isOpen() && SFMLsettings::keepRunning)
 	{
-		if (!KinectSettings::isDriverPresent)
+		if (!KinectSettings::isDriverPresent || KinectSettings::isServerFailure)
 		{
-			//Update driver status
+			//Update driver status ERROR (once in 1000 loops)
 			/************************************************/
-			updateServerStatus(guiRef);
+			if (p_loops >= 1000) {
+				// Label case
+				updateServerStatus(guiRef);
+
+				// Failure case
+				if (KinectSettings::isServerFailure) {
+					guiRef.DriverStatusLabel->SetText(
+						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
+					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
+				}
+
+				// Reset loops
+				p_loops = 0;
+			}
+			else p_loops++;
 			/************************************************/
 		}
-
-		if (KinectSettings::isServerFailure) {
-			guiRef.DriverStatusLabel->SetText(
-				"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
-			KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
-		}
-
+		
 		//Clear the debug text display
 		SFMLsettings::debugDisplayTextStream.str(std::string());
 		SFMLsettings::debugDisplayTextStream.clear();
