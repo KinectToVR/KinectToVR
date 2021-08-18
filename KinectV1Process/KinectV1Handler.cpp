@@ -388,18 +388,11 @@ void KinectV1Handler::updateSkeletalData()
 	if (kinectSensor->NuiSkeletonGetNextFrame(0, &skeletonFrame) >= 0)
 	{
 		NUI_TRANSFORM_SMOOTH_PARAMETERS params;
-		NUI_SKELETON_FRAME bakFrame = skeletonFrame;
 		NUI_SKELETON_POSITION_TRACKING_STATE jointStates[NUI_SKELETON_POSITION_COUNT] = { NUI_SKELETON_POSITION_TRACKED };
-		Vector4 bakJointPositions[20];
-
-		/*
-		 * I'm sending fast data to poses and creating a copy 'bak'
-		 * of it, then smoothing it AND additionally applying a filter.
-		 * Then I'm gonna create orientations from the filtered one.
-		 */
-
+		
 		// Just for testing, may be zeroed //
 		// https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)
+		bool bodyIsTracked = false;
 		
 		params.fSmoothing = .05f; // In meters? MS docs...
 		params.fCorrection = .8f;
@@ -426,9 +419,11 @@ void KinectV1Handler::updateSkeletalData()
 
 			if (NUI_SKELETON_TRACKED == trackingState)
 			{
+				bodyIsTracked = true;
 				for (int j = 0; j < NUI_SKELETON_POSITION_COUNT; ++j)
 				{
 					jointPositions[j] = skeletonFrame.SkeletonData[i].SkeletonPositions[j];
+					jointStates[j] = skeletonFrame.SkeletonData[i].eSkeletonPositionTrackingState[j];
 				}
 				NuiSkeletonCalculateBoneOrientations(&skeletonFrame.SkeletonData[i], boneOrientations);
 				rotFilter.update(boneOrientations);
@@ -496,36 +491,6 @@ void KinectV1Handler::updateSkeletalData()
 		/*  Software/Math based feet trackers' orientation is being calculated here, from base poses.  */
 		/***********************************************************************************************/
 		
-		// Just for testing, may be zeroed //
-		// "https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)"
-
-		params.fSmoothing = .15f;
-		params.fCorrection = .15f;
-		params.fPrediction = .25f;
-		params.fJitterRadius = .2f;
-		params.fMaxDeviationRadius = .1f;
-
-		// Just for testing, may be zeroed //
-		
-		kinectSensor->NuiTransformSmooth(&bakFrame, &params); //Smooths jittery tracking
-		NUI_SKELETON_DATA bakData;
-
-		for (int i = 0; i < NUI_SKELETON_COUNT; ++i)
-		{
-			NUI_SKELETON_TRACKING_STATE trackingState = bakFrame.SkeletonData[i].eTrackingState;
-			bakData = bakFrame.SkeletonData[i];
-
-			if (NUI_SKELETON_TRACKED == trackingState)
-			{
-				for (int j = 0; j < NUI_SKELETON_POSITION_COUNT; ++j)
-				{
-					bakJointPositions[j] = bakFrame.SkeletonData[i].SkeletonPositions[j];
-					jointStates[j] = bakFrame.SkeletonData[i].eSkeletonPositionTrackingState[j];
-				}
-				break;
-			}
-		}
-
 		/***********************************************************************************************/
 		// Setup base types we'll need
 		/***********************************************************************************************/
@@ -537,34 +502,34 @@ void KinectV1Handler::updateSkeletalData()
 		// 10+ to make all positives, just in case
 		Eigen::Vector3f up(0, 1, 0), forward(0, 0, 1), backward(0, 0, -1), // forward cuz zero quat in steamvr means just forward
 			ankleLeftPose(
-				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
-				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
-				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z),
+				jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].x,
+				jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].y,
+				jointPositions[convertJoint(KVR::KinectJointType::AnkleLeft)].z),
 
 			ankleRightPose(
-				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x,
-				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y,
-				bakJointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z),
+				jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].x,
+				jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].y,
+				jointPositions[convertJoint(KVR::KinectJointType::AnkleRight)].z),
 
 			footLeftPose(
-				bakJointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x,
-				bakJointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y,
-				bakJointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z),
+				jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].x,
+				jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].y,
+				jointPositions[convertJoint(KVR::KinectJointType::FootLeft)].z),
 
 			footRightPose(
-				bakJointPositions[convertJoint(KVR::KinectJointType::FootRight)].x,
-				bakJointPositions[convertJoint(KVR::KinectJointType::FootRight)].y,
-				bakJointPositions[convertJoint(KVR::KinectJointType::FootRight)].z),
+				jointPositions[convertJoint(KVR::KinectJointType::FootRight)].x,
+				jointPositions[convertJoint(KVR::KinectJointType::FootRight)].y,
+				jointPositions[convertJoint(KVR::KinectJointType::FootRight)].z),
 
 			kneeLeftPose(
-				bakJointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].x,
-				bakJointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].y,
-				bakJointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].z),
+				jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].x,
+				jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].y,
+				jointPositions[convertJoint(KVR::KinectJointType::KneeLeft)].z),
 
 			kneeRightPose(
-				bakJointPositions[convertJoint(KVR::KinectJointType::KneeRight)].x,
-				bakJointPositions[convertJoint(KVR::KinectJointType::KneeRight)].y,
-				bakJointPositions[convertJoint(KVR::KinectJointType::KneeRight)].z);
+				jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].x,
+				jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].y,
+				jointPositions[convertJoint(KVR::KinectJointType::KneeRight)].z);
 
 		/***********************************************************************************************/
 		// Setup base types we'll need
@@ -690,16 +655,19 @@ void KinectV1Handler::updateSkeletalData()
 		// Add the results
 		/***********************************************************************************************/
 
-		if (jointStates[convertJoint(KVR::KinectJointType::AnkleLeft)] == NUI_SKELETON_POSITION_TRACKED) {
+		if (jointStates[convertJoint(KVR::KinectJointType::AnkleLeft)] == NUI_SKELETON_POSITION_TRACKED)
 			// All the rotations
 			calculatedLeftFootOrientation = leftFootYawOffsetQuaternion * knee_ankleLeftOrientationQuaternion;
-			calculatedRightFootOrientation = rightFootYawOffsetQuaternion * knee_ankleRightOrientationQuaternion;
-		}
-		else {
+		else
 			// Without the foot's yaw
 			calculatedLeftFootOrientation = knee_ankleLeftOrientationQuaternion;
+
+		if (jointStates[convertJoint(KVR::KinectJointType::AnkleRight)] == NUI_SKELETON_POSITION_TRACKED)
+			// All the rotations
+			calculatedRightFootOrientation = rightFootYawOffsetQuaternion * knee_ankleRightOrientationQuaternion;
+		else
+			// Without the foot's yaw
 			calculatedRightFootOrientation = knee_ankleRightOrientationQuaternion;
-		}
 
 		//calculatedLeftFootOrientation = leftFootYawOffsetQuaternion;
 		//calculatedRightFootOrientation = rightFootYawOffsetQuaternion;
@@ -741,10 +709,10 @@ void KinectV1Handler::updateSkeletalData()
 
 		// Additionally slerp for smoother orientation,
 		// @see https://eigen.tuxfamily.org/dox/classEigen_1_1QuaternionBase.html
-		KinectSettings::trackerSoftRot[0] = 
-			ktvr::quaternion_normal(KinectSettings::trackerSoftRot[0]).slerp(0.37, ktvr::quaternion_normal(calculatedLeftFootOrientation));
-		KinectSettings::trackerSoftRot[1] = 
-			ktvr::quaternion_normal(KinectSettings::trackerSoftRot[1]).slerp(0.37, ktvr::quaternion_normal(calculatedRightFootOrientation));
+		if (bodyIsTracked) {
+			KinectSettings::trackerSoftRot[0] = ktvr::quaternion_normal(calculatedLeftFootOrientation);
+			KinectSettings::trackerSoftRot[1] = ktvr::quaternion_normal(calculatedRightFootOrientation);
+		}
 		
 		/***********************************************************************************************/
 		// Add the results / Push to global

@@ -486,12 +486,14 @@ void KinectV2Handler::updateSkeletalFilters()
 	 // Just for testing, may be zeroed //
 	 // https://docs.microsoft.com/en-us/previous-versions/windows/kinect-1.8/hh855623(v=ieb.10)
 
+	bool bodyIsTracked = false;
 	for (int i = 0; i < BODY_COUNT; i++)
 	{
 		if (kinectBodies[i])
 			kinectBodies[i]->get_IsTracked(&isTracking);
 		if (isTracking)
 		{
+			bodyIsTracked = true;
 			kinectBodies[i]->GetJoints(JointType_Count, joints);
 			kinectBodies[i]->GetJointOrientations(JointType_Count, jointOrientations);
 
@@ -551,22 +553,6 @@ void KinectV2Handler::updateSkeletalFilters()
 	/***********************************************************************************************/
 
 	// Additional objects for copy-ing
-	Joint bakjoints[JointType_Count];
-	
-	for (int i = 0; i < BODY_COUNT; i++)
-	{
-		if (kinectBodies[i])
-			kinectBodies[i]->get_IsTracked(&isTracking);
-		if (isTracking)
-		{
-			kinectBodies[i]->GetJoints(JointType_Count, bakjoints);
-
-			//Smooth
-			bakfilter.update(bakjoints, newBodyFrameArrived);
-			break;
-		}
-	}
-
 	/***********************************************************************************************/
 	// Setup base types we'll need
 	/***********************************************************************************************/
@@ -578,34 +564,34 @@ void KinectV2Handler::updateSkeletalFilters()
 	// 10+ to make all positives, just in case
 	Eigen::Vector3f up(0, 1, 0), forward(0, 0, 1), backward(0, 0, -1), // forward cuz zero quat in steamvr means just forward
 		ankleLeftPose(
-			bakjoints[JointType_AnkleLeft].Position.X,
-			bakjoints[JointType_AnkleLeft].Position.Y,
-			bakjoints[JointType_AnkleLeft].Position.Z),
+			joints[JointType_AnkleLeft].Position.X,
+			joints[JointType_AnkleLeft].Position.Y,
+			joints[JointType_AnkleLeft].Position.Z),
 
 		ankleRightPose(
-			bakjoints[JointType_AnkleRight].Position.X,
-			bakjoints[JointType_AnkleRight].Position.Y,
-			bakjoints[JointType_AnkleRight].Position.Z),
+			joints[JointType_AnkleRight].Position.X,
+			joints[JointType_AnkleRight].Position.Y,
+			joints[JointType_AnkleRight].Position.Z),
 
 		footLeftPose(
-			bakjoints[JointType_FootLeft].Position.X,
-			bakjoints[JointType_FootLeft].Position.Y,
-			bakjoints[JointType_FootLeft].Position.Z),
+			joints[JointType_FootLeft].Position.X,
+			joints[JointType_FootLeft].Position.Y,
+			joints[JointType_FootLeft].Position.Z),
 
 		footRightPose(
-			bakjoints[JointType_FootRight].Position.X,
-			bakjoints[JointType_FootRight].Position.Y,
-			bakjoints[JointType_FootRight].Position.Z),
+			joints[JointType_FootRight].Position.X,
+			joints[JointType_FootRight].Position.Y,
+			joints[JointType_FootRight].Position.Z),
 
 		kneeLeftPose(
-			bakjoints[JointType_KneeLeft].Position.X,
-			bakjoints[JointType_KneeLeft].Position.Y,
-			bakjoints[JointType_KneeLeft].Position.Z),
+			joints[JointType_KneeLeft].Position.X,
+			joints[JointType_KneeLeft].Position.Y,
+			joints[JointType_KneeLeft].Position.Z),
 
 		kneeRightPose(
-			bakjoints[JointType_KneeRight].Position.X,
-			bakjoints[JointType_KneeRight].Position.Y,
-			bakjoints[JointType_KneeRight].Position.Z);
+			joints[JointType_KneeRight].Position.X,
+			joints[JointType_KneeRight].Position.Y,
+			joints[JointType_KneeRight].Position.Z);
 
 	/***********************************************************************************************/
 	// Setup base types we'll need
@@ -731,16 +717,19 @@ void KinectV2Handler::updateSkeletalFilters()
 	// Add the results
 	/***********************************************************************************************/
 
-	if (bakjoints[JointType_AnkleLeft].TrackingState == TrackingState_Tracked) {
+	if (joints[JointType_AnkleLeft].TrackingState == TrackingState_Tracked)
 		// All the rotations
 		calculatedLeftFootOrientation = leftFootYawOffsetQuaternion * knee_ankleLeftOrientationQuaternion;
-		calculatedRightFootOrientation = rightFootYawOffsetQuaternion * knee_ankleRightOrientationQuaternion;
-	}
-	else {
+	else
 		// Without the foot's yaw
 		calculatedLeftFootOrientation = knee_ankleLeftOrientationQuaternion;
+
+	if (joints[JointType_AnkleRight].TrackingState == TrackingState_Tracked)
+		// All the rotations
+		calculatedRightFootOrientation = rightFootYawOffsetQuaternion * knee_ankleRightOrientationQuaternion;
+	else
+		// Without the foot's yaw
 		calculatedRightFootOrientation = knee_ankleRightOrientationQuaternion;
-	}
 
 	//calculatedLeftFootOrientation = leftFootYawOffsetQuaternion;
 	//calculatedRightFootOrientation = rightFootYawOffsetQuaternion;
@@ -782,10 +771,10 @@ void KinectV2Handler::updateSkeletalFilters()
 
 	// Additionally slerp for smoother orientation,
 	// @see https://eigen.tuxfamily.org/dox/classEigen_1_1QuaternionBase.html
-	KinectSettings::trackerSoftRot[0] = 
-		ktvr::quaternion_normal(KinectSettings::trackerSoftRot[0]).slerp(0.37, ktvr::quaternion_normal(calculatedLeftFootOrientation));
-	KinectSettings::trackerSoftRot[1] = 
-		ktvr::quaternion_normal(KinectSettings::trackerSoftRot[1]).slerp(0.37, ktvr::quaternion_normal(calculatedRightFootOrientation));
+	if (bodyIsTracked) {
+		KinectSettings::trackerSoftRot[0] = ktvr::quaternion_normal(calculatedLeftFootOrientation);
+		KinectSettings::trackerSoftRot[1] = ktvr::quaternion_normal(calculatedRightFootOrientation);
+	}
 
 	/***********************************************************************************************/
 	// Add the results / Push to global
