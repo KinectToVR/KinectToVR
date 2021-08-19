@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -1477,8 +1477,11 @@ public:
 						KinectSettings::matrixes_calibrated = true;
 						settings.AreMatricesCalibrated = true;
 						
-						if (KinectSettings::isCalibrating)
+						if (KinectSettings::isCalibrating) {
 							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
+							KinectSettings::autoCalibration = false;
+							settings.AutoCalibration = false;
+						}
 						else
 							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
 
@@ -1842,8 +1845,11 @@ public:
 						KinectSettings::matrixes_calibrated = true;
 						settings.AreMatricesCalibrated = true;
 
-						if(KinectSettings::isCalibrating)
+						if (KinectSettings::isCalibrating) {
 							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
+							KinectSettings::autoCalibration = true;
+							settings.AutoCalibration = true;
+						}
 						else
 							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
 
