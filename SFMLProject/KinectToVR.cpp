@@ -87,7 +87,7 @@ sf::VideoMode getScaledWindowResolution()
 	getDesktopResolution(h, v);
 
 	auto mode = sf::VideoMode(SFMLsettings::windowScale * static_cast<float>(h),
-	                          SFMLsettings::windowScale * static_cast<float>(v));
+		SFMLsettings::windowScale * static_cast<float>(v));
 	//std::cerr << "desktop: " << h << ", " << v << '\n';
 	//std::cerr << "scaled: " << mode.width << ", " << mode.height << '\n';
 	return mode;
@@ -150,7 +150,7 @@ void updateFilePath()
 	WCHAR fname[_MAX_FNAME];
 	WCHAR ext[_MAX_EXT];
 	_wsplitpath_s(exeFilePath, drive, _MAX_DRIVE, dir, _MAX_DIR, fname,
-	              _MAX_FNAME, ext, _MAX_EXT);
+		_MAX_FNAME, ext, _MAX_EXT);
 
 	WCHAR filename[_MAX_FNAME]{};
 	WCHAR extension[_MAX_EXT]{};
@@ -165,8 +165,8 @@ void updateFilePath()
 vr::HmdQuaternion_t kinectQuaternionFromRads()
 {
 	return vrmath::quaternionFromYawPitchRoll(KinectSettings::kinectRadRotation.v[1],
-	                                          KinectSettings::kinectRadRotation.v[0],
-	                                          KinectSettings::kinectRadRotation.v[2]);
+		KinectSettings::kinectRadRotation.v[0],
+		KinectSettings::kinectRadRotation.v[2]);
 }
 
 void updateTrackerInitGuiSignals(GUIHandler& guiRef,
@@ -292,8 +292,8 @@ int checkK2Server()
 			}
 
 			return init_code == 0
-				       ? (server_connected ? 1 : -10)
-				       : -1;
+				? (server_connected ? 1 : -10)
+				: -1;
 		}
 		catch (const std::exception& e) { return -1; }
 	}
@@ -312,40 +312,40 @@ int checkK2Server()
 void updateServerStatus(GUIHandler& guiRef)
 {
 	std::thread([&]()
-	{
-		if (!KinectSettings::isServerFailure)
 		{
-			KinectSettings::K2Drivercode = checkK2Server();
-			switch (KinectSettings::K2Drivercode)
+			if (!KinectSettings::isServerFailure)
 			{
-			case -1:
-				guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: EXCEPTION WHILE CHECKING (Code: -1)");
-				break;
-			case -10:
-				guiRef.DriverStatusLabel->SetText(
-					"SteamVR Driver Status: SERVER CONNECTION ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
-				break;
-			case 10:
-				guiRef.DriverStatusLabel->SetText(
-					"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
-				break;
-			case 1:
-				guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: Success!");
-				KinectSettings::isDriverPresent = true;
-				break;
-			default:
-				guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: COULD NOT CONNECT TO K2API (Code: -11)");
-				break;
-			}
+				KinectSettings::K2Drivercode = checkK2Server();
+				switch (KinectSettings::K2Drivercode)
+				{
+				case -1:
+					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: EXCEPTION WHILE CHECKING (Code: -1)");
+					break;
+				case -10:
+					guiRef.DriverStatusLabel->SetText(
+						"SteamVR Driver Status: SERVER CONNECTION ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
+					break;
+				case 10:
+					guiRef.DriverStatusLabel->SetText(
+						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nPlease restart, check logs and write to us on Discord.");
+					break;
+				case 1:
+					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: Success!");
+					KinectSettings::isDriverPresent = true;
+					break;
+				default:
+					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: COULD NOT CONNECT TO K2API (Code: -11)");
+					break;
+				}
 
-			guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent
-				? sfg::Widget::State::NORMAL
-				: sfg::Widget::State::INSENSITIVE);
-			if (!KinectSettings::isDriverPresent)
-				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
-			guiRef.ping_InitTrackers();
-		}
-	}).detach();
+				guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent
+					? sfg::Widget::State::NORMAL
+					: sfg::Widget::State::INSENSITIVE);
+				if (!KinectSettings::isDriverPresent)
+					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
+				guiRef.ping_InitTrackers();
+			}
+		}).detach();
 }
 
 void processLoop(KinectHandlerBase& kinect)
@@ -353,6 +353,9 @@ void processLoop(KinectHandlerBase& kinect)
 	LOG(INFO) << "~~~New logging session for main process begins here!~~~";
 	LOG(INFO) << "Kinect version is V" << static_cast<int>(kinect.kVersion);
 	KinectSettings::kinectVersion = kinect.kVersion; //Set kinect version
+
+	LOG(INFO) << "KinecToVR running version: " << k2vr_version_major[0] << "." << k2vr_version_major[1] << "." << k2vr_version_major[2];
+	LOG(INFO) << "Build number: " << k2vr_version_minor[0] << "." << k2vr_version_minor[1] << "." << k2vr_version_minor[2] << "." << k2vr_version_minor[3];
 
 	// Connect to OpenVR at the very beginning
 	LOG(INFO) << "Attempting connection to vrsystem... ";
@@ -387,11 +390,11 @@ void processLoop(KinectHandlerBase& kinect)
 
 	// Load sounds
 	KinectSettings::k2ex_LoadSounds();
-	
+
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
 	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion,
-	                              sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
+		sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
 	auto mGUIView = sf::View(renderWindow.getDefaultView());
 	auto mGridView = sf::View(sf::FloatRect(0, 0, 1280, 768));
 
@@ -422,789 +425,792 @@ void processLoop(KinectHandlerBase& kinect)
 
 	// Check in the background
 	std::thread([&]
-	{
-		/* Check for updates */
-		LOG(INFO) << "Searching for updates...";
-		try
 		{
-			curlpp::Cleanup myCleanup;
-			std::ostringstream os;
-			os << curlpp::options::Url("https://raw.githubusercontent.com/KinectToVR/KinectToVR/experiments/version");
-
-			if (std::string read_buffer = os.str(); !read_buffer.empty())
+			/* Check for updates */
+			LOG(INFO) << "Searching for updates...";
+			try
 			{
-				LOG(INFO) << "Update-check successful, string:\n" << read_buffer;
+				curlpp::Cleanup myCleanup;
+				std::ostringstream os;
+				os << curlpp::options::Url("https://raw.githubusercontent.com/KinectToVR/KinectToVR/experiments/version");
 
-				// Get rest strings
-				std::stringstream s;
-				s << read_buffer;
-
-				// Read the JSON
-				boost::property_tree::ptree s_ptree;
-				read_json(s, s_ptree);
-
-				// Get results
-				auto release = s_ptree.get<std::string>("release"),
-				     build = s_ptree.get<std::string>("build"),
-				     changes = s_ptree.get<std::string>("changes");
-
-				// Split strin into lines
-				std::vector<std::string> _major, _minor;
-
-				// Split version strings into ints
-				split(_major, release, boost::is_any_of(","));
-				split(_minor, build, boost::is_any_of(","));
-
-				// Replace ";" with "\n" to make the changelog multi-line
-				std::string _changelog = changes;
-				std::replace(_changelog.begin(), _changelog.end(), ';', '\n');
-
-				// Compare to the current version
-				bool updateFound = false;
-				for (int i = 0; i < 3; i++)
+				if (std::string read_buffer = os.str(); !read_buffer.empty())
 				{
-					// Check major
-					int _ver = boost::lexical_cast<int>(_major.at(i));
-					if (_ver > k2vr_version_major[i]) updateFound = true;
+					LOG(INFO) << "Update-check successful, string:\n" << read_buffer;
+
+					// Get rest strings
+					std::stringstream s;
+					s << read_buffer;
+
+					// Read the JSON
+					boost::property_tree::ptree s_ptree;
+					read_json(s, s_ptree);
+
+					// Get results
+					auto release = s_ptree.get<std::string>("release"),
+						build = s_ptree.get<std::string>("build"),
+						changes = s_ptree.get<std::string>("changes");
+
+					// Split strin into lines
+					std::vector<std::string> _major, _minor;
+
+					// Split version strings into ints
+					split(_major, release, boost::is_any_of(","));
+					split(_minor, build, boost::is_any_of(","));
+
+					// Replace ";" with "\n" to make the changelog multi-line
+					std::string _changelog = changes;
+					std::replace(_changelog.begin(), _changelog.end(), ';', '\n');
+
+					// Compare to the current version
+					bool updateFound = false;
+					for (int i = 0; i < 3; i++)
+					{
+						// Check major
+						int _ver = boost::lexical_cast<int>(_major.at(i));
+						if (_ver > k2vr_version_major[i]) updateFound = true;
 
 						// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
-					else if (_ver < k2vr_version_major[i]) break;
-				}
+						else if (_ver < k2vr_version_major[i]) break;
+					}
 
-				// Don't check the build number
-				//for (int i = 0; i < 4; i++)
-				//{
-				//	// Check minor
-				//	int _ver = boost::lexical_cast<int>(_minor.at(i));
-				//	if (_ver > k2vr_version_minor[i]) updateFound = true;
+					// Don't check the build number
+					//for (int i = 0; i < 4; i++)
+					//{
+					//	// Check minor
+					//	int _ver = boost::lexical_cast<int>(_minor.at(i));
+					//	if (_ver > k2vr_version_minor[i]) updateFound = true;
 
-				//	// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
-				//	else if (_ver < k2vr_version_minor[i]) break;
-				//}
+					//	// Not to false-alarm in situations like 0.9.1 (local) vs 0.8.2 (remote)
+					//	else if (_ver < k2vr_version_minor[i]) break;
+					//}
 
-				// Show the message box if update was found
-				if (updateFound)
-				{
-					if (MessageBoxA(nullptr,
-					                std::string(
-						                "KinectToVR EX "
-
-						                + _major.at(0) + "."
-						                + _major.at(1) + "."
-						                + _major.at(2) +
-
-						                "\nBuild number: "
-
-						                + _minor.at(0) + "."
-						                + _minor.at(1) + "."
-						                + _minor.at(2) + "."
-						                + _minor.at(3) +
-
-						                "\n\nChanges:\n\n"
-
-						                + _changelog +
-
-						                "\n\nDo you wish to update KinectToVR now?"
-					                ).c_str(),
-					                "KinectToVR Update Found!",
-					                MB_YESNO) == IDYES)
+					// Show the message box if update was found
+					if (updateFound)
 					{
-						/*
-						 * Here, do all the stuff that needs to be done after pressing 'Yes'
-						 */
+						if (MessageBoxA(nullptr,
+							std::string(
+								"KinectToVR EX "
 
-						// Turn off trackers
-						KinectSettings::initialised = false;
+								+ _major.at(0) + "."
+								+ _major.at(1) + "."
+								+ _major.at(2) +
 
-						// Find the installer
-						// Clear the stream for reuse
-						os.str(std::string());
+								"\nBuild number: "
 
-						// Setup the User-Agent
-						curlpp::Easy request;
-						std::list<std::string> headers;
-						headers.emplace_back("User-Agent: curl/7.77.7");
+								+ _minor.at(0) + "."
+								+ _minor.at(1) + "."
+								+ _minor.at(2) + "."
+								+ _minor.at(3) +
 
-						using namespace curlpp::Options;
+								"\n\nChanges:\n\n"
 
-						request.setOpt(new Verbose(true));
-						request.setOpt(new HttpHeader(headers));
-						request.setOpt(
-							new Url("https://api.github.com/repos/KinectToVR/k2vr-installer-gui/releases/latest"));
-						request.perform();
+								+ _changelog +
 
-						// Dump the result
-						os << request;
-
-						if (std::string installer_url, installer_releases = os.str(); !installer_releases.empty())
+								"\n\nDo you wish to update KinectToVR now?"
+							).c_str(),
+							"KinectToVR Update Found!",
+							MB_YESNO) == IDYES)
 						{
-							// Init the stream for boost
-							std::stringstream ss;
-							ss << installer_releases;
+							/*
+							 * Here, do all the stuff that needs to be done after pressing 'Yes'
+							 */
 
-							// Read the JSON
-							boost::property_tree::ptree ptree;
-							read_json(ss, ptree);
+							 // Turn off trackers
+							KinectSettings::initialised = false;
 
-							// Iterate over all results
-							for (boost::property_tree::ptree::value_type& result : ptree.get_child("assets."))
-								for (boost::property_tree::ptree::value_type& field : result.second)
-									if (field.first == "browser_download_url") installer_url = field.second.data();
+							// Find the installer
+							// Clear the stream for reuse
+							os.str(std::string());
 
-							// Notify about download
-							std::thread([]
-							{
-								MessageBoxA(nullptr,
-								            std::string(
-									            "Update will begin soon!\n\nK2EX will close automatically."
-								            ).c_str(),
-								            "KinectToVR Update Found!",
-								            MB_OK);
-							}).detach();
-
-							// Download the installer
 							// Setup the User-Agent
-							request.reset();
+							curlpp::Easy request;
+							std::list<std::string> headers;
+							headers.emplace_back("User-Agent: curl/7.77.7");
 
 							using namespace curlpp::Options;
+
 							request.setOpt(new Verbose(true));
 							request.setOpt(new HttpHeader(headers));
-							request.setOpt(new FollowLocation(true));
-							request.setOpt(new Url(installer_url));
-
-							// Perform the request
-							FILE* file;
-							fopen_s(&file, "k2ex-installer.exe", "wb");
-
-							request.setOpt(curlpp::options::WriteFile(file));
+							request.setOpt(
+								new Url("https://api.github.com/repos/KinectToVR/k2vr-installer-gui/releases/latest"));
 							request.perform();
 
-							// Close the file
-							fclose(file);
+							// Dump the result
+							os << request;
 
-							// Run the file and close K2EX
-							system("start k2ex-installer.exe");
+							if (std::string installer_url, installer_releases = os.str(); !installer_releases.empty())
+							{
+								// Init the stream for boost
+								std::stringstream ss;
+								ss << installer_releases;
 
-							SFMLsettings::keepRunning = false;
-							KinectSettings::initialised = false;
-							renderWindow.close();
+								// Read the JSON
+								boost::property_tree::ptree ptree;
+								read_json(ss, ptree);
+
+								// Iterate over all results
+								for (boost::property_tree::ptree::value_type& result : ptree.get_child("assets."))
+									for (boost::property_tree::ptree::value_type& field : result.second)
+										if (field.first == "browser_download_url") installer_url = field.second.data();
+
+								// Notify about download
+								std::thread([]
+									{
+										MessageBoxA(nullptr,
+											std::string(
+												"Update will begin soon!\n\nK2EX will close automatically."
+											).c_str(),
+											"KinectToVR Update Found!",
+											MB_OK);
+									}).detach();
+
+									// Download the installer
+									// Setup the User-Agent
+									request.reset();
+
+									using namespace curlpp::Options;
+									request.setOpt(new Verbose(true));
+									request.setOpt(new HttpHeader(headers));
+									request.setOpt(new FollowLocation(true));
+									request.setOpt(new Url(installer_url));
+
+									// Perform the request
+									FILE* file;
+									fopen_s(&file, "k2ex-installer.exe", "wb");
+
+									request.setOpt(curlpp::options::WriteFile(file));
+									request.perform();
+
+									// Close the file
+									fclose(file);
+
+									// Run the file and close K2EX
+									system("start k2ex-installer.exe");
+
+									SFMLsettings::keepRunning = false;
+									KinectSettings::initialised = false;
+									renderWindow.close();
+							}
 						}
 					}
 				}
+				else
+					LOG(INFO) << "Update failed, string was empty.";
 			}
-			else
-				LOG(INFO) << "Update failed, string was empty.";
-		}
-		catch (const std::exception& e)
-		{
-			LOG(INFO) << "Update failed, error:\n" << e.what();
-		}
-		/* Check for updates */
-	}).detach();
-
-	// Generate the default trackers here
-	/* update 3 default trackers <KinectSettings.h> */
-	for (int i = 0; i < 3; i++)
-	{
-		// We don't let the user overwrite serial here
-		KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i);
-
-		// Switch the rest
-		switch (i)
-		{
-		case 0: // Waist
-			KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_Waist;
-			break;
-		case 1: // LFoot
-			KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_LeftFoot;
-			break;
-		case 2: // RFoot
-			KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_RightFoot;
-			break;
-		}
-	}
-
-	// Initialize trackers' filters
-	for (auto& tracker : KinectSettings::trackerVector)
-		tracker.initAllFilters();
-
-	//SFGUI Handling -------------------------------------- 
-	GUIHandler guiRef;
-	// ----------------------------------------------------
-
-	// We've run through all this; greet the user
-	KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_startup);
-
-	// Update kinect status
-	guiRef.updateKinectStatusLabel(kinect);
-	// Reconnect Kinect Event Signal
-	guiRef.setKinectButtonSignal(kinect);
-
-	VRcontroller rightController(vr::TrackedControllerRole_RightHand);
-	VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
-	
-	// Initialise the VR Device Handler (For settings)
-	VRDeviceHandler vrDeviceHandler(m_VRSystem);
-	if (eError == vr::VRInitError_None)
-		vrDeviceHandler.initialise();
-
-	//Update driver status
-	/************************************************/
-	LOG(INFO) << "KinectToVR will try to connect the Driver via API on K2API's default addresses.";
-
-	updateServerStatus(guiRef);
-	/************************************************/
-
-	// INPUT BINDING TEMPORARY --------------------------------
-	// Warn about non-english file path, as openvr can only take ASCII chars
-	verifyDefaultFilePath();
-
-	if (eError == vr::VRInitError_None)
-	{
-		// Set origins so that proper offsets for each coordinate system can be found
-		KinectSettings::trackingOrigin = m_VRSystem->GetRawZeroPoseToStandingAbsoluteTrackingPose();
-		KinectSettings::trackingOriginPosition = GetVRPositionFromMatrix(KinectSettings::trackingOrigin);
-		double yaw = std::atan2(KinectSettings::trackingOrigin.m[0][2], KinectSettings::trackingOrigin.m[2][2]);
-		if (yaw < 0.0)
-		{
-			yaw = 2 * M_PI + yaw;
-		}
-		KinectSettings::svrhmdyaw = yaw;
-
-		LOG(INFO) << "SteamVR Tracking Origin for Driver Relative: " << std::fixed <<
-			KinectSettings::trackingOriginPosition.v[0] << ", " <<
-			KinectSettings::trackingOriginPosition.v[1] << ", " <<
-			KinectSettings::trackingOriginPosition.v[2] << ", " <<
-			KinectSettings::svrhmdyaw << "RAD";
-
-		guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
-		updateTrackerInitGuiSignals(guiRef, m_VRSystem);
-
-		// guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
-	}
-
-	guiRef.updateVRStatusLabel(eError);
-
-	//Update driver status
-	/************************************************/
-	updateServerStatus(guiRef);
-	/************************************************/
-
-	/************************************************/
-	// Add trackers (Try to download via serial / add)
-	/************************************************/
-
-	LOG(INFO) << "Registering trackers now...";
-
-	// K2Driver is now auto-adding default lower body trackers.
-	// That means that ids are: W-0 L-1 R-2
-	// We may skip downloading them then ^_~
-
-	// Setup default IDs
-	KinectSettings::trackerVector.at(0).id = 0; // W
-	KinectSettings::trackerVector.at(1).id = 1; // L
-	KinectSettings::trackerVector.at(2).id = 2; // R
-	
-	LOG(INFO) << "KinectToVR will be using K2Driver's default prepended trackers!";
-	KinectSettings::trackersAdded = true;
-	
-	// REMOVED AFTER c93de0c7c7b18779cfd03550c597b4880b1900aa
-
-	//// Generate the default trackers here
-	///* update 3 default trackers <KinectSettings.h> */
-	//for (int i = 0; i < 3; i++)
-	//{
-	//	// Check if the tracker is enabled
-	//	if (!KinectSettings::EnabledTrackersSave[i]) continue;
-	//	
-	//	// We don't let the user overwrite serial here
-	//	auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
-
-	//	// Retry if we didn't get any message
-	//	int tries = 0; // Yeah...
-	//	while(tracker_downloaded.result == ktvr::K2ResponseMessageCode_Invalid)
-	//	{
-	//		LOG(ERROR) << "Invalid response type while downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", retrying...";
-	//		tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
-	//		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-	//		// Check how many times we have tried
-	//		if(tries > 5) // assume 5+1, starting from 0
-	//		{
-	//			LOG(INFO) << "LHR-CB9AD1T" + std::to_string(i) + " couldn't be downloaded after >5 tries. Giving up...";
-
-	//			// Cause not checking anymore
-	//			KinectSettings::isServerFailure = true;
-	//			KinectSettings::spawned = false;
-	//		}
-	//		std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Please, wait!
-	//		tries++; // Maybe one more?
-	//	}
-	//	LOG(INFO) << "Downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", got a valid message.";
-	//	
-	//	// Check the role too
-	//	int _role = -1;
-	//	switch (i)
-	//	{
-	//	case 0: // Waist
-	//		_role = ktvr::Tracker_Waist;
-	//		break;
-	//	case 1: // LFoot
-	//		_role = ktvr::Tracker_LeftFoot;
-	//		break;
-	//	case 2: // RFoot
-	//		_role = ktvr::Tracker_RightFoot;
-	//		break;
-	//	}
-
-	//	// If tracker's been found
-	//	KinectSettings::trackersAdded = true;
-	//	if (tracker_downloaded.result == ktvr::K2ResponseMessageCode_OK &&
-	//		tracker_downloaded.messageType == ktvr::K2ResponseMessage_Tracker &&
-	//		tracker_downloaded.tracker_base.data.role == _role)
-	//	{
-	//		KinectSettings::trackerID[i] = tracker_downloaded.id;
-	//		KinectSettings::trackerSerial[i] = tracker_downloaded.tracker_base.data.serial;
-
-	//		KinectSettings::trackerVector.at(i).id = tracker_downloaded.id;
-	//		KinectSettings::trackerVector.at(i).data = tracker_downloaded.tracker_base.data;
-	//		KinectSettings::trackerVector.at(i).pose = tracker_downloaded.tracker_base.pose;
-
-	//		LOG(INFO) << "Tracker with serial " +
-	//			("LHR-CB9AD1T" + std::to_string(i)) +
-	//			" has been found with id " + std::to_string(tracker_downloaded.id) + " and will be used from now on.";
-	//	}
-	//	else
-	//	{
-	//		LOG(INFO) << "Tracker with serial " +
-	//			("LHR-CB9AD1T" + std::to_string(i)) +
-	//			" and suitable role has not been found and will be added separately.";
-
-	//		// Add the tracker and overwrite id
-	//		auto tracker_base = KinectSettings::trackerVector.at(i).getTrackerBase();
-	//		auto add_tracker_response =
-	//			add_tracker(tracker_base);
-	//		KinectSettings::trackerVector.at(i).id = add_tracker_response.id;
-
-	//		if (add_tracker_response.result == ktvr::K2ResponseMessageCode_OK)
-	//		{
-	//			LOG(INFO) << "Tracker with serial " +
-	//				("LHR-CB9AD1T" + std::to_string(i)) +
-	//				" has been added successfully.";
-
-	//			KinectSettings::trackerID[i] = add_tracker_response.id;
-	//			KinectSettings::trackerSerial[i] = add_tracker_response.tracker_base.data.serial;
-	//		}
-	//		else if (add_tracker_response.result == ktvr::K2ResponseMessageCode_AlreadyPresent)
-	//		{
-	//			LOG(INFO) << "Tracker with serial " +
-	//				("LHR-CB9AD1T" + std::to_string(i)) +
-	//				" is already present. Changing the last serial digit by +3...";
-
-	//			// Change the serial
-	//			KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i + 3);
-
-	//			// Compose the response
-	//			auto tracker_base_ns = KinectSettings::trackerVector.at(i).getTrackerBase();
-	//			if (auto add_tracker_response_ns =
-	//				add_tracker(tracker_base_ns); 
-	//				add_tracker_response_ns.result == ktvr::K2ResponseMessageCode_OK)
-	//			{
-	//				LOG(INFO) << "Tracker with serial " +
-	//					("LHR-CB9AD1T" + std::to_string(i + 3)) +
-	//					" has been added successfully.";
-
-	//				KinectSettings::trackerVector.at(i).id = add_tracker_response_ns.id;
-	//				KinectSettings::trackerID[i] = add_tracker_response_ns.id;
-	//				KinectSettings::trackerSerial[i] = add_tracker_response_ns.tracker_base.data.serial;
-	//			}
-	//			else
-	//			{
-	//				LOG(INFO) << "Tracker with serial " +
-	//					("LHR-CB9AD1T" + std::to_string(i + 3)) +
-	//					" could not be added. Giving up...";
-
-	//				// Cause not checking anymore
-	//				KinectSettings::isServerFailure = true;
-	//				guiRef.DriverStatusLabel->SetText(
-	//					"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
-	//				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
-	//				KinectSettings::trackersAdded = false;
-	//			}
-	//		}
-	//	}
-	//}
-
-	// REMOVED AFTER c93de0c7c7b18779cfd03550c597b4880b1900aa
-
-	/************************************************/
-	// Add trackers (Try to download via serial / add)
-	/************************************************/
-
-	KinectSettings::userChangingZero = true;
-	if (kinect.kVersion != INVALID)
-		kinect.initialiseSkeleton();
-
-	// Since settings are read now, initialize the rest of gui
-	guiRef.setVirtualHipsBoxSignals();
-
-	guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
-
-	// Select backed up or first (we may switch from KV1 to KV2, keeping config)
-	guiRef.coptbox->SelectItem(VirtualHips::settings.SelectedFootTrackingOption);
-
-	guiRef.coptbox1->SelectItem(VirtualHips::settings.SelectedWaistTrackingOption);
-	guiRef.foptbox->SelectItem(VirtualHips::settings.SelectedPositionalTrackingOption);
-
-	// Select automatically
-	guiRef.bodytrackingselectbox->SelectItem(0);
-	guiRef.refreshpsms();
-
-	// Select tracking option automatically
-	VirtualHips::settings.SelectedBodyTrackingOption = KinectSettings::isKinectPSMS
-		                                           ? k_PSMoveFullTracking
-		                                           : k_KinectFullTracking;
-	bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(VirtualHips::settings.SelectedBodyTrackingOption);
-	KinectSettings::positional_tracking_option = VirtualHips::settings.SelectedBodyTrackingOption;
-
-	auto ipcThread = new boost::thread(KinectSettings::sendipc);
-	ipcThread->detach();
-
-	int p_loops = 0; // for checking the server
-	while (renderWindow.isOpen() && SFMLsettings::keepRunning)
-	{
-		if (!KinectSettings::isDriverPresent || KinectSettings::isServerFailure)
-		{
-			//Update driver status ERROR (once in 1000 loops)
-			/************************************************/
-			if (p_loops >= 1000) {
-				// Label case
-				updateServerStatus(guiRef);
-
-				// Failure case
-				if (KinectSettings::isServerFailure) {
-					guiRef.DriverStatusLabel->SetText(
-						"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nCheck logs and write to us on Discord.");
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
-				}
-
-				// Reset loops
-				p_loops = 0;
-			}
-			else p_loops++;
-			/************************************************/
-		}
-		
-		//Clear the debug text display
-		SFMLsettings::debugDisplayTextStream.str(std::string());
-		SFMLsettings::debugDisplayTextStream.clear();
-
-		double currentTime = frameClock.restart().asSeconds();
-		double deltaT = currentTime;
-		SFMLsettings::debugDisplayTextStream << "FPS Start = " << 1.0 / deltaT << '\n';
-		//std::cout << SFMLsettings::debugDisplayTextStream.str() << std::endl;
-
-		if (timingClock.getElapsedTime() > time_lastGuiDesktopUpdate + sf::milliseconds(33))
-		{
-			sf::Event event;
-
-			while (renderWindow.pollEvent(event))
+			catch (const std::exception& e)
 			{
-				guiRef.desktopHandleEvents(event);
-				if (event.type == sf::Event::Closed)
-				{
-					SFMLsettings::keepRunning = false;
-					KinectSettings::initialised = false;
-					renderWindow.close();
-					break;
-				}
-				if (event.type == sf::Event::KeyPressed)
-				{
-					processKeyEvents(event);
-				}
-				if (event.type == sf::Event::Resized)
-				{
-					std::cerr << "HELP I AM RESIZING!\n";
-					//sf::Vector2f size = static_cast<sf::Vector2f>(renderWindow.getSize());
-					auto size = sf::Vector2f(event.size.width, event.size.height);
-					// Minimum size
-					if (size.x < 800)
-						size.x = 800;
-					if (size.y < 600)
-						size.y = 600;
-
-					// Apply possible size changes
-					renderWindow.setSize(static_cast<sf::Vector2u>(size));
-
-					// Reset grid view
-					mGridView.setCenter(size / 2.f);
-					mGridView.setSize(size);
-					// = sf::View(sf::FloatRect(mGridView.getCenter().x, mGridView.getCenter().y, mGridView.getSize().x+(mGridView.getSize().x - size.x), mGridView.getSize().y+(mGridView.getSize().y - size.y)));
-
-					// Reset  GUI view
-					mGUIView = sf::View(sf::FloatRect(0.f, 0.f, size.x, size.y));
-					//mGUIView.setCenter(size / 2.f);
-					renderWindow.setView(mGUIView);
-
-					// Resize widgets
-					updateKinectWindowRes(renderWindow);
-					guiRef.updateWithNewWindowSize(size);
-				}
+				LOG(INFO) << "Update failed, error:\n" << e.what();
 			}
-			if (!(renderWindow.isOpen() && SFMLsettings::keepRunning))
+			/* Check for updates */
+		}).detach();
+
+		// Generate the default trackers here
+		/* update 3 default trackers <KinectSettings.h> */
+		for (int i = 0; i < 3; i++)
+		{
+			// We don't let the user overwrite serial here
+			KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i);
+
+			// Switch the rest
+			switch (i)
 			{
-				// Possible for window to be closed mid-loop, in which case, instead of using goto's
-				// this is used to avoid glErrors that crash the program, and prevent proper
-				// destruction and cleaning up
+			case 0: // Waist
+				KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_Waist;
+				break;
+			case 1: // LFoot
+				KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_LeftFoot;
+				break;
+			case 2: // RFoot
+				KinectSettings::trackerVector.at(i).data.role = ktvr::Tracker_RightFoot;
 				break;
 			}
-
-			//Clear ---------------------------------------
-			renderWindow.clear(); /////////////////////////////////////////////////////
-			renderWindow.setView(mGridView); //////////////////////////////////////////
-			renderWindow.setView(mGUIView); ///////////////////////////////////////////
-
-			//Process -------------------------------------
-			//Update GUI
-
-			guiRef.updateDesktop(deltaT);
-			time_lastGuiDesktopUpdate = timingClock.getElapsedTime();
 		}
 
-		//Update VR Components
+		// Initialize trackers' filters
+		for (auto& tracker : KinectSettings::trackerVector)
+			tracker.initAllFilters();
+
+		//SFGUI Handling -------------------------------------- 
+		GUIHandler guiRef;
+		// ----------------------------------------------------
+
+		// We've run through all this; greet the user
+		KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_startup);
+
+		// Update kinect status
+		guiRef.updateKinectStatusLabel(kinect);
+		// Reconnect Kinect Event Signal
+		guiRef.setKinectButtonSignal(kinect);
+
+		VRcontroller rightController(vr::TrackedControllerRole_RightHand);
+		VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
+
+		// Initialise the VR Device Handler (For settings)
+		VRDeviceHandler vrDeviceHandler(m_VRSystem);
+		if (eError == vr::VRInitError_None)
+			vrDeviceHandler.initialise();
+
+		//Update driver status
+		/************************************************/
+		LOG(INFO) << "KinectToVR will try to connect the Driver via API on K2API's default addresses.";
+
+		updateServerStatus(guiRef);
+		/************************************************/
+
+		// INPUT BINDING TEMPORARY --------------------------------
+		// Warn about non-english file path, as openvr can only take ASCII chars
+		verifyDefaultFilePath();
+
 		if (eError == vr::VRInitError_None)
 		{
-
-			/**********************************************/
-			// Here, update EVR Input actions
-			/**********************************************/
-
-			// Backup the current ( OLD ) data
-			bool bak_confirm_state = evr_input.confirmAndSaveActionData().bState,
-				bak_mode_swap_state = evr_input.modeSwapActionData().bState,
-				bak_freeze_state = evr_input.trackerFreezeActionData().bState,
-				bak_flip_toggle_state = evr_input.trackerFlipToggleData().bState;
-
-			// Update all input actions
-			if (!evr_input.UpdateActionStates())
-				LOG(ERROR) << "Could not update EVR Input Actions. Please check logs for further information.";
-
-			// Update the Tracking Freeze : flip-switch
-			// Only if the state has changed from 1 to 0: button was clicked
-			if (!evr_input.trackerFreezeActionData().bState && bak_freeze_state)
+			// Set origins so that proper offsets for each coordinate system can be found
+			KinectSettings::trackingOrigin = m_VRSystem->GetRawZeroPoseToStandingAbsoluteTrackingPose();
+			KinectSettings::trackingOriginPosition = GetVRPositionFromMatrix(KinectSettings::trackingOrigin);
+			double yaw = std::atan2(KinectSettings::trackingOrigin.m[0][2], KinectSettings::trackingOrigin.m[2][2]);
+			if (yaw < 0.0)
 			{
-				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
-				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle);
-				guiRef.pauseTrackingButton->SetLabel(
-					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
+				yaw = 2 * M_PI + yaw;
 			}
-			
-			// Update the Flip Toggle : flip-switch
-			// Only if the state has changed from 1 to 0: button was clicked
-			if(!evr_input.trackerFlipToggleData().bState && bak_flip_toggle_state)
-			{
-				VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
-				KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
-				VirtualHips::saveSettings();
-				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle);
-				guiRef.toggleFlipButton->SetLabel(
-					VirtualHips::settings.FlipEnabled ?
-					"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
-					"Enable/Disable 'Flip' [CURRENT: DISABLED]");
-			}
-			
-			// Update the Calibration:Confirm : one-time switch
-			// Only one-way switch this time
-			if (evr_input.confirmAndSaveActionData().bState)
-				KinectSettings::calibration_confirm = true;
+			KinectSettings::svrhmdyaw = yaw;
 
-			/*LOG_IF(evr_input.fineTuneActionData().bState, INFO) << "FineTune ON!";
-			LOG_IF(evr_input.fineTuneActionData().bActive, INFO) << "FineTune Action ACTIVE!";*/
+			LOG(INFO) << "SteamVR Tracking Origin for Driver Relative: " << std::fixed <<
+				KinectSettings::trackingOriginPosition.v[0] << ", " <<
+				KinectSettings::trackingOriginPosition.v[1] << ", " <<
+				KinectSettings::trackingOriginPosition.v[2] << ", " <<
+				KinectSettings::svrhmdyaw << "RAD";
 
-			// Update the Calibration:ModeSwap : one-time switch
-			// Only if the state has changed from 1 to 0: chord was done
-			KinectSettings::calibration_modeSwap =
-				(!evr_input.modeSwapActionData().bState && bak_mode_swap_state);
+			guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
+			updateTrackerInitGuiSignals(guiRef, m_VRSystem);
 
-			// Update the Calibration:FineTune : held switch
-			KinectSettings::calibration_fineTune = evr_input.fineTuneActionData().bState;
-
-			// Update the Calibration:Joystick : vector2 x2
-			KinectSettings::calibration_leftJoystick[0] = evr_input.leftJoystickActionData().x;
-			KinectSettings::calibration_leftJoystick[1] = evr_input.leftJoystickActionData().y;
-			
-			KinectSettings::calibration_rightJoystick[0] = evr_input.rightJoystickActionData().x;
-			KinectSettings::calibration_rightJoystick[1] = evr_input.rightJoystickActionData().y;
-			
-			/**********************************************/
-			// Here, update EVR Input actions
-			/**********************************************/
-
-			// Update hmd
-			updateHMDPosAndRot(m_VRSystem);
+			// guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
 		}
 
-		renderWindow.clear(); //////////////////////////////////////////////////////
+		guiRef.updateVRStatusLabel(eError);
 
-		// Update Kinect Status
-		// Only needs to be updated sparingly
-		if (timingClock.getElapsedTime() > time_lastKinectStatusUpdate + sf::seconds(2.0))
-		{
-			guiRef.updateKinectStatusLabel(kinect);
-			time_lastKinectStatusUpdate = timingClock.getElapsedTime();
-		}
+		//Update driver status
+		/************************************************/
+		updateServerStatus(guiRef);
+		/************************************************/
 
-		if (kinect.isInitialised())
-		{
-			kinect.update();
+		/************************************************/
+		// Add trackers (Try to download via serial / add)
+		/************************************************/
 
-			//renderWindow.clear();
-			kinect.drawKinectData(renderWindow);
-		}
+		LOG(INFO) << "Registering trackers now...";
 
-		if (footOrientationFilterOption.filterOption != static_cast<footRotationFilterOption>(guiRef.coptbox->
-			GetSelectedItem()))
-		{
-			footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(guiRef.coptbox->
-				GetSelectedItem());
-			VirtualHips::settings.SelectedFootTrackingOption = guiRef.coptbox->GetSelectedItem();
+		// K2Driver is now auto-adding default lower body trackers.
+		// That means that ids are: W-0 L-1 R-2
+		// We may skip downloading them then ^_~
 
-			VirtualHips::saveSettings();
-		}
-		if (hipsOrientationFilterOption.filterOption != static_cast<hipsRotationFilterOption>(guiRef.coptbox1->
-			GetSelectedItem()))
-		{
-			hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(guiRef.coptbox1->
-				GetSelectedItem());
-			VirtualHips::settings.SelectedWaistTrackingOption = guiRef.coptbox1->GetSelectedItem();
+		// Setup default IDs
+		KinectSettings::trackerVector.at(0).id = 0; // W
+		KinectSettings::trackerVector.at(1).id = 1; // L
+		KinectSettings::trackerVector.at(2).id = 2; // R
 
-			VirtualHips::saveSettings();
-		}
-		if (positionFilterOption.filterOption != static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem()))
-		{
-			positionFilterOption.filterOption = static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem());
-			VirtualHips::settings.SelectedPositionalTrackingOption = guiRef.foptbox->GetSelectedItem();
+		LOG(INFO) << "KinectToVR will be using K2Driver's default prepended trackers!";
+		KinectSettings::trackersAdded = true;
 
-			VirtualHips::saveSettings();
-		}
-		// We're not updating it, it would mess everything
-		/*if (bodyTrackingOption_s.trackingOption != static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
-			GetSelectedItem()))
-		{
-			bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
-				GetSelectedItem());
-			VirtualHips::settings.SelectedBodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
+		// REMOVED AFTER c93de0c7c7b18779cfd03550c597b4880b1900aa
 
-			VirtualHips::saveSettings();
-		}*/
+		//// Generate the default trackers here
+		///* update 3 default trackers <KinectSettings.h> */
+		//for (int i = 0; i < 3; i++)
+		//{
+		//	// Check if the tracker is enabled
+		//	if (!KinectSettings::EnabledTrackersSave[i]) continue;
+		//	
+		//	// We don't let the user overwrite serial here
+		//	auto tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
 
-		if (VirtualHips::settings.SelectedBodyTrackingOption == k_PSMoveFullTracking)
-			guiRef.psmidbox->Show(true);
-		else
-			guiRef.psmidbox->Show(false);
+		//	// Retry if we didn't get any message
+		//	int tries = 0; // Yeah...
+		//	while(tracker_downloaded.result == ktvr::K2ResponseMessageCode_Invalid)
+		//	{
+		//		LOG(ERROR) << "Invalid response type while downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", retrying...";
+		//		tracker_downloaded = ktvr::download_tracker("LHR-CB9AD1T" + std::to_string(i));
+		//		std::this_thread::sleep_for(std::chrono::milliseconds(200));
 
-		KinectSettings::feet_rotation_option = VirtualHips::settings.SelectedFootTrackingOption;
-		KinectSettings::hips_rotation_option = VirtualHips::settings.SelectedWaistTrackingOption;
-		KinectSettings::posOption = VirtualHips::settings.SelectedPositionalTrackingOption;
+		//		// Check how many times we have tried
+		//		if(tries > 5) // assume 5+1, starting from 0
+		//		{
+		//			LOG(INFO) << "LHR-CB9AD1T" + std::to_string(i) + " couldn't be downloaded after >5 tries. Giving up...";
+
+		//			// Cause not checking anymore
+		//			KinectSettings::isServerFailure = true;
+		//			KinectSettings::spawned = false;
+		//		}
+		//		std::this_thread::sleep_for(std::chrono::milliseconds(50)); // Please, wait!
+		//		tries++; // Maybe one more?
+		//	}
+		//	LOG(INFO) << "Downloading tracker with serial: LHR-CB9AD1T" + std::to_string(i) + ", got a valid message.";
+		//	
+		//	// Check the role too
+		//	int _role = -1;
+		//	switch (i)
+		//	{
+		//	case 0: // Waist
+		//		_role = ktvr::Tracker_Waist;
+		//		break;
+		//	case 1: // LFoot
+		//		_role = ktvr::Tracker_LeftFoot;
+		//		break;
+		//	case 2: // RFoot
+		//		_role = ktvr::Tracker_RightFoot;
+		//		break;
+		//	}
+
+		//	// If tracker's been found
+		//	KinectSettings::trackersAdded = true;
+		//	if (tracker_downloaded.result == ktvr::K2ResponseMessageCode_OK &&
+		//		tracker_downloaded.messageType == ktvr::K2ResponseMessage_Tracker &&
+		//		tracker_downloaded.tracker_base.data.role == _role)
+		//	{
+		//		KinectSettings::trackerID[i] = tracker_downloaded.id;
+		//		KinectSettings::trackerSerial[i] = tracker_downloaded.tracker_base.data.serial;
+
+		//		KinectSettings::trackerVector.at(i).id = tracker_downloaded.id;
+		//		KinectSettings::trackerVector.at(i).data = tracker_downloaded.tracker_base.data;
+		//		KinectSettings::trackerVector.at(i).pose = tracker_downloaded.tracker_base.pose;
+
+		//		LOG(INFO) << "Tracker with serial " +
+		//			("LHR-CB9AD1T" + std::to_string(i)) +
+		//			" has been found with id " + std::to_string(tracker_downloaded.id) + " and will be used from now on.";
+		//	}
+		//	else
+		//	{
+		//		LOG(INFO) << "Tracker with serial " +
+		//			("LHR-CB9AD1T" + std::to_string(i)) +
+		//			" and suitable role has not been found and will be added separately.";
+
+		//		// Add the tracker and overwrite id
+		//		auto tracker_base = KinectSettings::trackerVector.at(i).getTrackerBase();
+		//		auto add_tracker_response =
+		//			add_tracker(tracker_base);
+		//		KinectSettings::trackerVector.at(i).id = add_tracker_response.id;
+
+		//		if (add_tracker_response.result == ktvr::K2ResponseMessageCode_OK)
+		//		{
+		//			LOG(INFO) << "Tracker with serial " +
+		//				("LHR-CB9AD1T" + std::to_string(i)) +
+		//				" has been added successfully.";
+
+		//			KinectSettings::trackerID[i] = add_tracker_response.id;
+		//			KinectSettings::trackerSerial[i] = add_tracker_response.tracker_base.data.serial;
+		//		}
+		//		else if (add_tracker_response.result == ktvr::K2ResponseMessageCode_AlreadyPresent)
+		//		{
+		//			LOG(INFO) << "Tracker with serial " +
+		//				("LHR-CB9AD1T" + std::to_string(i)) +
+		//				" is already present. Changing the last serial digit by +3...";
+
+		//			// Change the serial
+		//			KinectSettings::trackerVector.at(i).data.serial = "LHR-CB9AD1T" + std::to_string(i + 3);
+
+		//			// Compose the response
+		//			auto tracker_base_ns = KinectSettings::trackerVector.at(i).getTrackerBase();
+		//			if (auto add_tracker_response_ns =
+		//				add_tracker(tracker_base_ns); 
+		//				add_tracker_response_ns.result == ktvr::K2ResponseMessageCode_OK)
+		//			{
+		//				LOG(INFO) << "Tracker with serial " +
+		//					("LHR-CB9AD1T" + std::to_string(i + 3)) +
+		//					" has been added successfully.";
+
+		//				KinectSettings::trackerVector.at(i).id = add_tracker_response_ns.id;
+		//				KinectSettings::trackerID[i] = add_tracker_response_ns.id;
+		//				KinectSettings::trackerSerial[i] = add_tracker_response_ns.tracker_base.data.serial;
+		//			}
+		//			else
+		//			{
+		//				LOG(INFO) << "Tracker with serial " +
+		//					("LHR-CB9AD1T" + std::to_string(i + 3)) +
+		//					" could not be added. Giving up...";
+
+		//				// Cause not checking anymore
+		//				KinectSettings::isServerFailure = true;
+		//				guiRef.DriverStatusLabel->SetText(
+		//					"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nPlease restart, check logs and write to us on Discord.");
+		//				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
+		//				KinectSettings::trackersAdded = false;
+		//			}
+		//		}
+		//	}
+		//}
+
+		// REMOVED AFTER c93de0c7c7b18779cfd03550c597b4880b1900aa
+
+		/************************************************/
+		// Add trackers (Try to download via serial / add)
+		/************************************************/
+
+		// Read calibration
+		LOG(INFO) << std::string("Used calibration method: ") + (VirtualHips::settings.AutoCalibration ? "auto" : "manual");
+
+		KinectSettings::userChangingZero = true;
+		if (kinect.kVersion != INVALID)
+			kinect.initialiseSkeleton();
+
+		// Since settings are read now, initialize the rest of gui
+		guiRef.setVirtualHipsBoxSignals();
+
+		guiRef.initialisePSMoveHandlerIntoGUI(); // Needs the deviceHandlerRef to be set
+
+		// Select backed up or first (we may switch from KV1 to KV2, keeping config)
+		guiRef.coptbox->SelectItem(VirtualHips::settings.SelectedFootTrackingOption);
+
+		guiRef.coptbox1->SelectItem(VirtualHips::settings.SelectedWaistTrackingOption);
+		guiRef.foptbox->SelectItem(VirtualHips::settings.SelectedPositionalTrackingOption);
+
+		// Select automatically
+		guiRef.bodytrackingselectbox->SelectItem(0);
+		guiRef.refreshpsms();
+
+		// Select tracking option automatically
+		VirtualHips::settings.SelectedBodyTrackingOption = KinectSettings::isKinectPSMS
+			? k_PSMoveFullTracking
+			: k_KinectFullTracking;
+		bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(VirtualHips::settings.SelectedBodyTrackingOption);
 		KinectSettings::positional_tracking_option = VirtualHips::settings.SelectedBodyTrackingOption;
 
-		//KinectSettings::footRotationFilterOption::k_EnableOrientationFilter;
+		auto ipcThread = new boost::thread(KinectSettings::sendipc);
+		ipcThread->detach();
 
-		// Draw GUI
-		updateHMDPosAndRot(m_VRSystem);
+		int p_loops = 0; // for checking the server
+		while (renderWindow.isOpen() && SFMLsettings::keepRunning)
+		{
+			if (!KinectSettings::isDriverPresent || KinectSettings::isServerFailure)
+			{
+				//Update driver status ERROR (once in 1000 loops)
+				/************************************************/
+				if (p_loops >= 1000) {
+					// Label case
+					updateServerStatus(guiRef);
 
-		//renderWindow.clear(); //////////////////////////////////////////////////////
+					// Failure case
+					if (KinectSettings::isServerFailure) {
+						guiRef.DriverStatusLabel->SetText(
+							"SteamVR Driver Status: FATAL SERVER FAILURE (Code: 10)\nPlease restart, check logs and write to us on Discord.");
+						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
+					}
 
-		renderWindow.setActive(true);
-		renderWindow.setView(mGUIView);
-		guiRef.display(renderWindow);
+					// Reset loops
+					p_loops = 0;
+				}
+				else p_loops++;
+				/************************************************/
+			}
 
-		//Draw debug font
-		double endTimeMilliseconds = frameClock.getElapsedTime().asMilliseconds();
-		SFMLsettings::debugDisplayTextStream << "endTimeMilli: " << endTimeMilliseconds << '\n';
+			//Clear the debug text display
+			SFMLsettings::debugDisplayTextStream.str(std::string());
+			SFMLsettings::debugDisplayTextStream.clear();
 
-		//limitVRFramerate(endTimeMilliseconds);
-		debugText.setString(SFMLsettings::debugDisplayTextStream.str());
-		renderWindow.draw(debugText);
+			double currentTime = frameClock.restart().asSeconds();
+			double deltaT = currentTime;
+			SFMLsettings::debugDisplayTextStream << "FPS Start = " << 1.0 / deltaT << '\n';
+			//std::cout << SFMLsettings::debugDisplayTextStream.str() << std::endl;
 
-		renderWindow.resetGLStates();
-		//End Frame
-		renderWindow.display();
-	}
+			if (timingClock.getElapsedTime() > time_lastGuiDesktopUpdate + sf::milliseconds(33))
+			{
+				sf::Event event;
 
-	KinectSettings::writeKinectSettings();
-	VirtualHips::saveSettings();
+				while (renderWindow.pollEvent(event))
+				{
+					guiRef.desktopHandleEvents(event);
+					if (event.type == sf::Event::Closed)
+					{
+						SFMLsettings::keepRunning = false;
+						KinectSettings::initialised = false;
+						renderWindow.close();
+						break;
+					}
+					if (event.type == sf::Event::KeyPressed)
+					{
+						processKeyEvents(event);
+					}
+					if (event.type == sf::Event::Resized)
+					{
+						std::cerr << "HELP I AM RESIZING!\n";
+						//sf::Vector2f size = static_cast<sf::Vector2f>(renderWindow.getSize());
+						auto size = sf::Vector2f(event.size.width, event.size.height);
+						// Minimum size
+						if (size.x < 800)
+							size.x = 800;
+						if (size.y < 600)
+							size.y = 600;
 
-	kinect.terminateColor();
-	kinect.terminateDepth();
-	kinect.terminateSkeleton();
+						// Apply possible size changes
+						renderWindow.setSize(static_cast<sf::Vector2u>(size));
 
-	if (eError == vr::EVRInitError::VRInitError_None)
-		vr::VR_Shutdown();
+						// Reset grid view
+						mGridView.setCenter(size / 2.f);
+						mGridView.setSize(size);
+						// = sf::View(sf::FloatRect(mGridView.getCenter().x, mGridView.getCenter().y, mGridView.getSize().x+(mGridView.getSize().x - size.x), mGridView.getSize().y+(mGridView.getSize().y - size.y)));
+
+						// Reset  GUI view
+						mGUIView = sf::View(sf::FloatRect(0.f, 0.f, size.x, size.y));
+						//mGUIView.setCenter(size / 2.f);
+						renderWindow.setView(mGUIView);
+
+						// Resize widgets
+						updateKinectWindowRes(renderWindow);
+						guiRef.updateWithNewWindowSize(size);
+					}
+				}
+				if (!(renderWindow.isOpen() && SFMLsettings::keepRunning))
+				{
+					// Possible for window to be closed mid-loop, in which case, instead of using goto's
+					// this is used to avoid glErrors that crash the program, and prevent proper
+					// destruction and cleaning up
+					break;
+				}
+
+				//Clear ---------------------------------------
+				renderWindow.clear(); /////////////////////////////////////////////////////
+				renderWindow.setView(mGridView); //////////////////////////////////////////
+				renderWindow.setView(mGUIView); ///////////////////////////////////////////
+
+				//Process -------------------------------------
+				//Update GUI
+
+				guiRef.updateDesktop(deltaT);
+				time_lastGuiDesktopUpdate = timingClock.getElapsedTime();
+			}
+
+			//Update VR Components
+			if (eError == vr::VRInitError_None)
+			{
+
+				/**********************************************/
+				// Here, update EVR Input actions
+				/**********************************************/
+
+				// Backup the current ( OLD ) data
+				bool bak_confirm_state = evr_input.confirmAndSaveActionData().bState,
+					bak_mode_swap_state = evr_input.modeSwapActionData().bState,
+					bak_freeze_state = evr_input.trackerFreezeActionData().bState,
+					bak_flip_toggle_state = evr_input.trackerFlipToggleData().bState;
+
+				// Update all input actions
+				if (!evr_input.UpdateActionStates())
+					LOG(ERROR) << "Could not update EVR Input Actions. Please check logs for further information.";
+
+				// Update the Tracking Freeze : flip-switch
+				// Only if the state has changed from 1 to 0: button was clicked
+				if (!evr_input.trackerFreezeActionData().bState && bak_freeze_state)
+				{
+					KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
+					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle);
+					guiRef.pauseTrackingButton->SetLabel(
+						std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
+				}
+
+				// Update the Flip Toggle : flip-switch
+				// Only if the state has changed from 1 to 0: button was clicked
+				if (!evr_input.trackerFlipToggleData().bState && bak_flip_toggle_state)
+				{
+					VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
+					KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
+					VirtualHips::saveSettings();
+					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle);
+					guiRef.toggleFlipButton->SetLabel(
+						VirtualHips::settings.FlipEnabled ?
+						"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
+						"Enable/Disable 'Flip' [CURRENT: DISABLED]");
+				}
+
+				// Update the Calibration:Confirm : one-time switch
+				// Only one-way switch this time
+				if (evr_input.confirmAndSaveActionData().bState)
+					KinectSettings::calibration_confirm = true;
+
+				/*LOG_IF(evr_input.fineTuneActionData().bState, INFO) << "FineTune ON!";
+				LOG_IF(evr_input.fineTuneActionData().bActive, INFO) << "FineTune Action ACTIVE!";*/
+
+				// Update the Calibration:ModeSwap : one-time switch
+				// Only if the state has changed from 1 to 0: chord was done
+				KinectSettings::calibration_modeSwap =
+					(!evr_input.modeSwapActionData().bState && bak_mode_swap_state);
+
+				// Update the Calibration:FineTune : held switch
+				KinectSettings::calibration_fineTune = evr_input.fineTuneActionData().bState;
+
+				// Update the Calibration:Joystick : vector2 x2
+				KinectSettings::calibration_leftJoystick[0] = evr_input.leftJoystickActionData().x;
+				KinectSettings::calibration_leftJoystick[1] = evr_input.leftJoystickActionData().y;
+
+				KinectSettings::calibration_rightJoystick[0] = evr_input.rightJoystickActionData().x;
+				KinectSettings::calibration_rightJoystick[1] = evr_input.rightJoystickActionData().y;
+
+				/**********************************************/
+				// Here, update EVR Input actions
+				/**********************************************/
+
+				// Update hmd
+				updateHMDPosAndRot(m_VRSystem);
+			}
+
+			renderWindow.clear(); //////////////////////////////////////////////////////
+
+			// Update Kinect Status
+			// Only needs to be updated sparingly
+			if (timingClock.getElapsedTime() > time_lastKinectStatusUpdate + sf::seconds(2.0))
+			{
+				guiRef.updateKinectStatusLabel(kinect);
+				time_lastKinectStatusUpdate = timingClock.getElapsedTime();
+			}
+
+			if (kinect.isInitialised())
+			{
+				kinect.update();
+
+				//renderWindow.clear();
+				kinect.drawKinectData(renderWindow);
+			}
+
+			if (footOrientationFilterOption.filterOption != static_cast<footRotationFilterOption>(guiRef.coptbox->
+				GetSelectedItem()))
+			{
+				footOrientationFilterOption.filterOption = static_cast<footRotationFilterOption>(guiRef.coptbox->
+					GetSelectedItem());
+				VirtualHips::settings.SelectedFootTrackingOption = guiRef.coptbox->GetSelectedItem();
+
+				VirtualHips::saveSettings();
+			}
+			if (hipsOrientationFilterOption.filterOption != static_cast<hipsRotationFilterOption>(guiRef.coptbox1->
+				GetSelectedItem()))
+			{
+				hipsOrientationFilterOption.filterOption = static_cast<hipsRotationFilterOption>(guiRef.coptbox1->
+					GetSelectedItem());
+				VirtualHips::settings.SelectedWaistTrackingOption = guiRef.coptbox1->GetSelectedItem();
+
+				VirtualHips::saveSettings();
+			}
+			if (positionFilterOption.filterOption != static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem()))
+			{
+				positionFilterOption.filterOption = static_cast<positionalFilterOption>(guiRef.foptbox->GetSelectedItem());
+				VirtualHips::settings.SelectedPositionalTrackingOption = guiRef.foptbox->GetSelectedItem();
+
+				VirtualHips::saveSettings();
+			}
+			// We're not updating it, it would mess everything
+			/*if (bodyTrackingOption_s.trackingOption != static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
+				GetSelectedItem()))
+			{
+				bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(guiRef.bodytrackingselectbox->
+					GetSelectedItem());
+				VirtualHips::settings.SelectedBodyTrackingOption = guiRef.bodytrackingselectbox->GetSelectedItem();
+
+				VirtualHips::saveSettings();
+			}*/
+
+			if (VirtualHips::settings.SelectedBodyTrackingOption == k_PSMoveFullTracking)
+				guiRef.psmidbox->Show(true);
+			else
+				guiRef.psmidbox->Show(false);
+
+			KinectSettings::feet_rotation_option = VirtualHips::settings.SelectedFootTrackingOption;
+			KinectSettings::hips_rotation_option = VirtualHips::settings.SelectedWaistTrackingOption;
+			KinectSettings::posOption = VirtualHips::settings.SelectedPositionalTrackingOption;
+			KinectSettings::positional_tracking_option = VirtualHips::settings.SelectedBodyTrackingOption;
+
+			//KinectSettings::footRotationFilterOption::k_EnableOrientationFilter;
+
+			// Draw GUI
+			updateHMDPosAndRot(m_VRSystem);
+
+			//renderWindow.clear(); //////////////////////////////////////////////////////
+
+			renderWindow.setActive(true);
+			renderWindow.setView(mGUIView);
+			guiRef.display(renderWindow);
+
+			//Draw debug font
+			double endTimeMilliseconds = frameClock.getElapsedTime().asMilliseconds();
+			SFMLsettings::debugDisplayTextStream << "endTimeMilli: " << endTimeMilliseconds << '\n';
+
+			//limitVRFramerate(endTimeMilliseconds);
+			debugText.setString(SFMLsettings::debugDisplayTextStream.str());
+			renderWindow.draw(debugText);
+
+			renderWindow.resetGLStates();
+			//End Frame
+			renderWindow.display();
+		}
+
+		KinectSettings::writeKinectSettings();
+		VirtualHips::saveSettings();
+
+		kinect.terminateColor();
+		kinect.terminateDepth();
+		kinect.terminateSkeleton();
+
+		if (eError == vr::EVRInitError::VRInitError_None)
+			vr::VR_Shutdown();
 }
 
 void spawnDefaultLowerBodyTrackers()
 {
 	std::thread([&]
-	{
-		bool spawned[3] = {false};
-		
-		// Try 3 times
-		if (KinectSettings::trackersAdded) {
-			for (int i = 0; i < 3; i++)
-			{
-				// Add only default trackers from the vector (0-2)
-				for (int t = 0; t < 3; t++)
+		{
+			bool spawned[3] = { false };
+
+			// Try 3 times
+			if (KinectSettings::trackersAdded) {
+				for (int i = 0; i < 3; i++)
 				{
-					if (KinectSettings::EnabledTrackersSave[t])
+					// Add only default trackers from the vector (0-2)
+					for (int t = 0; t < 3; t++)
 					{
-						if (KinectSettings::trackerVector.at(t).id != -1) {
-							if (const auto& m_result =
-								ktvr::set_tracker_state(KinectSettings::trackerVector.at(t).id, true); // We WANT a reply
-								m_result.id == KinectSettings::trackerVector.at(t).id && m_result.success)
-							{
-								LOG(INFO) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
-									KinectSettings::trackerVector.at(t).id) +
-									" was successfully updated with status [active]";
-								spawned[t] = true;
-							}
+						if (KinectSettings::EnabledTrackersSave[t])
+						{
+							if (KinectSettings::trackerVector.at(t).id != -1) {
+								if (const auto& m_result =
+									ktvr::set_tracker_state(KinectSettings::trackerVector.at(t).id, true); // We WANT a reply
+									m_result.id == KinectSettings::trackerVector.at(t).id && m_result.success)
+								{
+									LOG(INFO) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+										KinectSettings::trackerVector.at(t).id) +
+										" was successfully updated with status [active]";
+									spawned[t] = true;
+								}
 
-							else if (m_result.id != KinectSettings::trackerVector.at(t).id && m_result.success)
-								LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
-									KinectSettings::trackerVector.at(t).id) +
-								" could not be spawned due to ID mismatch.";
+								else if (m_result.id != KinectSettings::trackerVector.at(t).id && m_result.success)
+									LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+										KinectSettings::trackerVector.at(t).id) +
+									" could not be spawned due to ID mismatch.";
 
-							else
-							{
-								LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
-									KinectSettings::trackerVector.at(t).id) +
-									" could not be spawned due to internal server error.";
-								if (!ktvr::GetLastError().empty())
-									LOG(ERROR) << "Last K2API error: " + ktvr::GetLastError();
+								else
+								{
+									LOG(ERROR) << "Tracker with serial " + KinectSettings::trackerVector.at(t).data.serial + " and id " + std::to_string(
+										KinectSettings::trackerVector.at(t).id) +
+										" could not be spawned due to internal server error.";
+									if (!ktvr::GetLastError().empty())
+										LOG(ERROR) << "Last K2API error: " + ktvr::GetLastError();
+								}
 							}
+							else LOG(ERROR) << "Not spawning active tracker since its id is -1";
 						}
-						else LOG(ERROR) << "Not spawning active tracker since its id is -1";
-					}
-					else
-					{
-						spawned[t] = true; // Hacky hack
-						LOG(INFO) << "Not spawning tracker with serial " + KinectSettings::trackerVector.at(t).data.serial +
-							" because it is disabled in settings.";
+						else
+						{
+							spawned[t] = true; // Hacky hack
+							LOG(INFO) << "Not spawning tracker with serial " + KinectSettings::trackerVector.at(t).data.serial +
+								" because it is disabled in settings.";
+						}
 					}
 				}
-			}
 
-			if (!spawned[0] || !spawned[1] || !spawned[2])
-			{
-				LOG(INFO) << "One or more trackers couldn't be spawned after 3 tries. Giving up...";
+				if (!spawned[0] || !spawned[1] || !spawned[2])
+				{
+					LOG(INFO) << "One or more trackers couldn't be spawned after 3 tries. Giving up...";
 
-				// Cause not checking anymore
-				KinectSettings::isServerFailure = true;
-				KinectSettings::spawned = false;
+					// Cause not checking anymore
+					KinectSettings::isServerFailure = true;
+					KinectSettings::spawned = false;
+				}
+				else // Notify that we're good now
+					KinectSettings::spawned = true;
 			}
-			else // Notify that we're good now
-				KinectSettings::spawned = true;
-		}
-		else LOG(INFO) << "Not spawning trackers since they're not yet added";
-	}).detach();
+			else LOG(INFO) << "Not spawning trackers since they're not yet added";
+		}).detach();
 }
