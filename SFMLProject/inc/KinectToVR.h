@@ -15,7 +15,7 @@
 // Version number
 const int
 k2vr_version_major[3] = { 0, 8, 1 },
-k2vr_version_minor[4] = { 51, 4, 31, 0 };
+k2vr_version_minor[4] = { 51, 4, 31, 1 };
 
 void processKeyEvents(sf::Event event);
 void toggle(bool& b);
