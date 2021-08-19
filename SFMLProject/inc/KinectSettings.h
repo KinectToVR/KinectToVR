@@ -84,21 +84,18 @@ static struct hipsRotFilter
 	hipsRotationFilterOption filterOption;
 } hipsOrientationFilterOption;
 
+// Updated to match KTVR
 enum positionalFilterOption
 {
-	k_EnablePositionFilter_Kalman,
-	///use EKF filtering for position
-	k_EnablePositionFilter_LowPass,
-	///use LowPass filtering for position
 	k_EnablePositionFilter_LERP,
 	///use Interpolation filtering for position
+	k_EnablePositionFilter_LowPass,
+	///use LowPass filtering for position
+	k_EnablePositionFilter_Kalman,
+	///use EKF filtering for position
 	k_DisablePositionFilter,
 	///disable filtering for position
 };
-
-// Map positional filters from K2EX to KTVR
-
-
 
 static struct posFilter
 {

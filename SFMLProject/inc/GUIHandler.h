@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
 #include "VRController.h"
@@ -893,9 +893,9 @@ public:
 		box11->Pack(sfg::Label::Create("Positional tracking filter"));
 		box11->Pack(foptbox);
 		
-		foptbox->AppendItem("Extended Kalman filter - smooths every jitter"); //use ekf in k2vr
+		foptbox->AppendItem("Linear Interpolation - gentle, continuous smoothing"); //use ekf in k2vr
 		foptbox->AppendItem("Low Pass filter - quite fast, adaptive smoothing"); //use lpf in k2vr
-		foptbox->AppendItem("Linear Interpolation - gentle, continuous smoothing"); //use glm::mix in k2vr
+		foptbox->AppendItem("Extended Kalman filter - smooths every jitter"); //use glm::mix in k2vr
 		foptbox->AppendItem("No filter - realtime results, no smoothing");
 
 		advancedTrackerBox->Pack(box11);
