@@ -273,6 +273,7 @@ namespace KinectSettings
 	inline bool reconnecting = false;
 	inline bool trackersAdded = false;
 	inline bool soundPlaying = false;
+	inline bool autoCalibration = true;
 	// If the tracing is paused
 	inline bool trackingPaused = false;
 	// If the flip is enabled
