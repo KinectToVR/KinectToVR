@@ -864,19 +864,27 @@ namespace KinectSettings
 				if (!trackingPaused) {
 
 					// Bring them back to default owners
-					trackerVector.at(0).pose.orientation = waist_tracker_rot;
-					trackerVector.at(flip ? 2 : 1).pose.orientation = left_tracker_rot;
-					trackerVector.at(flip ? 1 : 2).pose.orientation = right_tracker_rot;
+					trackerVector.at(0).pose.orientation = ktvr::quaternion_normal(waist_tracker_rot);
+					trackerVector.at(flip ? 2 : 1).pose.orientation = ktvr::quaternion_normal(left_tracker_rot);
+					trackerVector.at(flip ? 1 : 2).pose.orientation = ktvr::quaternion_normal(right_tracker_rot);
 
-					//// Update orientation filters
-					//trackerVector.at(0).updateOrientationFilters();
-					//trackerVector.at(1).updateOrientationFilters();
-					//trackerVector.at(2).updateOrientationFilters();
+					// Update orientation filters
+					trackerVector.at(0).updateOrientationFilters();
+					trackerVector.at(1).updateOrientationFilters();
+					trackerVector.at(2).updateOrientationFilters();
 
-					//// Slow down the rotation a bit
-					//trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation;
-					//trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation;
-					//trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation;
+					// Slow down the rotation a bit
+					if (!flip) {
+						trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPOrientation;
+						trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPOrientation;
+						trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPOrientation;
+					}
+					else
+					{
+						trackerVector.at(0).pose.orientation = trackerVector.at(0).SLERPSlowOrientation;
+						trackerVector.at(1).pose.orientation = trackerVector.at(1).SLERPSlowOrientation;
+						trackerVector.at(2).pose.orientation = trackerVector.at(2).SLERPSlowOrientation;
+					}
 
 					/*****************************************************************************************/
 					// Filters & update
