@@ -274,7 +274,6 @@ namespace KinectSettings
 				using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
 				const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG) format: 0+360
 				const float facing = yaw - calibration_trackers_yaw; //get facing to kinect;
-				const bool autocalib = (calibration_origin == Eigen::Vector3f(0, 0, 0)); // Zeros in auto
 
 				// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
 				//       
@@ -638,9 +637,9 @@ namespace KinectSettings
 
 						waistYawFlipQuaternion =
 						EigenUtils::EulersToQuat(Eigen::Vector3f(
-							M_PI / 11.0, 
-							(autocalib ? M_PI : 0.f),
-							(autocalib ? M_PI : 0.f))); // Turn around Y and Z + pitchShift
+							autoCalibration ? (-M_PI / 10.0) : (-M_PI / 12.0) /*M_PI / 11.0*/,
+							M_PI /*(autoCalibration ? M_PI : 0.f)*/,
+							M_PI /*(autoCalibration ? M_PI : 0.f)*/)); // Turn around Y and Z + pitchShift
 					
 					// Temporary holder for the quaternion to begin
 					Eigen::Quaternionf temp_orientation[3] = {
@@ -684,13 +683,13 @@ namespace KinectSettings
 								Eigen::Vector3f(
 									pitchOn ? left_ori_with_yaw.x() - pitchShift : pitchOffOffset, // Disable the pitch
 									left_ori_with_yaw.y(),
-									(autocalib ? -1.f : 1.f) * left_ori_with_yaw.z()));
+									/*(autoCalibration ? -1.f : 1.f) **/ -left_ori_with_yaw.z()));
 
 							right_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
 									pitchOn ? right_ori_with_yaw.x() - pitchShift : pitchOffOffset, // Disable the pitch
 									right_ori_with_yaw.y(),
-									(autocalib ? -1.f : 1.f) * right_ori_with_yaw.z()));
+									/*(autoCalibration ? -1.f : 1.f) **/ -right_ori_with_yaw.z()));
 
 							// Apply the turn-around flip quaternion
 							left_tracker_rot = yawFlipQuaternion * left_tracker_rot;
@@ -748,12 +747,49 @@ namespace KinectSettings
 						waist_tracker_rot = temp_orientation[2];
 					}
 
-					if(!autocalib)
+					if (!autoCalibration && feet_rotation_option == k_EnableOrientationFilter_Software)
 					{
-						left_tracker_rot = left_tracker_rot * 
-							EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f));
-						right_tracker_rot = right_tracker_rot *
-							EigenUtils::EulersToQuat(Eigen::Vector3f(0.f, M_PI, 0.f));
+						Eigen::Vector3f lfoot_euler = EigenUtils::QuatToEulers(left_tracker_rot),
+							rfoot_euler = EigenUtils::QuatToEulers(right_tracker_rot);
+
+						left_tracker_rot = EigenUtils::EulersToQuat(
+							Eigen::Vector3f(
+								lfoot_euler.x() + M_PI,
+								lfoot_euler.y(),
+								(flip ? -1.f : 1.f) * lfoot_euler.z()));
+
+						right_tracker_rot = EigenUtils::EulersToQuat(
+							Eigen::Vector3f(
+								rfoot_euler.x() + M_PI,
+								rfoot_euler.y(),
+								(flip ? -1.f : 1.f) * rfoot_euler.z()));
+
+						left_tracker_rot = 
+							EigenUtils::EulersToQuat(
+								Eigen::Vector3f(
+									0.f, 
+									glm::radians(2.f * calibration_trackers_yaw), 
+									0.f)) * 
+							left_tracker_rot;
+
+						right_tracker_rot =
+							EigenUtils::EulersToQuat(
+								Eigen::Vector3f(
+									0.f,
+									glm::radians(2.f * calibration_trackers_yaw),
+									0.f)) *
+							right_tracker_rot;
+
+						// Yeah it's weird
+						if (flip) {
+							waist_tracker_rot =
+								EigenUtils::EulersToQuat(
+									Eigen::Vector3f(
+										0.f,
+										M_PI,
+										0.f)) *
+								waist_tracker_rot;
+						}
 					}
 				}
 				// If we're using PSMoves, apply the manual offset
