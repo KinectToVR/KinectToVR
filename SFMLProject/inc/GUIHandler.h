@@ -1206,7 +1206,10 @@ public:
 		pauseTrackingButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
 			{
 				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
-				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle);
+				KinectSettings::k2ex_PlaySound(
+					KinectSettings::trackingPaused ?
+					KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_off :
+					KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_on);
 				pauseTrackingButton->SetLabel(
 					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
 			});
@@ -1216,7 +1219,10 @@ public:
 				VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
 				KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
 				VirtualHips::saveSettings();
-				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle);
+				KinectSettings::k2ex_PlaySound(
+					VirtualHips::settings.FlipEnabled ?
+					KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_on :
+					KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_off);
 				toggleFlipButton->SetLabel(
 					VirtualHips::settings.FlipEnabled ?
 					"Enable/Disable 'Flip' [CURRENT: ENABLED]" :

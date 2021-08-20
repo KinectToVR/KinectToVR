@@ -389,7 +389,13 @@ void processLoop(KinectHandlerBase& kinect)
 	else LOG(INFO) << "EVR Input Actions set up OK";
 
 	// Load sounds
-	KinectSettings::k2ex_LoadSounds();
+	try {
+		KinectSettings::k2ex_LoadSounds();
+	}
+	catch(...)
+	{
+		LOG(ERROR) << "Exception while loading (checking) sounds.";
+	}
 
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
@@ -1000,7 +1006,10 @@ void processLoop(KinectHandlerBase& kinect)
 				if (!evr_input.trackerFreezeActionData().bState && bak_freeze_state)
 				{
 					KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle);
+					KinectSettings::k2ex_PlaySound(
+						KinectSettings::trackingPaused ?
+						KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_off :
+						KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_on);
 					guiRef.pauseTrackingButton->SetLabel(
 						std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
 				}
@@ -1012,7 +1021,10 @@ void processLoop(KinectHandlerBase& kinect)
 					VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
 					KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
 					VirtualHips::saveSettings();
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle);
+					KinectSettings::k2ex_PlaySound(
+						VirtualHips::settings.FlipEnabled ?
+						KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_on :
+						KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_off);
 					guiRef.toggleFlipButton->SetLabel(
 						VirtualHips::settings.FlipEnabled ?
 						"Enable/Disable 'Flip' [CURRENT: ENABLED]" :

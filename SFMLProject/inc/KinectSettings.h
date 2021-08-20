@@ -300,8 +300,10 @@ namespace KinectSettings
 		k2ex_sound_calibration_tick_move,
 		k2ex_sound_calibration_tick_stand,
 		k2ex_sound_calibration_point_captured,
-		k2ex_sound_tracking_freeze_toggle,
-		k2ex_sound_flip_toggle,
+		k2ex_sound_tracking_freeze_toggle_on,
+		k2ex_sound_tracking_freeze_toggle_off,
+		k2ex_sound_flip_toggle_on,
+		k2ex_sound_flip_toggle_off,
 		k2ex_sound_server_error,
 		k2ex_sound_kinect_error,
 		k2ex_sound_count // always last, not mapped
@@ -319,8 +321,10 @@ namespace KinectSettings
 		(IK2EXSoundType::k2ex_sound_calibration_tick_move, "k2ex_calibration_tick_move")
 		(IK2EXSoundType::k2ex_sound_calibration_tick_stand, "k2ex_calibration_tick_stand")
 		(IK2EXSoundType::k2ex_sound_calibration_point_captured, "k2ex_calibration_point_captured")
-		(IK2EXSoundType::k2ex_sound_tracking_freeze_toggle, "k2ex_tracking_freeze_toggle")
-		(IK2EXSoundType::k2ex_sound_flip_toggle, "k2ex_flip_toggle")
+		(IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_on, "k2ex_toggle_on")
+		(IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_off, "k2ex_toggle_off")
+		(IK2EXSoundType::k2ex_sound_flip_toggle_on, "k2ex_toggle_on")
+		(IK2EXSoundType::k2ex_sound_flip_toggle_off, "k2ex_toggle_off")
 		(IK2EXSoundType::k2ex_sound_server_error, "k2ex_server_error")
 		(IK2EXSoundType::k2ex_sound_kinect_error, "k2ex_kinect_error");
 
