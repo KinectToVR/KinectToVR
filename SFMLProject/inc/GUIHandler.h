@@ -509,33 +509,42 @@ public:
 
 	void ping_InitTrackers()
 	{
-		if (!KinectSettings::initialised && // If not done yet
-			VirtualHips::settings.AutoStartTrackers && KinectSettings::isDriverPresent)
+		if // If at least one tracker is enabled
+			(
+				KinectSettings::EnabledTrackersSave[0] ||
+				KinectSettings::EnabledTrackersSave[2] ||
+				KinectSettings::EnabledTrackersSave[1])
 		{
-			auto st = new std::thread([this]
-				{
-					std::this_thread::sleep_for(std::chrono::seconds(3));
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
-					TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-					spawnDefaultLowerBodyTrackers();
+			if (!KinectSettings::initialised && // If not done yet
+				VirtualHips::settings.AutoStartTrackers && // If AutoStart
+				KinectSettings::isDriverPresent) // If driver's ok
+			{
+				auto st = new std::thread([this]
+					{
+						std::this_thread::sleep_for(std::chrono::seconds(3));
+						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
+						TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+						spawnDefaultLowerBodyTrackers();
 
-					showPostTrackerInitUI();
+						showPostTrackerInitUI();
 
-					TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+						TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-					modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
-					TDegreeButton->SetValue(KinectSettings::cpoints);
-					TrackersConfigSaveButton->Show(true);
-					TrackersCalibButton->Show(true);
-					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
+						modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
+						TDegreeButton->SetValue(KinectSettings::cpoints);
+						TrackersCalibButton->Show(true);
+						expcalibbutton->Show(!KinectSettings::isKinectPSMS);
 
-					KinectSettings::initialised = true;
-				});
+						KinectSettings::initialised = true;
+					});
+			}
+			else if (!KinectSettings::isDriverPresent)
+				LOG(INFO) << "Not autospawning trackers as the server is not yet connected.";
+			else if (KinectSettings::initialised)
+				LOG(INFO) << "Not autospawning trackers as they are already initialised.";
 		}
-		else if (!KinectSettings::isDriverPresent)
-			LOG(INFO) << "Not autospawning trackers as the server is not yet connected.";
-		else if (KinectSettings::initialised)
-			LOG(INFO) << "Not autospawning trackers as they are already initialised.";
+		else
+			LOG(ERROR) << "Not autospawning trackers as no one is enabled.";
 	}
 
 	void setTrackerButtonSignals(vr::IVRSystem*& m_VRSystem)
@@ -554,22 +563,31 @@ public:
 						// Spawn
 					}
 					*/
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
-					TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-					spawnDefaultLowerBodyTrackers();
+					if // If at least one tracker is enabled
+						(
+							KinectSettings::EnabledTrackersSave[0] ||
+							KinectSettings::EnabledTrackersSave[2] ||
+							KinectSettings::EnabledTrackersSave[1])
+					{
+						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
+						TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+						spawnDefaultLowerBodyTrackers();
 
-					showPostTrackerInitUI();
+						showPostTrackerInitUI();
 
-					TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+						TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-					modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
-					TDegreeButton->SetValue(KinectSettings::cpoints);
-					TrackersConfigSaveButton->Show(true);
-					TrackersCalibButton->Show(true);
-					expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
+						modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
+						TDegreeButton->SetValue(KinectSettings::cpoints);
+						TrackersCalibButton->Show(true);
+						expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
 
-					KinectSettings::initialised = true;
+						KinectSettings::initialised = true;
+					}
+					else
+						LOG(ERROR) << "Not spawning trackers as no one is enabled.";
 				}
+				// We can turn them off if none are enabled though
 				else
 				{
 					KinectSettings::initialised = false;
