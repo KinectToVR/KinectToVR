@@ -1294,6 +1294,7 @@ public:
 
 				settings.CalibrationPointsNumber = TDegreeButton->GetValue();
 				KinectSettings::cpoints = TDegreeButton->GetValue();
+				saveSettings();
 			}
 		);
 		VirtualHipFollowHMDLean->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
