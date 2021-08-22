@@ -752,10 +752,7 @@ public:
 
 		mainGUIBox->Pack(modeTitleBox110);
 		modeTitleBox110->Show(false);
-
-		mainGUIBox->Pack(TrackersConfigSaveButton);
-		TrackersConfigSaveButton->Show(false);
-
+		
 		mainGUIBox->Pack(sfg::Label::Create(""));
 		mainGUIBox->Pack(sfg::Label::Create(""));
 		mainGUIBox->Pack(sfg::Label::Create(""));
@@ -1295,13 +1292,7 @@ public:
 				saveSettings();
 			}
 		);
-
-		TrackersConfigSaveButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
-			{
-				saveSettings();
-			}
-		);
-
+		
 		expcalibbutton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
 			{
 				KinectSettings::expcalib = !KinectSettings::expcalib;
@@ -2014,7 +2005,6 @@ private:
 		sfg::Adjustment::Create(VirtualHips::settings.HeightFromHMD, 2, 11, 1.f));
 
 	sfg::Button::Ptr VirtualHipConfigSaveButton = sfg::Button::Create("Save Settings");
-	sfg::Button::Ptr TrackersConfigSaveButton = sfg::Button::Create("Save Settings");
 
 	sfg::Button::Ptr HeadTrackingStartButton = sfg::Button::Create("Start Head Tracking");
 	sfg::Button::Ptr HeadTrackingCalibButton = sfg::Button::Create("Calibration: Look at Kinect and stand still");
