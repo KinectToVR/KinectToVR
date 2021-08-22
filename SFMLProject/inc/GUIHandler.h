@@ -439,15 +439,7 @@ public:
 		} 		while (m_VRSystem == nullptr); // Potential Segfault if not actually initialised and used later on
 		LOG(INFO) << "(Workaround/Hack) Successfully loaded K2VR into bindings menu!";
 	}
-
-	void setVRSceneChangeButtonSignal(vr::IVRSystem*& m_VRSystem)
-	{
-		ActivateVRSceneTypeButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this, &m_VRSystem]
-			{
-				loadK2VRIntoBindingsMenu(m_VRSystem);
-			});
-	}
-
+	
 	void refreshpsms()
 	{
 		psmovebox_left->Clear();
@@ -1011,11 +1003,7 @@ public:
 		verticalBox->Pack(sfg::Label::Create(" "));
 
 		verticalBox->Pack(CalibrationSaveButton);
-
-		verticalBox->Pack(sfg::Label::Create(" "));
-
-		verticalBox->Pack(ActivateVRSceneTypeButton);
-
+		
 		calibrationBox->Pack(verticalBox);
 	}
 
@@ -1957,7 +1945,6 @@ private:
 		sfg::Adjustment::Create(KinectSettings::manual_offsets[1][2].v[2], -360.f, 360.f, .01f, .2f));
 
 	sfg::Button::Ptr CalibrationSaveButton = sfg::Button::Create("Save Calibration Values");
-	sfg::Button::Ptr ActivateVRSceneTypeButton = sfg::Button::Create("Show K2VR in the VR Bindings Menu!");
 
 	// Trackers --- W, L, R
 	sfg::Button::Ptr DisableTrackerButton[3] = {
