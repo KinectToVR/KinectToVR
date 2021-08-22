@@ -1,7 +1,6 @@
-﻿#pragma once
+#pragma once
 #include <boost/asio.hpp>
 #include <boost/lexical_cast.hpp>
-#include "VRController.h"
 #include <atlbase.h>
 #include "KinectSettings.h"
 #include "KinectHandlerBase.h"
@@ -593,35 +592,7 @@ public:
 		//Initialise trackers if $(Conditions)
 		ping_InitTrackers();
 	}
-
-	void setReconnectControllerButtonSignal(VRcontroller& left, VRcontroller& right, vr::IVRSystem*& sys
-	)
-	{
-		ReconControllersButton->GetSignal(sfg::Button::OnLeftClick).Connect([&left, &right, &sys, this]
-			{
-				std::stringstream stream;
-				stream <<
-					"If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.\n";
-				if (right.Connect(sys))
-				{
-					stream << "RIGHT: OK!\t";
-				}
-				else
-				{
-					stream << "RIGHT: DISCONNECTED!\t";
-				}
-				if (left.Connect(sys))
-				{
-					stream << "LEFT: OK!\t";
-				}
-				else
-				{
-					stream << "LEFT: DISCONNECTED!\t";
-				}
-				ReconControllersLabel->SetText(stream.str());
-			});
-	}
-
+	
 	vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix)
 	{
 		vr::HmdQuaternion_t q;
@@ -777,7 +748,6 @@ public:
 
 		auto recBox = sfg::Box::Create(sfg::Box::Orientation::HORIZONTAL);
 		recBox->Pack(reconKinectButton);
-		recBox->Pack(ReconControllersButton);
 
 		mainGUIBox->Pack(recBox);
 		mainGUIBox->Pack(TrackerInitButton);
@@ -1934,12 +1904,7 @@ private:
 	sfg::Label::Ptr KinectPosLabel = sfg::Label::Create(
 		"Calibrate the position of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
 	sfg::CheckButton::Ptr KinectPosButton = sfg::CheckButton::Create("Enable Kinect Position Calibration");
-
-	// Controllers
-	sfg::Label::Ptr ReconControllersLabel = sfg::Label::Create(
-		"If controller input isn't working, press this to reconnect them.\n Make sure both are on, and not in standby.");
-	sfg::Button::Ptr ReconControllersButton = sfg::Button::Create("Reconnect VR Controllers");
-
+	
 	sfg::Label::Ptr CalibrationSettingsLabel = sfg::Label::Create(
 		"This tab allows you to (manually) offset every one of your trackers. It will aeffect real calibration values, but it will not change them directly.\nYou may need it for example when your right foot will be upper than left, etc.\nRotation is in degrees and position is declared in meters.");
 	sfg::Label::Ptr CalibrationrPosLabel = sfg::Label::Create("Right Foot Position x, y, z");
@@ -2079,8 +2044,6 @@ private:
 		KinectRotButton->Show(show);
 		KinectPosLabel->Show(show);
 		KinectPosButton->Show(show);
-		ReconControllersLabel->Show(show);
-		ReconControllersButton->Show(show);
 		HipScale->Show(show);
 		HipScaleBox->Show(show);
 		calibrateOffsetButton->Show(show);

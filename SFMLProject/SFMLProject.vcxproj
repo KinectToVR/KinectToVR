@@ -238,7 +238,6 @@ xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(C
     <ClInclude Include="inc\SteamEVRInput.h" />
     <ClInclude Include="inc\TypeCast.h" />
     <ClInclude Include="inc\VectorMath.h" />
-    <ClInclude Include="inc\VRController.h" />
     <ClInclude Include="inc\VRDeviceHandler.h" />
     <ClInclude Include="inc\VRHelper.h" />
     <ClInclude Include="MathEigen.h" />

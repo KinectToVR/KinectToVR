@@ -4,7 +4,6 @@
 #include "VRHelper.h"
 
 #include "KinectSettings.h"
-#include "VRController.h"
 #include "GUIHandler.h"
 #include "VRDeviceHandler.h"
 #include "PSMoveHandler.h"
@@ -648,10 +647,7 @@ void processLoop(KinectHandlerBase& kinect)
 		guiRef.updateKinectStatusLabel(kinect);
 		// Reconnect Kinect Event Signal
 		guiRef.setKinectButtonSignal(kinect);
-
-		VRcontroller rightController(vr::TrackedControllerRole_RightHand);
-		VRcontroller leftController(vr::TrackedControllerRole_LeftHand);
-
+		
 		// Initialise the VR Device Handler (For settings)
 		VRDeviceHandler vrDeviceHandler(m_VRSystem);
 		if (eError == vr::VRInitError_None)
@@ -685,8 +681,7 @@ void processLoop(KinectHandlerBase& kinect)
 				KinectSettings::trackingOriginPosition.v[1] << ", " <<
 				KinectSettings::trackingOriginPosition.v[2] << ", " <<
 				KinectSettings::svrhmdyaw << "RAD";
-
-			guiRef.setVRSceneChangeButtonSignal(m_VRSystem);
+			
 			updateTrackerInitGuiSignals(guiRef, m_VRSystem);
 
 			// guiRef.loadK2VRIntoBindingsMenu(m_VRSystem);
