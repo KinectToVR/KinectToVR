@@ -699,7 +699,7 @@ namespace KinectSettings
 						{
 							// Remove the pitch angle
 							// Grab original orientations and make them euler angles
-							Eigen::Vector3f waist_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[0]);
+							Eigen::Vector3f waist_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[2]);
 
 							// Remove pitch from eulers and apply to the parent
 							waist_tracker_rot = EigenUtils::EulersToQuat(
