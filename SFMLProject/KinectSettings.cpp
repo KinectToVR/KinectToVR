@@ -188,10 +188,10 @@ namespace KinectSettings
 			/*****************************************************************************************/
 			// Compute poses and update trackers if we're running okay
 			/*****************************************************************************************/
-			
+
 			if (// If the server is not crashed
 				!isServerFailure
-				 // If trackers are AFTER spawn
+				// If trackers are AFTER spawn
 				&& spawned) {
 
 				// RAW poses/oris are ones provided by kinect,
@@ -209,7 +209,7 @@ namespace KinectSettings
 						right_foot_psmove.Pose.Position.y,
 						right_foot_psmove.Pose.Position.z);
 					waist_raw_pose = .01f * Eigen::Vector3f(
-						waist_psmove.Pose.Position.x, 
+						waist_psmove.Pose.Position.x,
 						waist_psmove.Pose.Position.y,
 						waist_psmove.Pose.Position.z);
 
@@ -436,7 +436,7 @@ namespace KinectSettings
 								|| right_tracker_rot_wyaw_vector.z() <= -1.f))
 
 							right_tracker_rot_wyaw_vector.y() += M_PI;
-
+						
 						/****************************************************/
 
 						// Apply to the base
@@ -512,6 +512,43 @@ namespace KinectSettings
 						left_tracker_rot = trackerSoftRot[1].inverse();
 						right_tracker_rot = trackerSoftRot[0].inverse();
 					}
+
+					// Grab original orientations and make them euler angles
+					Eigen::Vector3f left_ori_vector = EigenUtils::QuatToEulers(left_tracker_rot);
+					Eigen::Vector3f right_ori_vector = EigenUtils::QuatToEulers(right_tracker_rot);
+					
+					// Kind of a solution for flipping at too big X.
+					// Found out during testing,
+					// no other known mathematical reason (maybe except gimbal lock)
+
+					/****************************************************/
+
+					if (left_ori_vector.y() <= 0.f
+						&& left_ori_vector.y() >= -1.f
+
+						&& left_ori_vector.z() <= -1.f
+						&& left_ori_vector.z() >= -M_PI)
+
+						left_ori_vector.y() += -M_PI;
+
+					/****************************************************/
+
+					if (right_ori_vector.y() <= 0.f
+						&& right_ori_vector.y() >= -1.f
+
+						&& right_ori_vector.z() <= -1.f
+						&& right_ori_vector.z() >= -M_PI)
+
+						right_ori_vector.y() += -M_PI;
+
+					/****************************************************/
+
+					// Apply to the base
+					left_tracker_rot = EigenUtils::EulersToQuat(
+						left_ori_vector);
+
+					right_tracker_rot = EigenUtils::EulersToQuat(
+						right_ori_vector);
 				}
 
 				// MATH-BASED + DISABLE_YAW
@@ -640,7 +677,7 @@ namespace KinectSettings
 							autoCalibration ? (-M_PI / 10.0) : (-M_PI / 12.0) /*M_PI / 11.0*/,
 							M_PI /*(autoCalibration ? M_PI : 0.f)*/,
 							M_PI /*(autoCalibration ? M_PI : 0.f)*/)); // Turn around Y and Z + pitchShift
-					
+
 					// Temporary holder for the quaternion to begin
 					Eigen::Quaternionf temp_orientation[3] = {
 						left_tracker_rot,
@@ -677,7 +714,7 @@ namespace KinectSettings
 							// Grab original orientations and make them euler angles
 							Eigen::Vector3f left_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[0]);
 							Eigen::Vector3f right_ori_with_yaw = EigenUtils::QuatToEulers(temp_orientation[1]);
-							
+
 							// Remove pitch from eulers and apply to the parent
 							left_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
@@ -764,12 +801,12 @@ namespace KinectSettings
 								rfoot_euler.y(),
 								(flip ? -1.f : 1.f) * rfoot_euler.z()));
 
-						left_tracker_rot = 
+						left_tracker_rot =
 							EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
-									0.f, 
-									glm::radians(2.f * calibration_trackers_yaw), 
-									0.f)) * 
+									0.f,
+									glm::radians(2.f * calibration_trackers_yaw),
+									0.f)) *
 							left_tracker_rot;
 
 						right_tracker_rot =
@@ -803,7 +840,7 @@ namespace KinectSettings
 				/*****************************************************************************************/
 				// Modify the orientation, add the calibration yaw value (Look At Kinect, even if artificial)
 				/*****************************************************************************************/
-				
+
 				/*****************************************************************************************/
 				// Modify the orientation, add the calibration pitch value (Kinect perspective, even if artificial)
 				/*****************************************************************************************/
@@ -929,7 +966,7 @@ namespace KinectSettings
 					trackerVector.at(0).updatePositionFilters();
 					trackerVector.at(1).updatePositionFilters();
 					trackerVector.at(2).updatePositionFilters();
-					
+
 					// Update pose w/ filtering
 					// WAIST TRACKER (NF_0)
 					if (EnabledTrackersSave[0]) {
@@ -1049,11 +1086,11 @@ namespace KinectSettings
 				/*****************************************************************************************/
 
 			}
-			
+
 			/*****************************************************************************************/
 			// Compute poses and update trackers if we're running okay
 			/*****************************************************************************************/
-			
+
 			// Wait until certain loop time has passed
 			if (auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(
 				std::chrono::high_resolution_clock::now() - loop_start_time).count();
@@ -1198,7 +1235,7 @@ namespace KVR
 			nullptr);
 		return std::wstring(_wgetenv(L"APPDATA")) + L"\\KinectToVR\\" + relativeFilePath;
 	}
-	
+
 	std::wstring ToUTF16(const std::string& data)
 	{
 		return std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(data);
