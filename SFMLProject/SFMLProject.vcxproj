@@ -182,6 +182,7 @@ xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(C
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <UndefinePreprocessorDefinitions>
       </UndefinePreprocessorDefinitions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
