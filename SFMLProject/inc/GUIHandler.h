@@ -193,20 +193,10 @@ public:
 
 		auto errorCode = psMoveHandler.initialise();
 
-		if (psMoveHandler.active)
-		{
-			static bool addedToVector = false;
-			if (!addedToVector)
-			{
-				v_deviceHandlersRef->push_back(std::make_unique<PSMoveHandler>(psMoveHandler));
-				addedToVector = true;
-				PSMoveHandlerLabel->SetText("Status: Connected!");
-			}
-		}
-		else
-		{
-			PSMoveHandlerLabel->SetText(psMoveHandler.connectionMessages[errorCode]);
-		}
+		PSMoveHandlerLabel->SetText(
+			psMoveHandler.active ?
+			"PSMoveService (Status: Connected!)" :
+			(std::string("PSMoveService (Status: ") + psMoveHandler.connectionMessages[errorCode] + ")"));
 	}
 
 	void setDefaultSignals()
@@ -1855,7 +1845,6 @@ private:
 	sfg::SFGUI sfguiRef;
 	sfg::Window::Ptr guiWindow = sfg::Window::Create();
 	sfg::Notebook::Ptr mainNotebook = sfg::Notebook::Create();
-	std::vector<std::unique_ptr<DeviceHandler>>* v_deviceHandlersRef;
 
 	// All the device handlers
 	PSMoveHandler psMoveHandler;
