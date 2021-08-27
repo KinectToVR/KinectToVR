@@ -832,10 +832,16 @@ private:
 		if (success)
 		{
 			loadTrackingCalibration();
+			LOG(INFO) << "Tracking Calibration (Dummy) loaded.";
 
 			rebuildControllerList();
+			LOG(INFO) << "Controller List has been rebuilt.";
+
 			rebuildTrackerList();
+			LOG(INFO) << "Tracker List has been rebuilt.";
+
 			rebuildHmdList();
+			LOG(INFO) << "HMD List has been rebuilt.";
 
 			// Register as listener and start stream for each controller
 			unsigned int data_stream_flags =
@@ -848,12 +854,17 @@ private:
 			{
 				for (int i = 0; i < controllerList.count; ++i)
 				{
+					LOG(INFO) << "Allocating controller with ID " << i << " into its listener...";
+
 					// In order for the controllers to report more than their IMU stuff, and turn on the light, they all have to go through this
 					if (PSM_AllocateControllerListener(controllerList.controller_id[i]) != PSMResult_Success)
 						success = false;
 					if (PSM_StartControllerDataStream(controllerList.controller_id[i], data_stream_flags,
 					                                  PSM_DEFAULT_TIMEOUT) != PSMResult_Success)
 						success = false;
+
+					if(success)
+					LOG(INFO) << "Allocated controller with ID " << i;
 				}
 			}
 			else
