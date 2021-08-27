@@ -163,11 +163,11 @@ public:
 	{
 		if (psMoveHandler.active)
 		{
-			PSMoveHandlerLabel->SetText("Status: Connected!");
+			PSMoveHandlerLabel->SetText("PSMoveService (Status: Connected!)");
 		}
 		else
 		{
-			PSMoveHandlerLabel->SetText("Status: Disconnected!");
+			PSMoveHandlerLabel->SetText("PSMoveService (Status: Disconnected!)");
 		}
 
 		StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
@@ -179,7 +179,7 @@ public:
 				if (!psMoveHandler.active)
 					return;
 				psMoveHandler.shutdown();
-				PSMoveHandlerLabel->SetText("Status: Disconnected!");
+				PSMoveHandlerLabel->SetText("PSMoveService (Status: Disconnected!)");
 			});
 	}
 
@@ -791,7 +791,7 @@ public:
 			horizontalPSMBox->Pack(StartPSMoveHandler);
 			horizontalPSMBox->Pack(StopPSMoveHandler);
 
-			advancedTrackerBox->Pack(sfg::Label::Create("PSMoveSerive handler"));
+			advancedTrackerBox->Pack(PSMoveHandlerLabel);
 			advancedTrackerBox->Pack(horizontalPSMBox);
 		}
 
@@ -2006,7 +2006,7 @@ private:
 
 	sfg::Button::Ptr StartPSMoveHandler = sfg::Button::Create("Run PS Move Handler");
 	sfg::Button::Ptr StopPSMoveHandler = sfg::Button::Create("Stop PS Move Handler");
-	sfg::Label::Ptr PSMoveHandlerLabel = sfg::Label::Create("Status: Off");
+	sfg::Label::Ptr PSMoveHandlerLabel = sfg::Label::Create("PSMoveService (Status: Off)");
 
 	// Virtual Hips Box
 	sfg::CheckButton::Ptr VirtualHipUseHMDYawButton = sfg::CheckButton::Create("Yaw");
