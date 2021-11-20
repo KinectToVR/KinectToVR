@@ -333,7 +333,7 @@ namespace KinectSettings
 					waist_tracker_rot = Eigen::Quaternionf(1, 0, 0, 0);
 
 				// If we want to use head yaw for tracker, let it use
-				else if (hips_rotation_option == k_EnableOrientationFilter_HeadOrientation)
+				else if (hips_rotation_option == k_EnableHipsOrientationFilter_HeadOrientation)
 				{
 					Eigen::Quaternionf hmdYawQuaternion = EigenUtils::EulersToQuat(
 						Eigen::Vector3f(0.f, hmdYaw, 0.f));
