@@ -837,6 +837,33 @@ namespace KinectSettings
 					waist_tracker_rot = move_ori_offset[2].inverse() * waist_tracker_rot;
 				}
 
+
+				/*****************************************************************************************/
+				// Fix waist orientation in flip: tracker is rotated by pi in roll
+				//     and slightly rotated in pitch. Pitch is fault of kinect being high
+				//     and resolved either by a constant for autoc or by user for manualc.
+				//     Origin of flipping in roll is still unknown.
+				/*****************************************************************************************/
+
+				if (flip && hips_rotation_option == k_EnableHipsOrientationFilter &&
+					positional_tracking_option == k_KinectFullTracking)
+				{
+					// Pitch offset quaternion for hips
+					Eigen::Quaternionf waist_ori_f = 
+						EigenUtils::EulersToQuat(Eigen::Vector3f(autoCalibration ? -M_PI / 3.6 : -calibration_kinect_pitch, 0., M_PI));
+
+					waist_tracker_rot *= waist_ori_f;
+				}
+
+
+				/*****************************************************************************************/
+				// Fix waist orientation in flip: tracker is rotated by pi in roll
+				//     and slightly rotated in pitch. Pitch is fault of kinect being high
+				//     and resolved either by a constant for autoc or by user for manualc.
+				//     Origin of flipping in roll is still unknown.
+				/*****************************************************************************************/
+
+				
 				/*****************************************************************************************/
 				// Modify the orientation, add the calibration yaw value (Look At Kinect, even if artificial)
 				/*****************************************************************************************/
