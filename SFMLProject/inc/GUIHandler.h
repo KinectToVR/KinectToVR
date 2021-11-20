@@ -50,6 +50,8 @@ public:
 	sfg::Button::Ptr toggleFlipButton = sfg::Button::Create("Enable/Disable 'Flip' [CURRENT: ENABLED]");
 	sfg::Button::Ptr toggleSoundsButton = sfg::Button::Create("Enable/Disable Sounds [CURRENT: ENABLED]");
 
+	sfg::Button::Ptr configResetButton = sfg::Button::Create("Reset configuration and restart K2EX");
+
 	GUIHandler()
 	{
 		guiWindow->SetTitle("KinectToVR EX 0.8.1");
@@ -869,6 +871,9 @@ public:
 		// Pack sound toggle
 		advancedTrackerBox->Pack(sfg::Label::Create(" "));
 		advancedTrackerBox->Pack(toggleSoundsButton);
+		
+		// Pack reset button
+		advancedTrackerBox->Pack(configResetButton);
 	}
 
 	void packElementsIntoTrackersBox()
@@ -1201,6 +1206,49 @@ public:
 					VirtualHips::settings.SoundsEnabled ?
 					"Enable/Disable Sounds [CURRENT: ENABLED]" :
 					"Enable/Disable Sounds [CURRENT: DISABLED]");
+			});
+
+		configResetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
+			{
+				// Literals
+				using namespace std::string_literals;
+			
+				// Erase (delete) KinectSettings
+				DeleteFile(KVR::fileToDirPath(KinectSettings::CFG_NAME).c_str());
+				// Erase (delete) Global Settings
+				DeleteFile(KVR::fileToDirPath(VirtualHips::settingsConfig).c_str());
+
+				// Get current caller path
+				LPSTR fileName = new CHAR[MAX_PATH + 1];
+				DWORD charsWritten = GetModuleFileNameA(NULL, fileName, MAX_PATH + 1);
+
+				// If we've found who asked
+				if (charsWritten != 0) {
+
+					// Compose the restart command: sleep 3 seconds and start the same process
+					const std::string _cmd =
+						"powershell Start-Process powershell -ArgumentList 'Start-Sleep -Seconds 3; " + 
+						"Start-Process -WorkingDirectory (Split-Path -Path (Resolve-Path \""s +
+						fileName +
+						"\")) -filepath \"" +
+						fileName +
+						"\"' -WindowStyle hidden";
+
+					// Log the caller
+					LOG(INFO) << "The current caller process is: "s + fileName;
+					LOG(INFO) << "Restart command used: "s + _cmd;
+
+					// Restart the app
+					if (system(_cmd.c_str()) < 0)
+					{
+						LOG(ERROR) << "App will not be restarted due to new process creation error.";
+					}
+				}
+				else LOG(ERROR) << "App will not be restarted due to caller process identification error.";
+
+				// Exit the app
+				LOG(INFO) << "Configuration has been reset, exiting...";
+				exit(-1);
 			});
 
 		for (int i = 0; i < 3; i++) {
