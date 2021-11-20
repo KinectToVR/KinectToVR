@@ -292,9 +292,9 @@ namespace KinectSettings
 				//               |
 
 				// NOTE! I'm using:
-				// Pitch for rotation around +x
-				// Yaw for rotation around +y (yes, +)
-				// Roll for rotation around +z
+				// Pitch for rotation around +x (right)
+				// Yaw for rotation around +y (up)
+				// Roll for rotation around +z (front)
 				// Just get used to it
 
 				// Disable flipping when we're in PSMS mode
