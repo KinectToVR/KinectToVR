@@ -144,6 +144,8 @@ inline std::string ws2s(const std::wstring& utf16Str)
 
 namespace KinectSettings
 {
+	extern const std::wstring CFG_NAME;
+	
 	static struct K2VR_PSMoveData
 	{
 		PSMPSMove PSMoveData;
