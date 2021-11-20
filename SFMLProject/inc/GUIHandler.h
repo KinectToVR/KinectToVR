@@ -1048,6 +1048,27 @@ public:
 			else {
 				updateKinectStatusLabelDisconnected();
 				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_kinect_error);
+
+				// Wait 2 seconds and try to reconnect (only once) in background
+				if (!alreadyTriedReconnecting)
+					std::thread([&]
+						{
+							// Wait 2 seconds
+							std::this_thread::sleep_for(std::chrono::seconds(2));
+
+							// Log this one
+							LOG(INFO) << "Kinect not detected! Automatically reconnecting (once) now...";
+
+							// Same source as in reconKinectButton->GetSignal
+							kinect.initialise();
+							KinectSettings::reconnecting = true;
+							alreadyTriedReconnecting = true;
+
+							std::thread([&] {
+								std::this_thread::sleep_for(std::chrono::seconds(3));
+								updateKinectStatusLabel(kinect);
+								}).detach();
+						}).detach();
 			}
 
 			LOG(INFO) << "Kinect Status updated to: " << KinectStatusLabel->GetText().toAnsiString();
@@ -1893,6 +1914,9 @@ private:
 	sfg::SFGUI sfguiRef;
 	sfg::Window::Ptr guiWindow = sfg::Window::Create();
 	sfg::Notebook::Ptr mainNotebook = sfg::Notebook::Create();
+
+	// For the kinect second try (re)connect
+	bool alreadyTriedReconnecting = false;
 
 	// All the device handlers
 	PSMoveHandler psMoveHandler;
