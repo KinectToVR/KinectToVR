@@ -1,0 +1,468 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+
+# Strategy of workflow:
+# - setup vcpkg
+# - install or restore all libraries at once, save them
+# - build ktvr & k2ex
+# - upload artifacts
+# Build and vcpkg base caches are one-time
+# First run time: ~1h, next ~25min
+
+# The Windows orb gives you everything you
+# need to start using the Windows executor.
+orbs:
+  win: circleci/windows@2.4.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
+jobs:
+  prepare:
+    executor: win/default
+
+    steps:
+      - checkout
+
+      - run:
+          name: Setup tools
+          command: |
+              choco install cmake --installargs 'ADD_CMAKE_TO_PATH=User'
+              choco install 7zip.install
+              choco install sed
+
+      - run:
+          name: Setup vcpkg
+          command: |
+              git clone https://github.com/microsoft/vcpkg vcpkg
+              vcpkg/bootstrap-vcpkg.bat
+              vcpkg/vcpkg.exe integrate install
+              
+      - save_cache:
+          name: Cache dependencies
+          key: prep_cache-{{ .Revision }}
+          paths:
+              - C:/ProgramData/chocolatey
+              - C:/Users/circleci/project
+              - C:/Users/circleci/project/vcpkg
+              - C:/Users/circleci/project/vcpkg/scripts
+              - C:/Program Files/CMake
+
+  setup-opencv:
+    executor: win/default
+
+    steps:
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+
+      - restore_cache:
+          keys:
+              - opencv_cache
+
+      - run:
+          name: Setup OpenCV
+          no_output_timeout: 40m
+          command: |
+              vcpkg/bootstrap-vcpkg.bat
+              vcpkg/vcpkg.exe install opencv3[world]:x64-windows
+
+      - run:
+          name: Clear vcpkg buildtrees
+          command: |
+              Get-ChildItem "vcpkg/buildtrees" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+              Get-ChildItem "vcpkg/downloads" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+
+      - save_cache:
+          name: Cache dependencies
+          key: opencv_cache
+          paths:
+              - C:/Users/circleci/project/vcpkg
+              - C:/Users/circleci/project/vcpkg/scripts
+              - C:/Users/circleci/project/vcpkg/installed
+              - C:/Users/circleci/project/vcpkg/packages
+              - C:/Users/circleci/project/vcpkg/ports
+
+  setup-boost:
+    executor: win/default
+
+    steps:
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+
+      - restore_cache:
+          keys:
+              - boost_cache
+
+      - run:
+          name: Setup Boost
+          no_output_timeout: 40m
+          command: |
+              vcpkg/bootstrap-vcpkg.bat
+              vcpkg/vcpkg.exe install boost:x64-windows
+      
+      - run:
+          name: Clear vcpkg buildtrees
+          command: |
+              Get-ChildItem "vcpkg/buildtrees" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+              Get-ChildItem "vcpkg/downloads" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+
+      - save_cache:
+          name: Cache dependencies
+          key: boost_cache
+          paths:
+              - C:/Users/circleci/project/vcpkg
+              - C:/Users/circleci/project/vcpkg/scripts
+              - C:/Users/circleci/project/vcpkg/installed
+              - C:/Users/circleci/project/vcpkg/packages
+              - C:/Users/circleci/project/vcpkg/ports
+
+  setup-logic:
+    executor: win/default
+
+    steps:
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+              
+      - restore_cache:
+          keys:
+              - logic_cache
+
+      - run:
+          name: Setup GLM, cURLpp, Cereal
+          command: |
+              vcpkg/bootstrap-vcpkg.bat
+              vcpkg/vcpkg.exe install glm:x64-windows curlpp:x64-windows cereal:x64-windows
+
+      - run:
+          name: Clear vcpkg buildtrees
+          command: |
+              Get-ChildItem "vcpkg/buildtrees" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+              Get-ChildItem "vcpkg/downloads" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+
+
+      - save_cache:
+          name: Cache dependencies
+          key: logic_cache
+          paths:
+              - C:/Users/circleci/project/vcpkg
+              - C:/Users/circleci/project/vcpkg/scripts
+              - C:/Users/circleci/project/vcpkg/installed
+              - C:/Users/circleci/project/vcpkg/packages
+              - C:/Users/circleci/project/vcpkg/ports
+
+  setup-ui:
+    executor: win/default
+
+    steps:
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+              
+      - restore_cache:
+          keys:
+              - ui_cache
+
+      - run:
+          name: Setup GLew, SFML
+          command: |
+              vcpkg/bootstrap-vcpkg.bat
+              vcpkg/vcpkg.exe install glew:x64-windows sfml:x64-windows
+
+      - run:
+          name: Clear vcpkg buildtrees
+          command: |
+              Get-ChildItem "vcpkg/buildtrees" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+              Get-ChildItem "vcpkg/downloads" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+
+
+      - save_cache:
+          name: Cache dependencies
+          key: ui_cache
+          paths:
+              - C:/Users/circleci/project/vcpkg
+              - C:/Users/circleci/project/vcpkg/scripts
+              - C:/Users/circleci/project/vcpkg/installed
+              - C:/Users/circleci/project/vcpkg/packages
+              - C:/Users/circleci/project/vcpkg/ports
+
+  setup-glog:
+    executor: win/default
+
+    steps:
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+              
+      - restore_cache:
+          keys:
+              - glog_cache
+
+      - run:
+          name: Setup GLog
+          command: |
+              If (-Not (Test-Path -Path C:/Users/circleci/project/external/glog)) { `
+              git clone https://github.com/google/glog.git external/glog; `
+              cd external/glog; `
+              git reset --hard f8c8e99fdfb998c2ba96cfb470decccf418f0b30; `
+              mkdir vcbuild; cd vcbuild; `
+              &"C:/Program Files/CMake/bin/cmake.exe" .. -DBUILD_SHARED_LIBS=ON; `
+              msbuild glog.vcxproj "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0" `
+              }
+
+      - run:
+          name: Setup GFlags
+          command: |
+              If (-Not (Test-Path -Path C:/Users/circleci/project/external/gflags)) { `
+              git clone https://github.com/gflags/gflags.git external/gflags; `
+              cd external/gflags; `
+              git reset --hard 827c769e5fc98e0f2a34c47cef953cc6328abced; `
+              mkdir vcbuild; cd vcbuild; `
+              &"C:/Program Files/CMake/bin/cmake.exe" .. -DBUILD_SHARED_LIBS=ON; `
+              msbuild gflags.vcxproj "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0" `
+              }
+
+      - save_cache:
+          name: Cache dependencies
+          key: glog_cache
+          paths:
+              - C:/Users/circleci/project/external/glog
+              - C:/Users/circleci/project/external/gflags
+
+  setup-kinect:
+    executor: win/default
+
+    steps:
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+              
+      - restore_cache:
+          keys:
+              - kinect_cache
+
+      - run:
+          name: Install Kinect SDKs
+          command: |
+              vcpkg/bootstrap-vcpkg.bat
+              vcpkg/vcpkg.exe install kinectsdk1:x64-windows
+              vcpkg/vcpkg.exe install kinectsdk2:x64-windows
+
+      - run:
+          name: Clear vcpkg buildtrees
+          command: |
+              Get-ChildItem "vcpkg/buildtrees" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+              Get-ChildItem "vcpkg/downloads" -ErrorAction SilentlyContinue | Remove-Item -Force -Recurse
+
+      - save_cache:
+          name: Cache dependencies
+          key: kinect_cache
+          paths:
+              - C:/Users/circleci/project/vcpkg
+
+  setup-clone:
+    executor: win/default
+
+    steps:
+      # Each cache is restored separately due to undefined behaviour
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+
+      - restore_cache:
+          keys:
+              - ui_cache
+
+      - restore_cache:
+          keys:
+              - clone_cache
+
+      - run:
+          name: Setup non-vcpkg dependencies
+          command: |
+              If (-Not (Test-Path -Path C:/Users/circleci/project/external/openvr)) { git clone https://github.com/ValveSoftware/openvr external/openvr }
+              If (-Not (Test-Path -Path C:/Users/circleci/project/external/eigen)) { git clone https://gitlab.com/libeigen/eigen.git external/eigen }
+              If (-Not (Test-Path -Path C:/Users/circleci/project/external/glm)) { git clone https://github.com/g-truc/glm external/glm }
+              If (-Not (Test-Path -Path C:/Users/circleci/project/external/SFGUI)) { git clone https://github.com/KimihikoAkayasaki/SFGUI external/SFGUI }
+
+      - run:
+          name: Fix MIN/MAX error in GLM
+          command: |
+              sed -i '/#include <limits>/c\#include <limits>\n\n#undef min\n#undef max' external/glm/glm/gtx/component_wise.inl
+            
+      - run:
+          name: Setup and build SFGUI
+          command: |
+              sed -i '/        set_target_properties(${name} PROPERTIES VS_GLOBAL_VcpkgEnabled false)/c\        set_target_properties(${name} PROPERTIES VS_GLOBAL_VcpkgEnabled true)\n        set_target_properties(${name} PROPERTIES VS_GLOBAL_VcpkgTriplet ${VCPKG_TARGET_TRIPLET})' vcpkg/scripts/buildsystems/vcpkg.cmake
+
+              cd external/SFGUI
+              sed -i '/#find_package( SFML 2.5 REQUIRED COMPONENTS graphics window system )/c\find_package( SFML 2.5 REQUIRED COMPONENTS graphics window system PATHS C:/Users/circleci/project/vcpkg/packages/sfml_x64-windows )' CMakeLists.txt
+
+              mkdir build
+              cd build
+              &"C:/Program Files/CMake/bin/cmake.exe" .. -DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_TOOLCHAIN_FILE="C:/Users/circleci/project/vcpkg/scripts/buildsystems/vcpkg.cmake"
+              msbuild SFGUI.vcxproj "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+
+      - save_cache:
+          name: Cache dependencies
+          key: clone_cache
+          paths:
+              - C:/Users/circleci/project/external/openvr
+              - C:/Users/circleci/project/external/eigen
+              - C:/Users/circleci/project/external/glm
+              - C:/Users/circleci/project/external/SFGUI
+
+  build:
+    executor: win/default
+
+    steps:
+      # Each cache is restored separately due to undefined behaviour
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+
+      - restore_cache:
+          keys:
+              - opencv_cache
+              
+      - restore_cache:
+          keys:
+              - boost_cache
+              
+      - restore_cache:
+          keys:
+              - logic_cache
+              
+      - restore_cache:
+          keys:
+              - glog_cache
+              
+      - restore_cache:
+          keys:
+              - kinect_cache
+              
+      - restore_cache:
+          keys:
+              - ui_cache
+
+      - restore_cache:
+          keys:
+              - clone_cache
+
+      - run:
+          name: Clone and setup KTVR
+          command: |
+              git clone https://github.com/KinectToVR/k2vr-application external/KTVR
+              New-Item -ItemType Junction -Path external/KTVR/external/openvr -Target external/openvr
+              New-Item -ItemType Junction -Path external/KTVR/external/eigen -Target external/eigen
+              New-Item -ItemType Junction -Path external/KTVR/external/glm -Target external/glm
+              New-Item -ItemType Junction -Path external/KTVR/external/glog -Target external/glog
+              New-Item -ItemType Junction -Path external/KTVR/external/gflags -Target external/gflags
+
+      - run:
+          name: Build K2API and KTVR's driver
+          command: |
+              vcpkg/bootstrap-vcpkg.bat
+              vcpkg/vcpkg.exe integrate install
+
+              cd external/KTVR
+              msbuild "/t:KinectToVR_API" "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+              msbuild "/t:Driver_KinectToVR" "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+              
+      - run:
+          name: Remove Kinect library links
+          command: |
+              sed -i -e 's/Kinect10.lib//g' KinectV1Process/KinectV1Process.vcxproj
+              sed -i -e 's/Kinect20.lib//g' KinectV2Process/KinectV2Process.vcxproj
+              sed -i -e 's/Kinect10.lib//g' KV1CrashHandler/KV1CrashHandler.vcxproj
+              sed -i -e 's/Kinect20.lib//g' KV2CrashHandler/KV2CrashHandler.vcxproj
+            
+      - run:
+          name: Build KinectToVR
+          command: msbuild "/p:Configuration=Release;Platform=x64;WindowsTargetPlatformVersion=10.0"
+
+      - run: 
+          name: Clear Release folder
+          command: |
+              cd x64/Release
+              Get-ChildItem *.pdb | foreach { Remove-Item -Path $_.FullName }
+              Get-ChildItem *.exp | foreach { Remove-Item -Path $_.FullName }
+              Get-ChildItem *.lib | foreach { Remove-Item -Path $_.FullName }
+
+      - save_cache:
+          name: Cache dependencies
+          key: build_cache-{{ .Revision }}
+          paths:
+              - C:/Users/circleci/project/x64/Release
+              - C:/Users/circleci/project/external/KTVR/x64/Release
+              
+  post:
+    executor: win/default
+    steps:
+      - restore_cache:
+          keys:
+              - build_cache-{{ .Revision }}
+
+      - run:
+          name: Prepare artifacts
+          command: |
+              7z a "K2EX-Release-Windows-x64.zip" x64/Release/*
+              7z a "K2Driver-Release-Windows-x64.zip" external/KTVR/x64/Release/driver/
+
+      - store_artifacts:
+          name: Upload K2EX Release Artifact
+          path: "K2EX-Release-Windows-x64.zip"
+
+      - store_artifacts:
+          name: Upload K2Driver Release Artifact
+          path: "K2Driver-Release-Windows-x64.zip"
+              
+workflows:
+  version: 2
+  run-all:
+    jobs:
+      - prepare
+
+      - setup-opencv:
+          requires:
+            - prepare
+
+      - setup-boost:
+          requires:
+            - prepare
+
+      - setup-logic:
+          requires:
+            - prepare
+            
+      - setup-ui:
+          requires:
+            - prepare
+
+      - setup-glog:
+          requires:
+            - prepare
+
+      - setup-kinect:
+          requires:
+            - prepare
+
+      - setup-clone:
+          requires:
+            - setup-ui
+
+      - build:
+          requires:
+            - setup-opencv
+            - setup-boost
+            - setup-logic
+            - setup-glog
+            - setup-kinect
+            - setup-clone
+
+      - post:
+          requires:
+            - build
+
