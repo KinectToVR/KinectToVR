@@ -30,6 +30,8 @@ jobs:
               choco install cmake --installargs 'ADD_CMAKE_TO_PATH=User'
               choco install 7zip.install
               choco install sed
+              choco install gh
+              refreshenv
 
       - run:
           name: Setup vcpkg
@@ -47,6 +49,8 @@ jobs:
               - C:/Users/circleci/project/vcpkg
               - C:/Users/circleci/project/vcpkg/scripts
               - C:/Program Files/CMake
+              - C:/Program Files/7-zip
+              - C:/Program Files (x86)/GitHub CLI
 
   setup-opencv:
     executor: win/default
@@ -397,10 +401,14 @@ jobs:
           paths:
               - C:/Users/circleci/project/x64/Release
               - C:/Users/circleci/project/external/KTVR/x64/Release
-              
+           
   post:
     executor: win/default
     steps:
+      - restore_cache:
+          keys:
+              - prep_cache-{{ .Revision }}
+
       - restore_cache:
           keys:
               - build_cache-{{ .Revision }}
@@ -408,22 +416,97 @@ jobs:
       - run:
           name: Prepare artifacts
           command: |
-              7z a "K2EX-Release-Windows-x64.zip" x64/Release/*
-              7z a "K2Driver-Release-Windows-x64.zip" external/KTVR/x64/Release/driver/
+              New-Item -Name "Release" -ItemType "directory"; Copy-Item -Path "x64/Release/*" -Destination "Release" -Recurse; Copy-Item -Path "external/KTVR/x64/Release/driver/KinectToVR" -Destination "Release" -Recurse
+              cd Release; 7z a "K2-Release-Windows-x64.zip" *
 
       - store_artifacts:
-          name: Upload K2EX Release Artifact
-          path: "K2EX-Release-Windows-x64.zip"
+          name: Upload K2 Release Artifact
+          path: "C:/Users/circleci/project/Release/K2-Release-Windows-x64.zip"
 
-      - store_artifacts:
-          name: Upload K2Driver Release Artifact
-          path: "K2Driver-Release-Windows-x64.zip"
-              
+      - run:
+          name: Login to GitHub (via Token)
+          # IDK why but this returns False most of the times, although everything's okay. So I made it always return 0...
+          command: |
+              Invoke-Expression 'cmd /c "echo $env:GITHUB_TOKEN | `"C:/Program Files (x86)/GitHub CLI/gh.exe`" auth login --hostname GitHub.com --with-token || exit 0"'
+
+      - run:
+          name: Add B/N to Release zip
+          command: Rename-Item -Path "C:/Users/circleci/project/Release/K2-Release-Windows-x64.zip" -NewName "C:/Users/circleci/project/Release/K2-Release-Windows-x64-$($env:CIRCLE_SHA1[0..5] -join '').zip"
+
+      - run:
+          name: Remove the Testing Release
+          # Returns False most of the times, although everything's okay. So I made it always return 0...
+          command: |
+              Invoke-Expression 'cmd /c "`"C:/Program Files (x86)/GitHub CLI/gh.exe`" release delete a$(type C:/Users/circleci/project/KinectV2Process/KinectV2Process.rc | grep ProductVersion | % { [regex]::match( $_ , ''(?<=, `")(.+)(?=.0`")'' ) } | select -expa value)t --repo KinectToVR/KinectToVR --yes || exit 0"'
+
+      - run:
+          name: Create a new Release
+          # Preapplied changelog cause workflow will be updated from time to time anyway
+          command: |
+              &"C:/Program Files (x86)/GitHub CLI/gh.exe" release create a$(type C:/Users/circleci/project/KinectV2Process/KinectV2Process.rc | grep ProductVersion | % { [regex]::match( $_ , '(?<=, ")(.+)(?=.0")' ) } | select -expa value)t --notes `
+              @"
+              ### $(type C:/Users/circleci/project/KinectV2Process/KinectV2Process.rc | grep FileVersion | % { [regex]::match( $_ , '(?<=, `")(.+)(?=`")' ) } | select -expa value) Testing Technical Preview
+              Build ```$($env:CIRCLE_WORKFLOW_ID[0..5] -join '')````, commit $env:CIRCLE_SHA1
+
+              Please note that this is an automated release.
+              Setup instructions are also available on discord
+              For help with please hit ```公彦赤屋先#5023``` or ```#development```
+
+              ### Setup for testing:
+              - Delete **everything** in ```C:/K2EX``` (or wherever is it installed)
+              - Put Release zip in ```C:/K2EX``` (or wherever is it installed)
+              - Just extract the zip there. File tree should remain the same as before
+
+              ### Additional setup:
+              - You may grab the ```.theme``` file and put it in the deployment directory
+              - If Input Actions refuse to work, install app manifests from the repository
+
+              ### Reports: 
+              - Yaw on math-based has a narrow range (0.5 of normal), this is intentional
+              - If trackers magically flip when you lift your leg, don't hesitate to say so
+              - We're still waiting for **any** reports how well/bad PSMS works now
+              - Go to discord and post log files from ``````%AppData%/KinectToVR/logs`````` 
+
+              ### (Larger) Changes:
+              - Added one-time auto-reconnect after 5s if Kinect isn't detected
+              - You can now completely reset settings with a 'Reset' button
+              - Fixed waist going insane in flip (again?)
+              - Fixed waist 'HMD orientation following' mode
+              - Removed useless legacy PSMS handler pointer causing a crash
+              - Added more logging to PSMS so you will know why it broke
+              - You can now disable flip (also via input actions)
+              - You can now freeze tracking (also via input actions)
+              - Calibration controls were moved into input actions
+              - No more green icons / crashing on WMR (probably)
+              - Waist tracker rotation isn't now going insane
+              - Flip is now changing poses and using absolute ROLE <-> ID connections
+              - Manual calibration should be kinda usable now
+              - Calibration points are locked between 3 and 10
+              - You can turn off or disable individual trackers
+              - Pose may be refreshed via API not to cause sleep in freeze mode
+              - Math-based orientation shouldn't now cause toes poining either at floor or at the starlink
+              - Kinect status label should now update after reconnect (recover from ERROR)
+              - If SteamVR is not installed, the app won't crash but tell you're an idiot and THEN crash
+              - New driver should provide better stability, smaller delay and overall better backend
+              - Custom SFGUI build with changed, embedded font
+              - Kinect V2 uses NUI orientation finally
+              - We finally have UI sounds
+              - Controller input is processed through OpenVR Input Actions
+              - You can now disable particular trackers or just turn them off (disconnect)
+              - Filters should finally work okay when interfacing with new KTVR driver
+              - Removed useless save buttons
+              - Everything's Eigen now - fewer conversions and better stability assumed
+              - Flip has been fixed (again) from using R's orientation for W
+              "@ --repo KinectToVR/KinectToVR `
+              --prerelease --target experiments --title "Version a$(type C:/Users/circleci/project/KinectV2Process/KinectV2Process.rc | grep ProductVersion | % { [regex]::match( $_ , '(?<=, `")(.+)(?=.0`")' ) } | select -expa value) Technical Preview"`
+              "C:/Users/circleci/project/Release/K2-Release-Windows-x64-$($env:CIRCLE_SHA1[0..5] -join '').zip"
+
 workflows:
   version: 2
   run-all:
     jobs:
-      - prepare
+      - prepare:
+          context: Default
 
       - setup-opencv:
           requires:
@@ -463,6 +546,6 @@ workflows:
             - setup-clone
 
       - post:
+          context: Default
           requires:
             - build
-
