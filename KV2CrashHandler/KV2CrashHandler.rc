@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 51,4,30,98
- PRODUCTVERSION 0,8,0,0
+ FILEVERSION 51,5,32,0
+ PRODUCTVERSION 0,9,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -69,12 +69,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "KinectToVR"
             VALUE "FileDescription", "KinectToVR-CE for KV2"
-            VALUE "FileVersion", "51.4.30.98"
+            VALUE "FileVersion", "51.5.32.0"
             VALUE "InternalName", "KV2CrashHandler.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020"
             VALUE "OriginalFilename", "KV2CrashHandler.exe"
             VALUE "ProductName", "KinectToVR EX"
-            VALUE "ProductVersion", "0.8.0.0"
+            VALUE "ProductVersion", "0.9.0.0"
         END
     END
     BLOCK "VarFileInfo"
