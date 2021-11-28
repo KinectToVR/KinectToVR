@@ -445,8 +445,8 @@ jobs:
           command: |
               &"C:/Program Files (x86)/GitHub CLI/gh.exe" release create a$(type C:/Users/circleci/project/KinectV2Process/KinectV2Process.rc | grep ProductVersion | % { [regex]::match( $_ , '(?<=, ")(.+)(?=.0")' ) } | select -expa value)t --notes `
               @"
-              ### $(type C:/Users/circleci/project/KinectV2Process/KinectV2Process.rc | grep FileVersion | % { [regex]::match( $_ , '(?<=, `")(.+)(?=`")' ) } | select -expa value) Testing Technical Preview
-              Build ```$($env:CIRCLE_WORKFLOW_ID[0..5] -join '')````, commit $env:CIRCLE_SHA1
+              ### $(type C:/Users/circleci/project/KinectV2Process/KinectV2Process.rc | grep FileVersion | % { [regex]::match( $_ , '(?<=, ")(.+)(?=")' ) } | select -expa value) Testing Technical Preview
+              Build ``````$($env:CIRCLE_WORKFLOW_ID[0..5] -join '')``````, commit $env:CIRCLE_SHA1
 
               Please note that this is an automated release.
               Setup instructions are also available on discord
