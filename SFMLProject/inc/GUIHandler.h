@@ -34,6 +34,8 @@
 class GUIHandler
 {
 public:
+	PSMoveHandler psMoveHandler;
+
 	sfg::ComboBox::Ptr coptbox = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr coptbox1 = sfg::ComboBox::Create();
 	sfg::ComboBox::Ptr foptbox = sfg::ComboBox::Create();
@@ -1917,9 +1919,6 @@ private:
 
 	// For the kinect second try (re)connect
 	bool alreadyTriedReconnecting = false;
-
-	// All the device handlers
-	PSMoveHandler psMoveHandler;
 
 	HRESULT lastKinectStatus = E_FAIL;
 
