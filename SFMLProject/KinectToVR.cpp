@@ -1057,6 +1057,9 @@ void processLoop(KinectHandlerBase& kinect)
 				updateHMDPosAndRot(m_VRSystem);
 			}
 
+			// Update PSMS
+			guiRef.psMoveHandler.run();
+
 			renderWindow.clear(); //////////////////////////////////////////////////////
 
 			// Update Kinect Status
