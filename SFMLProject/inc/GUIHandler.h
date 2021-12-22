@@ -1028,6 +1028,7 @@ public:
 				if (kinect.isPSMS)
 				{
 					KinectStatusLabel->SetText("PSMoveService Mode!");
+					reconKinectButton->Show(false); // Hide the reconnect kinect button
 				}
 				else
 				{
@@ -1073,7 +1074,7 @@ public:
 						}).detach();
 			}
 
-			LOG(INFO) << "Kinect Status updated to: " << KinectStatusLabel->GetText().toAnsiString();
+			LOG(INFO) << "Tracking Device Status updated to: " << KinectStatusLabel->GetText().toAnsiString();
 			KinectSettings::reconnecting = false;
 			lastKinectStatus = status;
 		}

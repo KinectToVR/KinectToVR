@@ -158,6 +158,9 @@ namespace KinectSettings
 	extern int pingCheckingThreadsNumber;
 	extern const int maxPingCheckingThreads;
 
+	/* For PSMS refreshing */
+	inline bool nowRefreshPSMS = false;
+
 	/*All trackers which should be added : W, L, R*/
 	extern std::vector<K2STracker> trackerVector;
 	extern int trackerID[3]; // W, L, R

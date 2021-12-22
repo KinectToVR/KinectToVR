@@ -1060,6 +1060,13 @@ void processLoop(KinectHandlerBase& kinect)
 			// Update PSMS
 			guiRef.psMoveHandler.run();
 
+			// Process a refresh request
+			if(KinectSettings::nowRefreshPSMS)
+			{
+				guiRef.refreshpsms();
+				KinectSettings::nowRefreshPSMS = false;
+			}
+			
 			renderWindow.clear(); //////////////////////////////////////////////////////
 
 			// Update Kinect Status

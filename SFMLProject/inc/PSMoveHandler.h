@@ -24,6 +24,7 @@
 #include <openvr.h>
 
 #include "DeviceHandler.h"
+#include "KinectSettings.h"
 
 #define M_PI_2 1.57079632679
 
@@ -866,6 +867,38 @@ private:
 					if(success)
 					LOG(INFO) << "Allocated controller with ID " << i;
 				}
+
+				v_controllers.clear(); // All old controllers must be gone
+				for (int i = 0; i < controllerList.count; ++i)
+				{
+					auto controller = PSM_GetController(controllerList.controller_id[i]);
+					// Check that it's actually a Psmove/Virtual, as there could be dualshock's connected
+					if (controller->ControllerType == PSMController_Move ||
+						controller->ControllerType == PSMController_Virtual)
+					{
+						MoveWrapper_PSM wrapper;
+						wrapper.controller = controller;
+						v_controllers.push_back(wrapper);
+
+						LOG(INFO) << "Pushed controller's ID: " << controller->ControllerID << " wrapper to the controllers' vector.";
+					}
+				}
+
+				for (int i = 0; i < v_controllers.size(); ++i)
+				{
+					// Redo the loop over the successfully excised trackers (PS Move's only)
+					// But this time edit the wrapper with the tracking pool id's
+					v_controllers[i].id.internalID = i;
+					if (v_controllers[i].controller->ControllerType == PSMController_Move)
+					{
+						auto value = v_controllers[i].controller->ControllerState.PSMoveState.BatteryValue;
+
+						LOG(INFO) << "Controller " << i << " has battery level: " << batteryValueString(value);
+					}
+				}
+
+				// Request a refresh
+				KinectSettings::nowRefreshPSMS = true;
 			}
 			else
 			{
@@ -897,11 +930,14 @@ private:
 
 	void processKeyInputs()
 	{
-		if (controllerList.count == 0 || v_controllers.size() == 0) { return; }
+
+		if (controllerList.count < 1 || v_controllers.size() < 1) { return; }
+		
 		bool inputAvailable = false;
 		for (MoveWrapper_PSM& wrapper : v_controllers)
 		{
-			if (wrapper.controller->ControllerType == PSMController_Move)
+			if (wrapper.controller->ControllerType == PSMController_Move ||
+				wrapper.controller->ControllerType == PSMController_Virtual)
 			{
 				inputAvailable = true;
 			}
@@ -1157,7 +1193,7 @@ private:
 				break;
 			}
 
-			LOG(INFO) << "  Controller ID: " << controllerList.controller_id[cntlr_ix] << " is a " << controller_type;
+			LOG(INFO) << "Controller ID : " << controllerList.controller_id[cntlr_ix] << " is a " << controller_type;
 		}
 	}
 
