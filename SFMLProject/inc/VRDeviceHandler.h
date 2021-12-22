@@ -204,6 +204,7 @@ namespace VirtualHips
 				bodyTrackingOption_s.trackingOption = static_cast<bodyTrackingOption>(settings.SelectedBodyTrackingOption);
 
 				KinectSettings::calibration_origin = settings.caliborigin;
+				KinectSettings::FlipEnabled = settings.FlipEnabled;
 
 				LOG(INFO) << settings.CalibrationTrackersYawOffset << '\n' << settings.rcR_matT << '\n' <<
 					KinectSettings::calibration_trackers_yaw << '\n' <<
