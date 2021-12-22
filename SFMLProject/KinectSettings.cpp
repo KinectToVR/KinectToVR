@@ -719,13 +719,13 @@ namespace KinectSettings
 							left_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
 									pitchOn ? left_ori_with_yaw.x() - pitchShift : pitchOffOffset, // Disable the pitch
-									left_ori_with_yaw.y(),
+									(autoCalibration && flip ? -1.f : 1.f) * left_ori_with_yaw.y(),
 									/*(autoCalibration ? -1.f : 1.f) **/ -left_ori_with_yaw.z()));
 
 							right_tracker_rot = EigenUtils::EulersToQuat(
 								Eigen::Vector3f(
 									pitchOn ? right_ori_with_yaw.x() - pitchShift : pitchOffOffset, // Disable the pitch
-									right_ori_with_yaw.y(),
+									(autoCalibration && flip ? -1.f : 1.f) * right_ori_with_yaw.y(),
 									/*(autoCalibration ? -1.f : 1.f) **/ -right_ori_with_yaw.z()));
 
 							// Apply the turn-around flip quaternion
