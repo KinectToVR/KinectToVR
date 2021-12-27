@@ -684,17 +684,17 @@ void KinectV1Handler::updateSkeletalData()
 		// Now adjust some values like playspace yaw and pitch, additional rotations
 
 		leftFootFineTuneQuaternion =
-			EigenUtils::EulersToQuat(
+			EigenUtils::EulersToQuat( // Lift trackers up a bit
 				Eigen::Vector3f(
-					KinectSettings::calibration_kinect_pitch, // this one's in radians alr
+					2.8623399733f, // this one's in radians alr
 					0.f, //glm::radians(KinectSettings::calibration_trackers_yaw),
 					0.f
 				));
 
 		rightFootFineTuneQuaternion =
-			EigenUtils::EulersToQuat(
+			EigenUtils::EulersToQuat( // Lift trackers up a bit
 				Eigen::Vector3f(
-					KinectSettings::calibration_kinect_pitch, // this one's in radians alr
+					2.8623399733f, // this one's in radians alr
 					0.f, //glm::radians(KinectSettings::calibration_trackers_yaw),
 					0.f
 				));
