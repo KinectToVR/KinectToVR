@@ -37,6 +37,7 @@ namespace KinectSettings
 
 	int kinectVersion = -1;
 	bool psmbuttons[5][10];
+	bool nowRefreshPSMS = false;
 	bool isKinectDrawn = false, isServerFailure = false;
 	bool isSkeletonDrawn = false;
 	bool isDriverPresent = false;
