@@ -276,7 +276,7 @@ namespace KinectSettings
 				using PointSet = Eigen::Matrix<float, 3, Eigen::Dynamic>; //create pointset for korejan's transform algo
 				const float yaw = glm::degrees(hmdYaw); //get current headset yaw (RAD->DEG) format: 0+360
 				const float facing = yaw - calibration_trackers_yaw; //get facing to kinect;
-				
+
 				// we're subtracting looking at the kinect degree from actual yaw to get offset angle:
 				//       
 				//             FRONT                 Front is at 0deg
@@ -635,7 +635,7 @@ namespace KinectSettings
 							pitchShift = M_PI / 4.f; // Normal offset
 
 						if (feet_rotation_option == k_EnableOrientationFilter_Software)
-							pitchShift = M_PI / 4.f; // Special offset (if any), 0.f to nullify
+							pitchShift = M_PI / 4.f; // Special offset (if any)
 
 						if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation)
 						{
@@ -766,7 +766,6 @@ namespace KinectSettings
 					waist_tracker_rot = move_ori_offset[2].inverse() * waist_tracker_rot;
 				}
 
-
 				/*****************************************************************************************/
 				// Fix waist orientation in flip: tracker is rotated by pi in roll
 				//     and slightly rotated in pitch. Pitch is fault of kinect being high
@@ -774,84 +773,33 @@ namespace KinectSettings
 				//     Origin of flipping in roll is still unknown.
 				/*****************************************************************************************/
 
-				if (flip && hips_rotation_option == k_EnableHipsOrientationFilter &&
-					positional_tracking_option == k_KinectFullTracking)
+				if (flip &&
+					(hips_rotation_option == k_EnableHipsOrientationFilter ||
+						hips_rotation_option == k_DisableHipsOrientationFilter)
+					&& positional_tracking_option == k_KinectFullTracking)
 				{
 					// Pitch offset quaternion for hips
 					Eigen::Quaternionf waist_ori_f =
 						EigenUtils::EulersToQuat(
-							Eigen::Vector3f(autoCalibration ? -M_PI / 3.6 : -calibration_kinect_pitch, 0., M_PI));
+							Eigen::Vector3f(
+								autoCalibration ?
+								(hips_rotation_option == k_EnableHipsOrientationFilter ? -M_PI / 3.6 : M_PI / 16.)
+								: -calibration_kinect_pitch, 0., M_PI));
 
 					waist_tracker_rot *= waist_ori_f;
 				}
 
-
 				/*****************************************************************************************/
-				// Fix waist orientation in flip: tracker is rotated by pi in roll
-				//     and slightly rotated in pitch. Pitch is fault of kinect being high
-				//     and resolved either by a constant for autoc or by user for manualc.
-				//     Origin of flipping in roll is still unknown.
+				// Fix waist orientation when following hmd after a standing pose reset
 				/*****************************************************************************************/
 
-				//std::cout << flip << '\n';
-
-				//if (autoCalibration && flip) {
-				//	if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation)
-				//	{
-				//		left_tracker_rot = left_tracker_rot * EigenUtils::EulersToQuat(Eigen::Vector3f(0., M_PI / 2., 0.));
-				//		right_tracker_rot = EigenUtils::EulersToQuat(Eigen::Vector3f(0., M_PI / 2., 0.)) * right_tracker_rot;
-				//	}
-				//	//if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
-				//	//	waist_tracker_rot = waist_tracker_rot.inverse() * Eigen::Quaternionf(1.f, 0.f, 0.f, 0.f);
-				//}
-
-				/*if (autoCalibration && !flip) {
-					if (feet_rotation_option != k_EnableOrientationFilter_HeadOrientation)
-					{
-						left_tracker_rot = left_tracker_rot.inverse() * Eigen::Quaternionf(1.f, 0.f, 0.f, 0.f).inverse();
-						right_tracker_rot = right_tracker_rot.inverse() * Eigen::Quaternionf(1.f, 0.f, 0.f, 0.f).inverse();
-					}
-					if (hips_rotation_option != k_EnableHipsOrientationFilter_HeadOrientation)
-						waist_tracker_rot = waist_tracker_rot.inverse() * Eigen::Quaternionf(1.f, 0.f, 0.f, 0.f).inverse();
-				}*/
-
-				/*****************************************************************************************/
-				// Modify the orientation, add the calibration yaw value (Look At Kinect, even if artificial)
-				/*****************************************************************************************/
-
-				/*****************************************************************************************/
-				// Modify the orientation, add the calibration pitch value (Kinect perspective, even if artificial)
-				/*****************************************************************************************/
-
-				//// Apply only if calibrated and only if using kinect for everything
-				//if (matrixes_calibrated && positional_tracking_option == k_KinectFullTracking && flip)
-				//{
-				//	// Construct an offset quaternion with the calibration pitch (Note: already in radians)
-				//	Eigen::Quaternionf tunePitchQuaternion =
-				//		EigenUtils::EulersToQuat(Eigen::Vector3f(calibration_kinect_pitch, 0.f, 0.f));
-
-				//	// Only these two, math-based should do it on its own
-				//	if (feet_rotation_option == k_EnableOrientationFilter ||
-				//		feet_rotation_option == k_EnableOrientationFilter_WithoutYaw) {
-
-				//		// Don't run on v2, it's using the math-based
-				//		if (kinectVersion == 1) {
-				//			left_tracker_rot = tunePitchQuaternion * left_tracker_rot;
-				//			right_tracker_rot = tunePitchQuaternion * right_tracker_rot;
-				//		}
-				//	}
-				//	// Do the same for waist tracker if wanted
-				//	if (hips_rotation_option == k_EnableHipsOrientationFilter)
-				//		waist_tracker_rot = tunePitchQuaternion * waist_tracker_rot;
-				//}
-
-				/*****************************************************************************************/
-				// Modify the orientation, add the calibration pitch value (Kinect perspective, even if artificial)
-				/*****************************************************************************************/
-
-				/*****************************************************************************************/
-				// Swap poses for flip if needed and construct the message string, check if we're calibrated
-				/*****************************************************************************************/
+				if (hips_rotation_option == k_EnableHipsOrientationFilter_HeadOrientation)
+				{
+					// Offset to fit the playspace
+					waist_tracker_rot = EigenUtils::EulersToQuat(
+							Eigen::Vector3f(0., -KinectSettings::svrhmdyaw, 0.))
+						* waist_tracker_rot;
+				}
 
 				/*****************************************************************************************/
 				// Push RAW poses to trackers
