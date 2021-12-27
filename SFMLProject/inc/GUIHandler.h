@@ -1696,109 +1696,16 @@ public:
 									 * Anyway, if you don't get something, please read eigen's docs,
 									 * and if you still don't, repeat it until you do...
 									 */
-
-									 /* NEW Try to "compute" lookAt kinect yaw ourselves */
-
-									 // Assuming that if a point is at 1,0,3,
-									 // in relative to the tracking device, then
-									 // the tracking device should be at -(1,0,3)
-									 // which would be -1,0,-3, I guess...?
-
-									 // Calibration origin is 0 this time,
-									 // soooo the kinect's pose is just retrived trans
-
-									 // Then, what is kinpitch or kinect_pitch?
-									 // Assuming the kinect is looking at us from the up,
-									 // it's a bit tilted towards the floor.
-									 // When it looks up for a human body,
-									 // you're going to be shorter and tilted too...
-									 // I'm not fixing being shorter but tilting is going to be fixed
-									 // inside the calibration itself.
-									 // The next thing is rotation, trackers are going to break
-									 // if they're upside-down, sice we're using bad old
-									 // euler angles and not quats (for some things at least)
-									 // then we're gonna just flip them a bit...
-									 // Or actually offset them by a certain angle.
-
-									 //Eigen::Vector3f KinectPoseInSVR = ret_t;
-									 //
-									 //// calculate direction vectors
-									 //Eigen::Vector3f up(0, 1, 0),
-									 //	KinectDirectionVector(
-									 //		KinectPoseInSVR.x(),
-									 //		KinectPoseInSVR.y(),
-									 //		KinectPoseInSVR.z());
-
-									 //// Here's the SVR's home position
-									 //Eigen::Vector3f SVRHomePos(
-									 //	KinectSettings::trackingOriginPosition.v[0],
-									 //	KinectSettings::trackingOriginPosition.v[1] - 1.1f, // At knees level, assuming you're about 1.8m
-									 //	KinectSettings::trackingOriginPosition.v[2]);
-
-									 //
-									 //// Calculate the quaternion
-									 //auto // Matrix https://stackoverflow.com/questions/21761909/eigen-convert-matrix3d-rotation-to-quaternion
-									 //	KinectDirectionRotMat(EigenUtils::lookAt(KinectDirectionVector, SVRHomePos, up));
-
-
-									 // calculate direction vectors
-									//Eigen::Vector3f
-									//	up(0, 1, 0),
-									//	KinectDirectionVector(ret_t);
-
-									//// Here's the SVR's home position
-									//Eigen::Vector3f SVRHomePos(
-									//	KinectSettings::trackingOriginPosition.v[0],
-									//	0.0,
-									//	KinectSettings::trackingOriginPosition.v[2]);
-
-									//// Calculate the quaternion
-									//auto
-									//	// Matrix https://stackoverflow.com/questions/21761909/eigen-convert-matrix3d-rotation-to-quaternion
-									//	KinectDirectionRotMat(
-									//		EigenUtils::lookAt(SVRHomePos, KinectDirectionVector, up));
-									//
-									//// https://stackoverflow.com/questions/60758298/eigenmatrixdouble-4-4-to-eigenquaterniond
-									//Eigen::Vector3f
-									//	KinectDirectionEigenEulerDegrees = 
-									//	KinectDirectionRotMat.topLeftCorner<3, 3>().eulerAngles(0, 1, 2) * 180 / M_PI;
-
+									
 									Eigen::Vector3f
 										KinectDirectionEigenMatEulerDegrees = 
 										ret_R.eulerAngles(0, 1, 2) * 180 / M_PI;
-
-									/*LOG(INFO) << "GOT ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
-									LOG(INFO) << KinectDirectionEigenEulerDegrees.x();
-									LOG(INFO) << KinectDirectionEigenEulerDegrees.y();
-									LOG(INFO) << KinectDirectionEigenEulerDegrees.z();*/
-
+									
 									LOG(INFO) << "Retrieved playspace Yaw rotation [mat, degrees]: ";
 									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.x();
 									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.y();
 									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.z();
-
-									///////// Make it 0-360
-
-									//float RetrievedYaw = KinectDirectionEigenEulerDegrees.y();
-
-									//if (RetrievedYaw < 180.f && RetrievedYaw > 0.f)
-									//	RetrievedYaw = abs(RetrievedYaw - 180.f);  // hack, although kinda working
-
-									/*if (RetrievedYaw < 0.f && RetrievedYaw > -180.f)
-										RetrievedYaw = abs(RetrievedYaw + 180.f) + 180.f;*/
-
-									// abs() part will add PI radians and make it 0 - 180,
-									// additional PI radians will make it 180-360
-									// abs() because we're adding floats and idk how to make it safer
-									// it could have been std::clamp, actually...
-
-									///////// Make it 0-360
-
-									/*LOG(INFO) << "GOT FIXED ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
-									LOG(INFO) << KinectDirectionEigenEulerDegrees.x();
-									LOG(INFO) << RetrievedYaw;
-									LOG(INFO) << KinectDirectionEigenEulerDegrees.z();*/
-
+									
 									// Save it to settings
 
 									// Save our retrieved yaw (this one's in degrees)
@@ -1816,21 +1723,7 @@ public:
 
 									/* NEW Try to "compute" lookAt kinect yaw ourselves */
 								}
-
-								// Grab the yaw (now it's calculated with a lookAt)
-								/*TrackersCalibButton->SetLabel(
-									std::string("Prepare to calibration: Tracker Orientation").c_str());
-								std::this_thread::sleep_for(std::chrono::seconds(1));
-								for (auto i = 3; i >= 0; i--)
-								{
-									if (!KinectSettings::isCalibrating) break;
-									TrackersCalibButton->SetLabel(
-										std::string(
-											"Tracker Orientation: Look at Kinect... Time left: " + boost::lexical_cast<
-												std::string>(i) + "s").c_str());
-									std::this_thread::sleep_for(std::chrono::seconds(1));
-								}*/
-
+								
 								// Just the last thing to go back if we're somehow not sure
 								if (!KinectSettings::isCalibrating)
 								{
@@ -1841,35 +1734,7 @@ public:
 
 									KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
 								}
-
-								/**********************************************************************************************/
-
-								//// Grab the yaw (now it's calculated with a lookAt)
-								//if (KinectSettings::isCalibrating)
-								//{
-								//	vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(
-								//		vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
-								//	quaternion = GetRotation(trackedDevicePose.mDeviceToAbsoluteTracking);
-								//	double yaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2],
-								//	                        trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]),
-								//	       yawRaw = std::atan2(trackedDevicePose.mDeviceToAbsoluteTracking.m[0][2],
-								//	                           trackedDevicePose.mDeviceToAbsoluteTracking.m[2][2]);
-
-								//	if (yawRaw < 0.0f)
-								//	{
-								//		yawRaw += 2 * M_PI;
-								//	}
-								//	if (yaw < 0.0)
-								//	{
-								//		yaw = 2 * M_PI + yaw;
-								//	}
-
-								//	/*KinectSettings::calibration_trackers_yaw = glm::degrees(yaw);
-								//	settings.CalibrationTrackersYawOffset = glm::degrees(yaw);*/
-
-								//	LOG(INFO) << "GOT REAL LOOKATKINECT ORIENTATION YAW: " << glm::degrees(yaw);
-								//}
-
+								
 								/**********************************************************************************************/
 								
 								KinectSettings::matrixes_calibrated = true;
