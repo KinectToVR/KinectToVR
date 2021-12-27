@@ -1742,61 +1742,50 @@ public:
 
 
 									 // calculate direction vectors
-									Eigen::Vector3f up(0, 1, 0),
-										KinectDirectionVector(
-											ret_t.x(),
-											0.0,
-											ret_t.z());
+									//Eigen::Vector3f
+									//	up(0, 1, 0),
+									//	KinectDirectionVector(ret_t);
 
-									// Here's the SVR's home position
-									Eigen::Vector3f SVRHomePos(
-										KinectSettings::trackingOriginPosition.v[0],
-										0.0,
-										KinectSettings::trackingOriginPosition.v[2]);
+									//// Here's the SVR's home position
+									//Eigen::Vector3f SVRHomePos(
+									//	KinectSettings::trackingOriginPosition.v[0],
+									//	0.0,
+									//	KinectSettings::trackingOriginPosition.v[2]);
 
-									// Calculate the quaternion
-									auto
-										// Matrix https://stackoverflow.com/questions/21761909/eigen-convert-matrix3d-rotation-to-quaternion
-										KinectDirectionRotMat(EigenUtils::lookAt(KinectDirectionVector, SVRHomePos, up));
-
-
-									// https://stackoverflow.com/questions/60758298/eigenmatrixdouble-4-4-to-eigenquaterniond
-									Eigen::Vector3f
-										KinectDirectionEigenEuler =
-										KinectDirectionRotMat.topLeftCorner<3, 3>().eulerAngles(0, 1, 2);
-
-									/*
-									 *
-									 * OKAY IT KINDA WORKS
-									 * although, it seems like: [YAW, DEG]
-									 *      true       eigen
-									 *		  0			 0 ///
-									 *		  90		 90
-									 *		  180		 180
-									 *		  181		 -180
-									 *		  270		 -90
-									 *		  359		 -1
-									 *		  360		 0 ///
-									 *
-									 */
+									//// Calculate the quaternion
+									//auto
+									//	// Matrix https://stackoverflow.com/questions/21761909/eigen-convert-matrix3d-rotation-to-quaternion
+									//	KinectDirectionRotMat(
+									//		EigenUtils::lookAt(SVRHomePos, KinectDirectionVector, up));
+									//
+									//// https://stackoverflow.com/questions/60758298/eigenmatrixdouble-4-4-to-eigenquaterniond
+									//Eigen::Vector3f
+									//	KinectDirectionEigenEulerDegrees = 
+									//	KinectDirectionRotMat.topLeftCorner<3, 3>().eulerAngles(0, 1, 2) * 180 / M_PI;
 
 									Eigen::Vector3f
-										KinectDirectionEigenEulerDegrees = KinectDirectionEigenEuler * 180 / M_PI;
+										KinectDirectionEigenMatEulerDegrees = 
+										ret_R.eulerAngles(0, 1, 2) * 180 / M_PI;
 
-									LOG(INFO) << "GOT ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
+									/*LOG(INFO) << "GOT ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
 									LOG(INFO) << KinectDirectionEigenEulerDegrees.x();
 									LOG(INFO) << KinectDirectionEigenEulerDegrees.y();
-									LOG(INFO) << KinectDirectionEigenEulerDegrees.z();
+									LOG(INFO) << KinectDirectionEigenEulerDegrees.z();*/
+
+									LOG(INFO) << "Retrieved playspace Yaw rotation [mat, degrees]: ";
+									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.x();
+									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.y();
+									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.z();
 
 									///////// Make it 0-360
 
-									float RetrievedYaw = KinectDirectionEigenEulerDegrees.y();
+									//float RetrievedYaw = KinectDirectionEigenEulerDegrees.y();
 
 									//if (RetrievedYaw < 180.f && RetrievedYaw > 0.f)
 									//	RetrievedYaw = abs(RetrievedYaw - 180.f);  // hack, although kinda working
 
-									if (RetrievedYaw < 0.f && RetrievedYaw > -180.f)
-										RetrievedYaw = abs(RetrievedYaw + 180.f) + 180.f;
+									/*if (RetrievedYaw < 0.f && RetrievedYaw > -180.f)
+										RetrievedYaw = abs(RetrievedYaw + 180.f) + 180.f;*/
 
 									// abs() part will add PI radians and make it 0 - 180,
 									// additional PI radians will make it 180-360
@@ -1805,20 +1794,20 @@ public:
 
 									///////// Make it 0-360
 
-									LOG(INFO) << "GOT FIXED ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
+									/*LOG(INFO) << "GOT FIXED ARTIFICIAL LOOKATKINECT ORIENTATION [DEG]: ";
 									LOG(INFO) << KinectDirectionEigenEulerDegrees.x();
 									LOG(INFO) << RetrievedYaw;
-									LOG(INFO) << KinectDirectionEigenEulerDegrees.z();
+									LOG(INFO) << KinectDirectionEigenEulerDegrees.z();*/
 
 									// Save it to settings
 
 									// Save our retrieved yaw (this one's in degrees)
-									KinectSettings::calibration_trackers_yaw = RetrievedYaw; // Use fixed one
+									//KinectSettings::calibration_trackers_yaw = RetrievedYaw; // Use fixed one
+									KinectSettings::calibration_trackers_yaw = KinectDirectionEigenMatEulerDegrees.y(); // Use fixed one
 									settings.CalibrationTrackersYawOffset = KinectSettings::calibration_trackers_yaw;
 
-									// Pitch may require some tweaks, before it was about 180deg
-									KinectSettings::calibration_kinect_pitch =
-										glm::radians(KinectDirectionEigenEulerDegrees.x()); // We're using radsians
+									// Pitch in autocalibration is unused
+									KinectSettings::calibration_kinect_pitch = 0.f;
 									settings.CalibrationKinectCalculatedPitch = KinectSettings::calibration_kinect_pitch;
 
 									// In maualcalib it's hips position, although here it's gonna be 0
