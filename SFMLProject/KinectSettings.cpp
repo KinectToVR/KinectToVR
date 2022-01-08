@@ -16,7 +16,9 @@
 namespace KinectSettings
 {
 	const std::wstring CFG_NAME(L"KinectToVR.cfg");
-	std::string KVRversion = "0.9.0 EX";
+	std::string KVRversion = "v0.9.0";
+	std::string KVRversion_m = "(51.5.35.0)";
+
 	vr::TrackedDeviceIndex_t trackerIndex[3] = {vr::k_unTrackedDeviceIndexInvalid}; // Trackers' indexes
 	bool latencyTestPending = false, doingLatencyTest = false;
 	long long latencyTestMillis = -1;
