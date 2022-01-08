@@ -291,19 +291,19 @@ int checkK2Server()
 			}
 
 			return init_code == 0
-				? (server_connected ? 1 : -10)
-				: -1;
+				? (server_connected ? 1 : -1)
+				: -10;
 		}
-		catch (const std::exception& e) { return -1; }
+		catch (const std::exception& e) { return -10; }
 	}
 
 	/*
 	 * codes:
-	 * -1: check fail
-	 * -10: server fail
-	 * 10: driver failure
-	 * -11: API fail
-	 * 1: result ok
+	 codes:
+		-10: driver is disabled
+		-1: driver is workin but outdated or doomed
+		10: ur pc brokey, cry about it
+		1: ok
 	 */
 	return 1; //don't check if it was already working
 }
@@ -317,12 +317,13 @@ void updateServerStatus(GUIHandler& guiRef)
 				KinectSettings::K2Drivercode = checkK2Server();
 				switch (KinectSettings::K2Drivercode)
 				{
-				case -1:
-					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: EXCEPTION WHILE CHECKING (Code: -1)");
-					break;
 				case -10:
 					guiRef.DriverStatusLabel->SetText(
-						"SteamVR Driver Status: SERVER CONNECTION ERROR (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
+						"SteamVR Driver Status: EXCEPTION WHILE CHECKING (Code: -10)\nCheck SteamVR add-ons (NOT overlays) and enable KinectToVR.");
+					break;
+				case -1:
+					guiRef.DriverStatusLabel->SetText(
+						"SteamVR Driver Status: SERVER CONNECTION ERROR (Code: -1)\nYour KinectToVR SteamVR driver may be broken or outdated.");
 					break;
 				case 10:
 					guiRef.DriverStatusLabel->SetText(
@@ -336,10 +337,7 @@ void updateServerStatus(GUIHandler& guiRef)
 					guiRef.DriverStatusLabel->SetText("SteamVR Driver Status: COULD NOT CONNECT TO K2API (Code: -11)");
 					break;
 				}
-
-				guiRef.TrackerInitButton->SetState(KinectSettings::isDriverPresent
-					? sfg::Widget::State::NORMAL
-					: sfg::Widget::State::INSENSITIVE);
+				
 				if (!KinectSettings::isDriverPresent)
 					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_server_error);
 				guiRef.ping_InitTrackers();
@@ -398,7 +396,7 @@ void processLoop(KinectHandlerBase& kinect)
 
 	updateFilePath();
 	//sf::RenderWindow renderWindow(getScaledWindowResolution(), "KinectToVR: " + KinectSettings::KVRversion, sf::Style::Titlebar | sf::Style::Close);
-	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR: " + KinectSettings::KVRversion,
+	sf::RenderWindow renderWindow(sf::VideoMode(1280, 768, 32), "KinectToVR " + KinectSettings::KVRversion + " " + KinectSettings::KVRversion_m,
 		sf::Style::Titlebar | sf::Style::Close | sf::Style::Resize);
 	auto mGUIView = sf::View(renderWindow.getDefaultView());
 	auto mGridView = sf::View(sf::FloatRect(0, 0, 1280, 768));
