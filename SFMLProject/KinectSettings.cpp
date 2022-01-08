@@ -719,18 +719,18 @@ namespace KinectSettings
 					{
 						Eigen::Vector3f lfoot_euler = EigenUtils::QuatToEulers(left_tracker_rot),
 						                rfoot_euler = EigenUtils::QuatToEulers(right_tracker_rot);
-
+						
 						left_tracker_rot = EigenUtils::EulersToQuat(
 							Eigen::Vector3f(
 								lfoot_euler.x() + M_PI,
-								lfoot_euler.y(),
-								(flip ? -1.f : 1.f) * lfoot_euler.z()));
+								(flip ? 1.f : -1.f) * lfoot_euler.y(), // flip 1, !flip -1
+								/*(flip ? -1.f : 1.f) * */ -lfoot_euler.z())); // notice the -
 
 						right_tracker_rot = EigenUtils::EulersToQuat(
 							Eigen::Vector3f(
 								rfoot_euler.x() + M_PI,
-								rfoot_euler.y(),
-								(flip ? -1.f : 1.f) * rfoot_euler.z()));
+								(flip ? 1.f : -1.f) * rfoot_euler.y(), // flip 1, !flip -1
+								/*(flip ? -1.f : 1.f) * */ -rfoot_euler.z())); // notice the -
 					}
 				}
 				// If we're using PSMoves, apply the manual offset
@@ -757,9 +757,9 @@ namespace KinectSettings
 					Eigen::Quaternionf waist_ori_f =
 						EigenUtils::EulersToQuat(
 							Eigen::Vector3f(
-								autoCalibration ?
-								(hips_rotation_option == k_EnableHipsOrientationFilter ? -M_PI / 3.6 : M_PI / 16.)
-								: -calibration_kinect_pitch, 0., M_PI));
+								autoCalibration
+									? (hips_rotation_option == k_EnableHipsOrientationFilter ? -M_PI / 3.6 : M_PI / 16.)
+									: -calibration_kinect_pitch, 0., M_PI));
 
 					waist_tracker_rot *= waist_ori_f;
 				}
