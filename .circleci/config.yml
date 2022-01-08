@@ -280,15 +280,11 @@ jobs:
           keys:
               - ui_cache
 
-      - restore_cache:
-          keys:
-              - clone_cache
-
       - run:
           name: Setup non-vcpkg dependencies
           command: |
               If (-Not (Test-Path -Path C:/Users/circleci/project/external/openvr)) { git clone https://github.com/ValveSoftware/openvr external/openvr }
-              If (-Not (Test-Path -Path C:/Users/circleci/project/external/eigen)) { git clone https://gitlab.com/libeigen/eigen.git external/eigen }
+              If (-Not (Test-Path -Path C:/Users/circleci/project/external/eigen)) { git clone https://gitlab.com/libeigen/eigen.git external/eigen -b 3.4 }
               If (-Not (Test-Path -Path C:/Users/circleci/project/external/glm)) { git clone https://github.com/g-truc/glm external/glm }
               If (-Not (Test-Path -Path C:/Users/circleci/project/external/SFGUI)) { git clone https://github.com/KimihikoAkayasaki/SFGUI external/SFGUI }
 
