@@ -308,7 +308,7 @@ jobs:
 
       - save_cache:
           name: Cache dependencies
-          key: clone_cache
+          key: clone_cache_
           paths:
               - C:/Users/circleci/project/external/openvr
               - C:/Users/circleci/project/external/eigen
@@ -350,7 +350,7 @@ jobs:
 
       - restore_cache:
           keys:
-              - clone_cache
+              - clone_cache_
 
       - run:
           name: Clone and setup KTVR
