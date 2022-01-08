@@ -1,5 +1,5 @@
 {
   "release": "0,9,0",
-  "build": "51,5,33,0",
-  "changes": "S51.5.32.0+3 BETA Flip Mode Fixes\nPlease update using GitHub Releases"
+  "build": "51,5,35,0",
+  "changes": "S51.5.35.0+1 Several PreRelease Fixes\nPlease update using GitHub Releases"
 }
