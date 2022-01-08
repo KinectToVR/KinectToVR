@@ -27,7 +27,8 @@ jobs:
       - run:
           name: Setup tools
           command: |
-              choco install cmake --installargs 'ADD_CMAKE_TO_PATH=User'
+              Invoke-WebRequest -Uri 'https://github.com/Kitware/CMake/releases/download/v3.22.1/cmake-3.22.1-windows-x86_64.msi' -OutFile './cmakeinstall.msi'
+              Start-Process msiexec.exe -Wait -ArgumentList '/i "cmakeinstall.msi" /q'
               choco install 7zip.install
               choco install sed
               choco install gh
