@@ -56,14 +56,19 @@ public:
 
 	GUIHandler()
 	{
-		guiWindow->SetTitle("KinectToVR EX 0.9.0");
+		guiWindow->SetTitle("K2EX 0.9");
 		if (KinectSettings::kinectVersion == 1)
 		{
-			guiWindow->SetTitle("KinectToVR EX 0.9.0 (Xbox 360/V1)");
+			guiWindow->SetTitle("K2EX 0.9 (Xbox 360 Kinect / Kinect for Windows V1)");
 		}
-		if (KinectSettings::kinectVersion == 2)
+		else if (KinectSettings::kinectVersion == 2)
 		{
-			guiWindow->SetTitle("KinectToVR EX 0.9.0 (Xbox One/V2)");
+			guiWindow->SetTitle("K2EX 0.9 (Xbox One Kinect / Kinect for Windows V2)");
+		}
+
+		if (KinectSettings::isKinectPSMS)
+		{
+			guiWindow->SetTitle("K2EX 0.9 (PSMove Service)");
 		}
 
 		setDefaultSignals();
@@ -135,9 +140,9 @@ public:
 	void setScale()
 	{
 		guiWindow->SetAllocation(sf::FloatRect(0.f, 0.f, .8f * SFMLsettings::m_window_width,
-			.7f * SFMLsettings::m_window_height));
+		                                       .7f * SFMLsettings::m_window_height));
 		guiWindow->SetRequisition(sf::Vector2f(.2f * SFMLsettings::m_window_width,
-			.2f * SFMLsettings::m_window_height));
+		                                       .2f * SFMLsettings::m_window_height));
 		//Text scaling
 		/*
 		Window > * > * > Label{
@@ -175,16 +180,16 @@ public:
 		}
 
 		StartPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				initialisePSMoveHandlerIntoGUI();
-			});
+		{
+			initialisePSMoveHandlerIntoGUI();
+		});
 		StopPSMoveHandler->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				if (!psMoveHandler.active)
-					return;
-				psMoveHandler.shutdown();
-				PSMoveHandlerLabel->SetText("PSMoveService (Status: Disconnected!)");
-			});
+		{
+			if (!psMoveHandler.active)
+				return;
+			psMoveHandler.shutdown();
+			PSMoveHandlerLabel->SetText("PSMoveService (Status: Disconnected!)");
+		});
 	}
 
 	void initialisePSMoveHandlerIntoGUI()
@@ -198,9 +203,9 @@ public:
 		auto errorCode = psMoveHandler.initialise();
 
 		PSMoveHandlerLabel->SetText(
-			psMoveHandler.active ?
-			"PSMoveService (Status: Connected!)" :
-			(std::string("PSMoveService (Status: ") + psMoveHandler.connectionMessages[errorCode] + ")"));
+			psMoveHandler.active
+				? "PSMoveService (Status: Connected!)"
+				: (std::string("PSMoveService (Status: ") + psMoveHandler.connectionMessages[errorCode] + ")"));
 	}
 
 	void setDefaultSignals()
@@ -212,42 +217,42 @@ public:
 			// Font Size Scaling
 			FontSizeScale->SetDigits(3);
 			FontSizeScale->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
+			{
+				// This checking is required due to some weird anomaly in Sfgui.
+				// Without it, it will constantly reupdate the SpinButton event,
+				// effectively lagging this for 2-10x as long as it should
+				lastFontSizeValue = SFMLsettings::globalFontSize;
+				SFMLsettings::globalFontSize = FontSizeScale->GetValue();
+				if (lastFontSizeValue != SFMLsettings::globalFontSize)
 				{
-					// This checking is required due to some weird anomaly in Sfgui.
-					// Without it, it will constantly reupdate the SpinButton event,
-					// effectively lagging this for 2-10x as long as it should
-					lastFontSizeValue = SFMLsettings::globalFontSize;
-					SFMLsettings::globalFontSize = FontSizeScale->GetValue();
-					if (lastFontSizeValue != SFMLsettings::globalFontSize)
-					{
-						setScale();
-					}
-				});
+					setScale();
+				}
+			});
 		}
 
 		ShowSkeletonButton->GetSignal(sfg::Widget::OnLeftClick).Connect([]
-			{
-				KinectSettings::isSkeletonDrawn = !KinectSettings::isSkeletonDrawn;
-			});
+		{
+			KinectSettings::isSkeletonDrawn = !KinectSettings::isSkeletonDrawn;
+		});
 
 		psmovebox_left->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-			{
-				KinectSettings::psm_left_id = psmovebox_left->GetSelectedItem();
-				KinectSettings::flashnow[0] = psmovebox_left->GetSelectedItem();
-				KinectSettings::flashnow[1] = true;
-			});
+		{
+			KinectSettings::psm_left_id = psmovebox_left->GetSelectedItem();
+			KinectSettings::flashnow[0] = psmovebox_left->GetSelectedItem();
+			KinectSettings::flashnow[1] = true;
+		});
 		psmovebox_right->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-			{
-				KinectSettings::psm_right_id = psmovebox_right->GetSelectedItem();
-				KinectSettings::flashnow[0] = psmovebox_right->GetSelectedItem();
-				KinectSettings::flashnow[1] = true;
-			});
+		{
+			KinectSettings::psm_right_id = psmovebox_right->GetSelectedItem();
+			KinectSettings::flashnow[0] = psmovebox_right->GetSelectedItem();
+			KinectSettings::flashnow[1] = true;
+		});
 		psmovebox_waist->GetSignal(sfg::ComboBox::OnSelect).Connect([this]
-			{
-				KinectSettings::psm_waist_id = psmovebox_waist->GetSelectedItem();
-				KinectSettings::flashnow[0] = psmovebox_waist->GetSelectedItem();
-				KinectSettings::flashnow[1] = true;
-			});
+		{
+			KinectSettings::psm_waist_id = psmovebox_waist->GetSelectedItem();
+			KinectSettings::flashnow[0] = psmovebox_waist->GetSelectedItem();
+			KinectSettings::flashnow[1] = true;
+		});
 
 		connectPSMoveHandlerGUIEvents();
 		setCalibrationSignal();
@@ -430,10 +435,11 @@ public:
 			m_VRSystem = VR_Init(&eError, vr::VRApplication_Overlay);
 			LOG_IF(ERROR, eError != vr::EVRInitError::VRInitError_None) <<
 				" (Workaround/Hack) VR System failed to reinitialise, attempting again...";
-		} 		while (m_VRSystem == nullptr); // Potential Segfault if not actually initialised and used later on
+		}
+		while (m_VRSystem == nullptr); // Potential Segfault if not actually initialised and used later on
 		LOG(INFO) << "(Workaround/Hack) Successfully loaded K2VR into bindings menu!";
 	}
-	
+
 	void refreshpsms()
 	{
 		psmovebox_left->Clear();
@@ -475,62 +481,63 @@ public:
 	void setKinectButtonSignal(KinectHandlerBase& kinect)
 	{
 		reconKinectButton->GetSignal(sfg::Widget::OnLeftClick).Connect([&]
-			{
-				kinect.initialise();
-				KinectSettings::reconnecting = true;
+		{
+			kinect.initialise();
+			KinectSettings::reconnecting = true;
 
-				std::thread([&] {
-					std::this_thread::sleep_for(std::chrono::seconds(3));
-					updateKinectStatusLabel(kinect);
-					}).detach();
-			});
+			std::thread([&]
+			{
+				std::this_thread::sleep_for(std::chrono::seconds(3));
+				updateKinectStatusLabel(kinect);
+			}).detach();
+		});
 
 		refreshpsmovesbuton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				refreshpsms();
-			});
+		{
+			refreshpsms();
+		});
 
 		refreshpsmovesbuton1->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				refreshpsms();
-			});
+		{
+			refreshpsms();
+		});
 
 		refreshpsmovesbuton11->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				refreshpsms();
-			});
+		{
+			refreshpsms();
+		});
 	}
 
 	void ping_InitTrackers()
 	{
 		if // If at least one tracker is enabled
-			(
-				KinectSettings::EnabledTrackersSave[0] ||
-				KinectSettings::EnabledTrackersSave[2] ||
-				KinectSettings::EnabledTrackersSave[1])
+		(
+			KinectSettings::EnabledTrackersSave[0] ||
+			KinectSettings::EnabledTrackersSave[2] ||
+			KinectSettings::EnabledTrackersSave[1])
 		{
 			if (!KinectSettings::initialised && // If not done yet
 				VirtualHips::settings.AutoStartTrackers && // If AutoStart
 				KinectSettings::isDriverPresent) // If driver's ok
 			{
 				auto st = new std::thread([this]
-					{
-						std::this_thread::sleep_for(std::chrono::seconds(3));
-						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
-						TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-						spawnDefaultLowerBodyTrackers();
+				{
+					std::this_thread::sleep_for(std::chrono::seconds(3));
+					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
+					TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+					spawnDefaultLowerBodyTrackers();
 
-						showPostTrackerInitUI();
+					showPostTrackerInitUI();
 
-						TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+					TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
 
-						modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
-						TDegreeButton->SetValue(KinectSettings::cpoints);
-						TrackersCalibButton->Show(true);
-						expcalibbutton->Show(!KinectSettings::isKinectPSMS);
+					modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
+					TDegreeButton->SetValue(KinectSettings::cpoints);
+					TrackersCalibButton->Show(true);
+					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
 
-						KinectSettings::initialised = true;
-					});
+					KinectSettings::initialised = true;
+				});
 			}
 			else if (!KinectSettings::isDriverPresent)
 				LOG(INFO) << "Not autospawning trackers as the server is not yet connected.";
@@ -544,51 +551,58 @@ public:
 	void setTrackerButtonSignals(vr::IVRSystem*& m_VRSystem)
 	{
 		TrackerInitButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				if (!KinectSettings::initialised)
-				{
-					/*
-					bool reuseLastTrackers = true;
-					if (reuseLastTrackers) {
-						LOG(INFO) << "SPAWNING TRACKERS FROM LAST OPEN, MAY BE ISSUES";
-
-						// Load Last Set of trackers used
-
-						// Spawn
-					}
-					*/
-					if // If at least one tracker is enabled
-						(
-							KinectSettings::EnabledTrackersSave[0] ||
-							KinectSettings::EnabledTrackersSave[2] ||
-							KinectSettings::EnabledTrackersSave[1])
+		{
+				if (KinectSettings::isDriverPresent) {
+					if (!KinectSettings::initialised)
 					{
-						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
-						TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
-						spawnDefaultLowerBodyTrackers();
+						/*
+						bool reuseLastTrackers = true;
+						if (reuseLastTrackers) {
+							LOG(INFO) << "SPAWNING TRACKERS FROM LAST OPEN, MAY BE ISSUES";
 
-						showPostTrackerInitUI();
+							// Load Last Set of trackers used
 
-						TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+							// Spawn
+						}
+						*/
+						if // If at least one tracker is enabled
+							(
+								KinectSettings::EnabledTrackersSave[0] ||
+								KinectSettings::EnabledTrackersSave[2] ||
+								KinectSettings::EnabledTrackersSave[1])
+						{
+							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_spawned);
+							TrackerInitButton->SetLabel("Trackers Initialised - Destroy Trackers");
+							spawnDefaultLowerBodyTrackers();
 
-						modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
-						TDegreeButton->SetValue(KinectSettings::cpoints);
-						TrackersCalibButton->Show(true);
-						expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
+							showPostTrackerInitUI();
 
-						KinectSettings::initialised = true;
+							TrackerLastInitButton->SetState(sfg::Widget::State::INSENSITIVE);
+
+							modeTitleBox110->Show(!KinectSettings::isKinectPSMS);
+							TDegreeButton->SetValue(KinectSettings::cpoints);
+							TrackersCalibButton->Show(true);
+							expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
+
+							KinectSettings::initialised = true;
+						}
+						else
+							LOG(ERROR) << "Not spawning trackers as no one is enabled.";
 					}
+					// We can turn them off if none are enabled though
 					else
-						LOG(ERROR) << "Not spawning trackers as no one is enabled.";
+					{
+						KinectSettings::initialised = false;
+						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_destroyed);
+						TrackerInitButton->SetLabel("Spawn Trackers");
+					}
 				}
-				// We can turn them off if none are enabled though
 				else
 				{
-					KinectSettings::initialised = false;
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_trackers_destroyed);
-					TrackerInitButton->SetLabel("Spawn Trackers");
+					// Open Docs
+					system("start https://k2vr.tech/docs/minus10");
 				}
-			});
+		});
 		// Make sure that users don't get confused and hit the spawn last button when they don't need it
 		/*bool foundCachedTrackers = trackerConfigExists() ? true : false;
 		TrackerLastInitButton->Show(foundCachedTrackers);*/
@@ -596,7 +610,7 @@ public:
 		//Initialise trackers if $(Conditions)
 		ping_InitTrackers();
 	}
-	
+
 	vr::HmdQuaternion_t GetRotation(vr::HmdMatrix34_t matrix)
 	{
 		vr::HmdQuaternion_t q;
@@ -764,7 +778,7 @@ public:
 
 		mainGUIBox->Pack(modeTitleBox110);
 		modeTitleBox110->Show(false);
-		
+
 		mainGUIBox->Pack(sfg::Label::Create(""));
 		mainGUIBox->Pack(sfg::Label::Create(""));
 		mainGUIBox->Pack(sfg::Label::Create(""));
@@ -873,7 +887,7 @@ public:
 		// Pack sound toggle
 		advancedTrackerBox->Pack(sfg::Label::Create(" "));
 		advancedTrackerBox->Pack(toggleSoundsButton);
-		
+
 		// Pack reset button
 		advancedTrackerBox->Pack(configResetButton);
 	}
@@ -884,7 +898,8 @@ public:
 		verticalBox->Pack(
 			sfg::Label::Create("This tab allows you to enable/disable or turn on/off selected trackers."));
 		verticalBox->Pack(
-			sfg::Label::Create("Disabling a tracker turns it off, then prevents it from spawning the next SteamVR run."));
+			sfg::Label::Create(
+				"Disabling a tracker turns it off, then prevents it from spawning the next SteamVR run."));
 		verticalBox->Pack(
 			sfg::Label::Create("When a tracker is turned off, it still will be added, but marked as inactive.\n\n\n"));
 		trackersBox->Pack(verticalBox);
@@ -1015,14 +1030,15 @@ public:
 		verticalBox->Pack(sfg::Label::Create(" "));
 
 		verticalBox->Pack(CalibrationSaveButton);
-		
+
 		calibrationBox->Pack(verticalBox);
 	}
 
 	void updateKinectStatusLabel(KinectHandlerBase& kinect)
 	{
 		HRESULT status = kinect.getStatusResult();
-		if (status != lastKinectStatus || KinectSettings::reconnecting) {
+		if (status != lastKinectStatus || KinectSettings::reconnecting)
+		{
 			if (kinect.isInitialised())
 			{
 				if (kinect.isPSMS)
@@ -1035,43 +1051,45 @@ public:
 					switch (status)
 					{
 					case S_OK:
-					{
-						KinectStatusLabel->SetText("Kinect Status: Success!");
-						break;
-					}
+						{
+							KinectStatusLabel->SetText("Kinect Status: Success!");
+							break;
+						}
 					default:
-					{
-						KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
-						KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_kinect_error);
-						break;
-					}
+						{
+							KinectStatusLabel->SetText("Kinect Status: ERROR " + kinect.statusResultString(status));
+							KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_kinect_error);
+							break;
+						}
 					}
 				}
 			}
-			else {
+			else
+			{
 				updateKinectStatusLabelDisconnected();
 				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_kinect_error);
 
 				// Wait 2 seconds and try to reconnect (only once) in background
 				if (!alreadyTriedReconnecting)
 					std::thread([&]
+					{
+						// Wait 2 seconds
+						std::this_thread::sleep_for(std::chrono::seconds(2));
+
+						// Log this one
+						LOG(INFO) << "Kinect not detected! Automatically reconnecting (once) now...";
+
+						// Same source as in reconKinectButton->GetSignal
+						kinect.initialise();
+						KinectSettings::reconnecting = true;
+						alreadyTriedReconnecting = true;
+
+						std::thread([&]
 						{
-							// Wait 2 seconds
-							std::this_thread::sleep_for(std::chrono::seconds(2));
-
-							// Log this one
-							LOG(INFO) << "Kinect not detected! Automatically reconnecting (once) now...";
-
-							// Same source as in reconKinectButton->GetSignal
-							kinect.initialise();
-							KinectSettings::reconnecting = true;
-							alreadyTriedReconnecting = true;
-
-							std::thread([&] {
-								std::this_thread::sleep_for(std::chrono::seconds(3));
-								updateKinectStatusLabel(kinect);
-								}).detach();
+							std::this_thread::sleep_for(std::chrono::seconds(3));
+							updateKinectStatusLabel(kinect);
 						}).detach();
+					}).detach();
 			}
 
 			LOG(INFO) << "Tracking Device Status updated to: " << KinectStatusLabel->GetText().toAnsiString();
@@ -1152,7 +1170,7 @@ public:
 			if (strcmp(W2A(pEntry.szExeFile), filename) == 0)
 			{
 				HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0,
-					pEntry.th32ProcessID);
+				                              pEntry.th32ProcessID);
 				if (hProcess != nullptr)
 				{
 					TerminateProcess(hProcess, 9);
@@ -1169,18 +1187,23 @@ public:
 		using namespace VirtualHips;
 
 		DisableTrackerButton[0]->SetLabel(
-			(std::string(settings.EnabledTrackersSave[0] ? "Disable" : "Enable") + std::string(" Waist Tracker")).c_str());
+			(std::string(settings.EnabledTrackersSave[0] ? "Disable" : "Enable") + std::string(" Waist Tracker")).
+			c_str());
 		DisableTrackerButton[1]->SetLabel(
-			(std::string(settings.EnabledTrackersSave[1] ? "Disable" : "Enable") + std::string(" Left Foot Tracker")).c_str());
+			(std::string(settings.EnabledTrackersSave[1] ? "Disable" : "Enable") + std::string(" Left Foot Tracker")).
+			c_str());
 		DisableTrackerButton[2]->SetLabel(
-			(std::string(settings.EnabledTrackersSave[2] ? "Disable" : "Enable") + std::string(" Right Foot Tracker")).c_str());
+			(std::string(settings.EnabledTrackersSave[2] ? "Disable" : "Enable") + std::string(" Right Foot Tracker")).
+			c_str());
 
 		TurnOffTrackerButton[0]->SetLabel(
 			(std::string(settings.OnTrackersSave[0] ? "Turn Off" : "Turn On") + std::string(" Waist Tracker")).c_str());
 		TurnOffTrackerButton[1]->SetLabel(
-			(std::string(settings.OnTrackersSave[1] ? "Turn Off" : "Turn On") + std::string(" Left Foot Tracker")).c_str());
+			(std::string(settings.OnTrackersSave[1] ? "Turn Off" : "Turn On") + std::string(" Left Foot Tracker")).
+			c_str());
 		TurnOffTrackerButton[2]->SetLabel(
-			(std::string(settings.OnTrackersSave[2] ? "Turn Off" : "Turn On") + std::string(" Right Foot Tracker")).c_str());
+			(std::string(settings.OnTrackersSave[2] ? "Turn Off" : "Turn On") + std::string(" Right Foot Tracker")).
+			c_str());
 
 		for (int i = 0; i < 3; i++)
 			TurnOffTrackerButton[i]->Show(settings.EnabledTrackersSave[i]);
@@ -1195,128 +1218,130 @@ public:
 		TDegreeButton->SetDigits(0);
 
 		pauseTrackingButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
-				KinectSettings::k2ex_PlaySound(
-					KinectSettings::trackingPaused ?
-					KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_off :
-					KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_on);
-				pauseTrackingButton->SetLabel(
-					std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(" Body Tracking in SteamVR"));
-			});
+		{
+			KinectSettings::trackingPaused = !KinectSettings::trackingPaused;
+			KinectSettings::k2ex_PlaySound(
+				KinectSettings::trackingPaused
+					? KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_off
+					: KinectSettings::IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_on);
+			pauseTrackingButton->SetLabel(
+				std::string(KinectSettings::trackingPaused ? "Resume" : "Freeze") + std::string(
+					" Body Tracking in SteamVR"));
+		});
 
 		toggleFlipButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
-				KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
-				VirtualHips::saveSettings();
-				KinectSettings::k2ex_PlaySound(
-					VirtualHips::settings.FlipEnabled ?
-					KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_on :
-					KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_off);
-				toggleFlipButton->SetLabel(
-					VirtualHips::settings.FlipEnabled ?
-					"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
-					"Enable/Disable 'Flip' [CURRENT: DISABLED]");
-			});
+		{
+			VirtualHips::settings.FlipEnabled = !VirtualHips::settings.FlipEnabled;
+			KinectSettings::FlipEnabled = VirtualHips::settings.FlipEnabled;
+			VirtualHips::saveSettings();
+			KinectSettings::k2ex_PlaySound(
+				VirtualHips::settings.FlipEnabled
+					? KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_on
+					: KinectSettings::IK2EXSoundType::k2ex_sound_flip_toggle_off);
+			toggleFlipButton->SetLabel(
+				VirtualHips::settings.FlipEnabled
+					? "Enable/Disable 'Flip' [CURRENT: ENABLED]"
+					: "Enable/Disable 'Flip' [CURRENT: DISABLED]");
+		});
 
 		toggleSoundsButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
-			{
-				VirtualHips::settings.SoundsEnabled = !VirtualHips::settings.SoundsEnabled;
-				KinectSettings::k2ex_SoundsEnabled = VirtualHips::settings.SoundsEnabled;
+		{
+			VirtualHips::settings.SoundsEnabled = !VirtualHips::settings.SoundsEnabled;
+			KinectSettings::k2ex_SoundsEnabled = VirtualHips::settings.SoundsEnabled;
 
-				VirtualHips::saveSettings();
-				toggleSoundsButton->SetLabel(
-					VirtualHips::settings.SoundsEnabled ?
-					"Enable/Disable Sounds [CURRENT: ENABLED]" :
-					"Enable/Disable Sounds [CURRENT: DISABLED]");
-			});
+			VirtualHips::saveSettings();
+			toggleSoundsButton->SetLabel(
+				VirtualHips::settings.SoundsEnabled
+					? "Enable/Disable Sounds [CURRENT: ENABLED]"
+					: "Enable/Disable Sounds [CURRENT: DISABLED]");
+		});
 
 		configResetButton->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
+		{
+			// Literals
+			using namespace std::string_literals;
+
+			// Erase (delete) KinectSettings
+			DeleteFile(KVR::fileToDirPath(KinectSettings::CFG_NAME).c_str());
+			// Erase (delete) Global Settings
+			DeleteFile(KVR::fileToDirPath(VirtualHips::settingsConfig).c_str());
+
+			// Get current caller path
+			LPSTR fileName = new CHAR[MAX_PATH + 1];
+			DWORD charsWritten = GetModuleFileNameA(NULL, fileName, MAX_PATH + 1);
+
+			// If we've found who asked
+			if (charsWritten != 0)
 			{
-				// Literals
-				using namespace std::string_literals;
-			
-				// Erase (delete) KinectSettings
-				DeleteFile(KVR::fileToDirPath(KinectSettings::CFG_NAME).c_str());
-				// Erase (delete) Global Settings
-				DeleteFile(KVR::fileToDirPath(VirtualHips::settingsConfig).c_str());
+				// Compose the restart command: sleep 3 seconds and start the same process
+				const std::string _cmd =
+					"powershell Start-Process powershell -ArgumentList 'Start-Sleep -Seconds 3; " +
+					"Start-Process -WorkingDirectory (Split-Path -Path (Resolve-Path \""s +
+					fileName +
+					"\")) -filepath \"" +
+					fileName +
+					"\"' -WindowStyle hidden";
 
-				// Get current caller path
-				LPSTR fileName = new CHAR[MAX_PATH + 1];
-				DWORD charsWritten = GetModuleFileNameA(NULL, fileName, MAX_PATH + 1);
+				// Log the caller
+				LOG(INFO) << "The current caller process is: "s + fileName;
+				LOG(INFO) << "Restart command used: "s + _cmd;
 
-				// If we've found who asked
-				if (charsWritten != 0) {
-
-					// Compose the restart command: sleep 3 seconds and start the same process
-					const std::string _cmd =
-						"powershell Start-Process powershell -ArgumentList 'Start-Sleep -Seconds 3; " + 
-						"Start-Process -WorkingDirectory (Split-Path -Path (Resolve-Path \""s +
-						fileName +
-						"\")) -filepath \"" +
-						fileName +
-						"\"' -WindowStyle hidden";
-
-					// Log the caller
-					LOG(INFO) << "The current caller process is: "s + fileName;
-					LOG(INFO) << "Restart command used: "s + _cmd;
-
-					// Restart the app
-					if (system(_cmd.c_str()) < 0)
-					{
-						LOG(ERROR) << "App will not be restarted due to new process creation error.";
-					}
+				// Restart the app
+				if (system(_cmd.c_str()) < 0)
+				{
+					LOG(ERROR) << "App will not be restarted due to new process creation error.";
 				}
-				else LOG(ERROR) << "App will not be restarted due to caller process identification error.";
+			}
+			else
+				LOG(ERROR) << "App will not be restarted due to caller process identification error.";
 
-				// Exit the app
-				LOG(INFO) << "Configuration has been reset, exiting...";
-				exit(-1);
+			// Exit the app
+			LOG(INFO) << "Configuration has been reset, exiting...";
+			exit(-1);
+		});
+
+		for (int i = 0; i < 3; i++)
+		{
+			DisableTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
+			{
+				settings.EnabledTrackersSave[i] = !settings.EnabledTrackersSave[i];
+				// OnOff one here because the state may change at runtime, spawning not
+				settings.OnTrackersSave[i] = settings.EnabledTrackersSave[i];
+				KinectSettings::OnTrackersSave[i] = settings.OnTrackersSave[i];
+				updateSavedTrackersLabels();
+				saveSettings();
+
+				// Force update
+				KinectSettings::initialised_bak = !KinectSettings::initialised;
+
+				// Force restart
+				ktvr::request_vr_restart("SteamVR needs to be restarted to enable/disable trackers properly.");
 			});
 
-		for (int i = 0; i < 3; i++) {
-			DisableTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
-				{
-					settings.EnabledTrackersSave[i] = !settings.EnabledTrackersSave[i];
-					// OnOff one here because the state may change at runtime, spawning not
-					settings.OnTrackersSave[i] = settings.EnabledTrackersSave[i];
-					KinectSettings::OnTrackersSave[i] = settings.OnTrackersSave[i];
-					updateSavedTrackersLabels();
-					saveSettings();
-
-					// Force update
-					KinectSettings::initialised_bak = !KinectSettings::initialised;
-
-					// Force restart
-					ktvr::request_vr_restart("SteamVR needs to be restarted to enable/disable trackers properly.");
-				});
-
 			TurnOffTrackerButton[i]->GetSignal(sfg::Widget::OnLeftClick).Connect([this, i]
-				{
-					settings.OnTrackersSave[i] = !settings.OnTrackersSave[i];
-					KinectSettings::OnTrackersSave[i] = settings.OnTrackersSave[i];
-					updateSavedTrackersLabels();
-					saveSettings();
+			{
+				settings.OnTrackersSave[i] = !settings.OnTrackersSave[i];
+				KinectSettings::OnTrackersSave[i] = settings.OnTrackersSave[i];
+				updateSavedTrackersLabels();
+				saveSettings();
 
-					// Force update
-					KinectSettings::initialised_bak = !KinectSettings::initialised;
-				});
-
+				// Force update
+				KinectSettings::initialised_bak = !KinectSettings::initialised;
+			});
 		}
 
 		AutoStartTrackers->GetSignal(sfg::Widget::OnLeftClick).Connect([this]
+		{
+			settings.AutoStartTrackers = !settings.AutoStartTrackers;
+			if (settings.AutoStartTrackers)
 			{
-				settings.AutoStartTrackers = !settings.AutoStartTrackers;
-				if (settings.AutoStartTrackers)
-				{
-					AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: YES]");
-				}
-				else
-				{
-					AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: NO]");
-				}
-			});
+				AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: YES]");
+			}
+			else
+			{
+				AutoStartTrackers->SetLabel("Initialise trackers automatically [CURRENT: NO]");
+			}
+		});
 
 		updateSavedTrackersLabels();
 		if (settings.AutoStartTrackers)
@@ -1329,14 +1354,14 @@ public:
 		}
 
 		toggleFlipButton->SetLabel(
-			VirtualHips::settings.FlipEnabled ?
-			"Enable/Disable 'Flip' [CURRENT: ENABLED]" :
-			"Enable/Disable 'Flip' [CURRENT: DISABLED]");
+			VirtualHips::settings.FlipEnabled
+				? "Enable/Disable 'Flip' [CURRENT: ENABLED]"
+				: "Enable/Disable 'Flip' [CURRENT: DISABLED]");
 
 		toggleSoundsButton->SetLabel(
-			VirtualHips::settings.SoundsEnabled ?
-			"Enable/Disable Sounds [CURRENT: ENABLED]" :
-			"Enable/Disable Sounds [CURRENT: DISABLED]");
+			VirtualHips::settings.SoundsEnabled
+				? "Enable/Disable Sounds [CURRENT: ENABLED]"
+				: "Enable/Disable Sounds [CURRENT: DISABLED]");
 
 		VirtualHipHeightFromHMDButton->GetSignal(sfg::SpinButton::OnValueChanged).Connect([this]
 			{
@@ -1363,407 +1388,423 @@ public:
 			}
 		);
 		VirtualHipFollowHMDLean->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-			{
-				settings.positionFollowsHMDLean = (VirtualHipFollowHMDLean->IsActive());
-			});
+		{
+			settings.positionFollowsHMDLean = (VirtualHipFollowHMDLean->IsActive());
+		});
 
 		VirtualHipConfigSaveButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
 			{
 				saveSettings();
 			}
 		);
-		
+
 		expcalibbutton->GetSignal(sfg::ToggleButton::OnToggle).Connect([this]
-			{
-				KinectSettings::expcalib = !KinectSettings::expcalib;
-			});
+		{
+			KinectSettings::expcalib = !KinectSettings::expcalib;
+		});
 
 		TrackersCalibButton->GetSignal(sfg::Button::OnLeftClick).Connect([this]
+		{
+			if (!KinectSettings::isCalibrating)
 			{
+				KinectSettings::isCalibrating = true;
+				KinectSettings::calibration_confirm = false;
+				KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_start);
 
-				if (!KinectSettings::isCalibrating)
+				if (!KinectSettings::expcalib)
 				{
-					KinectSettings::isCalibrating = true;
-					KinectSettings::calibration_confirm = false;
-					KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_start);
-
-					if (!KinectSettings::expcalib)
+					auto t1 = new std::thread([this]()
 					{
-						auto t1 = new std::thread([this]()
+						KinectSettings::matrixes_calibrated = true;
+						KinectSettings::jcalib = true;
+
+						Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+						Eigen::AngleAxisd yawAngle(0.f, Eigen::Vector3d::UnitY());
+						Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+						Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+						Eigen::Matrix3d rotationMatrix = q.matrix();
+						KinectSettings::calibration_rotation = rotationMatrix.cast<float>();
+
+						bool firstTime = true;
+						double yawtmp = 0, pitchtmp = 0;
+						while (!KinectSettings::calibration_confirm)
+						{
+							std::this_thread::sleep_for(std::chrono::milliseconds(300));
+							/******************************************************************************/
+							TrackersCalibButton->SetLabel(
+								std::string(
+									"Adjust position (Defaults: LGrip:Fine tune, RGrip:Switch Modes, Triggers:Confirm)")
+								.c_str());
+							/******************************************************************************/
+
+							while (!KinectSettings::calibration_modeSwap && !KinectSettings::calibration_confirm)
 							{
-								KinectSettings::matrixes_calibrated = true;
-								KinectSettings::jcalib = true;
+								if (!KinectSettings::calibration_fineTune)
+								{
+									KinectSettings::calibration_translation(0) +=
+										KinectSettings::calibration_leftJoystick[0] * .01f;
+									KinectSettings::calibration_translation(1) +=
+										KinectSettings::calibration_rightJoystick[1] * .01f;
+									KinectSettings::calibration_translation(2) += -
+										KinectSettings::calibration_leftJoystick[1] * .01f;
+								}
+								else
+								{
+									KinectSettings::calibration_translation(0) +=
+										KinectSettings::calibration_leftJoystick[0] * .001f;
+									KinectSettings::calibration_translation(1) +=
+										KinectSettings::calibration_rightJoystick[1] * .001f;
+									KinectSettings::calibration_translation(2) += -
+										KinectSettings::calibration_leftJoystick[1] * .001f;
+								}
+
+								std::this_thread::sleep_for(std::chrono::milliseconds(5));
+								if (!KinectSettings::isCalibrating) break;
+							}
+							if (!KinectSettings::calibration_confirm && KinectSettings::isCalibrating)
+								KinectSettings::k2ex_PlaySound(
+									KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
+
+							if (firstTime)
+								KinectSettings::calibration_origin = Eigen::Vector3f(
+									KinectSettings::kinect_m_positions[2].v[0],
+									KinectSettings::kinect_m_positions[2].v[1],
+									KinectSettings::kinect_m_positions[2].v[2]);
+							firstTime = false;
+
+							std::this_thread::sleep_for(std::chrono::milliseconds(300));
+							/******************************************************************************/
+							TrackersCalibButton->SetLabel(
+								std::string(
+									"Adjust rotation (Defaults: LGrip:Fine tune, RGrip:Switch Modes, Triggers:Confirm)")
+								.c_str());
+							/******************************************************************************/
+
+							while (!KinectSettings::calibration_modeSwap && !KinectSettings::calibration_confirm)
+							{
+								if (!KinectSettings::calibration_fineTune)
+								{
+									yawtmp += KinectSettings::calibration_leftJoystick[0] * M_PI / 280.f;
+									pitchtmp += KinectSettings::calibration_rightJoystick[1] * M_PI / 280.f;
+								}
+								else
+								{
+									yawtmp += (KinectSettings::calibration_leftJoystick[0] * M_PI / 280.f) * .1f;
+									pitchtmp += (KinectSettings::calibration_rightJoystick[1] * M_PI / 280.f) * .1f;
+								}
 
 								Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
-								Eigen::AngleAxisd yawAngle(0.f, Eigen::Vector3d::UnitY());
-								Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+								Eigen::AngleAxisd yawAngle(yawtmp, Eigen::Vector3d::UnitY());
+								Eigen::AngleAxisd pitchAngle(pitchtmp, Eigen::Vector3d::UnitX());
 								Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
 
 								Eigen::Matrix3d rotationMatrix = q.matrix();
 								KinectSettings::calibration_rotation = rotationMatrix.cast<float>();
 
-								bool firstTime = true;
-								double yawtmp = 0, pitchtmp = 0;
-								while (!KinectSettings::calibration_confirm)
-								{
-									std::this_thread::sleep_for(std::chrono::milliseconds(300));
-									/******************************************************************************/
-									TrackersCalibButton->SetLabel(
-										std::string(
-											"Adjust position (Defaults: LGrip:Fine tune, RGrip:Switch Modes, Triggers:Confirm)")
-										.c_str());
-									/******************************************************************************/
+								std::this_thread::sleep_for(std::chrono::milliseconds(5));
+								KinectSettings::calibration_trackers_yaw = glm::degrees(yawtmp);
 
-									while (!KinectSettings::calibration_modeSwap && !KinectSettings::calibration_confirm)
-									{
-										if (!KinectSettings::calibration_fineTune)
-										{
-											KinectSettings::calibration_translation(0) += KinectSettings::calibration_leftJoystick[0] * .01f;
-											KinectSettings::calibration_translation(1) += KinectSettings::calibration_rightJoystick[1] * .01f;
-											KinectSettings::calibration_translation(2) += -KinectSettings::calibration_leftJoystick[1] * .01f;
-										}
-										else
-										{
-											KinectSettings::calibration_translation(0) += KinectSettings::calibration_leftJoystick[0] * .001f;
-											KinectSettings::calibration_translation(1) += KinectSettings::calibration_rightJoystick[1] * .001f;
-											KinectSettings::calibration_translation(2) += -KinectSettings::calibration_leftJoystick[1] * .001f;
-										}
+								// TODO: Check if it's not the opposite
+								KinectSettings::calibration_kinect_pitch = pitchtmp; // This one's in radians
 
-										std::this_thread::sleep_for(std::chrono::milliseconds(5));
-										if (!KinectSettings::isCalibrating) break;
-									}
-									if (!KinectSettings::calibration_confirm && KinectSettings::isCalibrating)
-										KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
+								if (!KinectSettings::isCalibrating) break;
+							}
+							if (!KinectSettings::calibration_confirm && KinectSettings::isCalibrating)
+								KinectSettings::k2ex_PlaySound(
+									KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
 
-									if (firstTime)
-										KinectSettings::calibration_origin = Eigen::Vector3f(
-											KinectSettings::kinect_m_positions[2].v[0],
-											KinectSettings::kinect_m_positions[2].v[1],
-											KinectSettings::kinect_m_positions[2].v[2]);
-									firstTime = false;
-
-									std::this_thread::sleep_for(std::chrono::milliseconds(300));
-									/******************************************************************************/
-									TrackersCalibButton->SetLabel(
-										std::string(
-											"Adjust rotation (Defaults: LGrip:Fine tune, RGrip:Switch Modes, Triggers:Confirm)")
-										.c_str());
-									/******************************************************************************/
-
-									while (!KinectSettings::calibration_modeSwap && !KinectSettings::calibration_confirm)
-									{
-										if (!KinectSettings::calibration_fineTune)
-										{
-											yawtmp += KinectSettings::calibration_leftJoystick[0] * M_PI / 280.f;
-											pitchtmp += KinectSettings::calibration_rightJoystick[1] * M_PI / 280.f;
-										}
-										else
-										{
-											yawtmp += (KinectSettings::calibration_leftJoystick[0] * M_PI / 280.f) * .1f;
-											pitchtmp += (KinectSettings::calibration_rightJoystick[1] * M_PI / 280.f) * .1f;
-										}
-
-										Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
-										Eigen::AngleAxisd yawAngle(yawtmp, Eigen::Vector3d::UnitY());
-										Eigen::AngleAxisd pitchAngle(pitchtmp, Eigen::Vector3d::UnitX());
-										Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-										Eigen::Matrix3d rotationMatrix = q.matrix();
-										KinectSettings::calibration_rotation = rotationMatrix.cast<float>();
-
-										std::this_thread::sleep_for(std::chrono::milliseconds(5));
-										KinectSettings::calibration_trackers_yaw = glm::degrees(yawtmp);
-
-										// TODO: Check if it's not the opposite
-										KinectSettings::calibration_kinect_pitch = pitchtmp; // This one's in radians
-
-										if (!KinectSettings::isCalibrating) break;
-									}
-									if (!KinectSettings::calibration_confirm && KinectSettings::isCalibrating)
-										KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
-
-									if (!KinectSettings::isCalibrating)
-									{
-										KinectSettings::calibration_origin = settings.caliborigin;
-										KinectSettings::calibration_rotation = settings.rcR_matT;
-										KinectSettings::calibration_translation = settings.rcT_matT;
-										KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
-
-										KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
-										break;
-									}
-
-								}
-
-								// Reset
-								KinectSettings::calibration_confirm = false;
-
-								std::this_thread::sleep_for(std::chrono::seconds(1));
-
-								if (KinectSettings::isCalibrating)
-								{
-									settings.caliborigin = KinectSettings::calibration_origin;
-									settings.rcR_matT = KinectSettings::calibration_rotation;
-									settings.rcT_matT = KinectSettings::calibration_translation;
-									settings.CalibrationTrackersYawOffset = glm::degrees(yawtmp);
-									settings.CalibrationKinectCalculatedPitch = pitchtmp;
-								}
-
-								KinectSettings::matrixes_calibrated = true;
-								settings.AreMatricesCalibrated = true;
-
-								if (KinectSettings::isCalibrating) {
-									KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
-									KinectSettings::autoCalibration = false;
-									settings.AutoCalibration = false;
-								}
-								else
-									KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
-
-								TrackersCalibButton->SetLabel(
-									std::string(!KinectSettings::isCalibrating
-										? "Calibration aborted! Hit me to re-calibrate!"
-										: "Done! Hit me to re-calibrate!").c_str());
-								TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
-								KinectSettings::isCalibrating = false;
-
-								saveSettings();
-							});
-					}
-					else
-					{
-						auto t1 = new std::thread([this]()
+							if (!KinectSettings::isCalibrating)
 							{
-								// Wait for the sound
-								std::this_thread::sleep_for(std::chrono::seconds(1));
+								KinectSettings::calibration_origin = settings.caliborigin;
+								KinectSettings::calibration_rotation = settings.rcR_matT;
+								KinectSettings::calibration_translation = settings.rcT_matT;
+								KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
 
-								vr::TrackedDevicePose_t trackedDevicePose;
-								vr::HmdVector3_t position;
+								KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
+								break;
+							}
+						}
 
-								std::vector<vr::DriverPose_t> spose;
-								std::vector<vr::HmdVector3d_t> hpose;
+						// Reset
+						KinectSettings::calibration_confirm = false;
 
-								KinectSettings::ismatrixcalibrated = false;
-								KinectSettings::matrixes_calibrated = false;
-								KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
-								settings.caliborigin = KinectSettings::calibration_origin;
+						std::this_thread::sleep_for(std::chrono::seconds(1));
 
-								for (int ipoint = 1; ipoint <= KinectSettings::cpoints; ipoint++)
-								{
-									if (!KinectSettings::isCalibrating) break;
-									vr::DriverPose_t ispose;
-									vr::HmdVector3d_t ihpose;
+						if (KinectSettings::isCalibrating)
+						{
+							settings.caliborigin = KinectSettings::calibration_origin;
+							settings.rcR_matT = KinectSettings::calibration_rotation;
+							settings.rcT_matT = KinectSettings::calibration_translation;
+							settings.CalibrationTrackersYawOffset = glm::degrees(yawtmp);
+							settings.CalibrationKinectCalculatedPitch = pitchtmp;
+						}
 
-									// Tell the user to move somewhere else, ! means WE WANT IT
-									for (auto i = 4; i >= 0; i--)
-									{
-										TrackersCalibButton->SetLabel(
-											std::string(
-												"[Time left: " + boost::lexical_cast<std::string>(i) + "s]     "
-												"Point " + boost::lexical_cast<std::string>(ipoint) +
-												": Move somewhere else! "
-												"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
-											c_str());
-										if (i > 0) // Don't play the last one
-											KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
-										std::this_thread::sleep_for(std::chrono::seconds(1));
-										if (!KinectSettings::isCalibrating) break;
-									}
-									if (!KinectSettings::isCalibrating) break;
+						KinectSettings::matrixes_calibrated = true;
+						settings.AreMatricesCalibrated = true;
 
-									// NEW Stand still for 3 seconds, lil' idiot-proofing
-									for (auto i = 3; i >= 0; i--)
-									{
-										TrackersCalibButton->SetLabel(
-											std::string(
-												"[Time left: " + boost::lexical_cast<std::string>(i) + "s]     "
-												"Point " + boost::lexical_cast<std::string>(ipoint) +
-												": Please stand still!"
-												"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
-											c_str());
-										if (i > 0) // Don't play the last one
-											KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_stand);
-										std::this_thread::sleep_for(std::chrono::seconds(1));
-										if (!KinectSettings::isCalibrating) break;
-									}
-									if (!KinectSettings::isCalibrating) break;
+						if (KinectSettings::isCalibrating)
+						{
+							KinectSettings::k2ex_PlaySound(
+								KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
+							KinectSettings::autoCalibration = false;
+							settings.AutoCalibration = false;
+						}
+						else
+							KinectSettings::k2ex_PlaySound(
+								KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
 
-									vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(
-										vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
-									position = GetPosition(trackedDevicePose.mDeviceToAbsoluteTracking);
+						TrackersCalibButton->SetLabel(
+							std::string(!KinectSettings::isCalibrating
+								            ? "Calibration aborted! Hit me to re-calibrate!"
+								            : "Done! Hit me to re-calibrate!").c_str());
+						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+						KinectSettings::isCalibrating = false;
 
-									ispose.vecPosition[0] = position.v[0] - KinectSettings::trackingOriginPosition.v[0];
-									ispose.vecPosition[1] = position.v[1] - KinectSettings::trackingOriginPosition.v[1];
-									ispose.vecPosition[2] = position.v[2] - KinectSettings::trackingOriginPosition.v[2];
-
-									Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
-									Eigen::AngleAxisd yawAngle(-KinectSettings::svrhmdyaw, Eigen::Vector3d::UnitY());
-									Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
-
-									Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
-
-									Eigen::Vector3d in(ispose.vecPosition[0], ispose.vecPosition[1], ispose.vecPosition[2]);
-									Eigen::Vector3d out = q * in;
-
-									ispose.vecPosition[0] = out(0);
-									ispose.vecPosition[1] = out(1);
-									ispose.vecPosition[2] = out(2);
-
-									for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::kinect_m_positions[0].v[i];
-
-									TrackersCalibButton->SetLabel(
-										std::string(
-											"Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "!")
-										.c_str());
-									if (ipoint < KinectSettings::cpoints) // Don't play the last one
-										KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_point_captured);
-									std::this_thread::sleep_for(std::chrono::seconds(1));
-
-									spose.push_back(ispose);
-									hpose.push_back(ihpose);
-
-									if (!KinectSettings::isCalibrating) break;
-								}
-								if (!KinectSettings::isCalibrating)
-								{
-									KinectSettings::calibration_origin = settings.caliborigin;
-									KinectSettings::calibration_rotation = settings.rcR_matT;
-									KinectSettings::calibration_translation = settings.rcT_matT;
-									KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
-
-									KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
-								}
-
-								if (KinectSettings::isCalibrating)
-								{
-									Eigen::Matrix<float, 3, Eigen::Dynamic> spoints(3, KinectSettings::cpoints), hpoints(
-										3, KinectSettings::cpoints);
-
-									for (int ipoint = 0; ipoint < KinectSettings::cpoints; ipoint++)
-									{
-										spoints(0, ipoint) = spose.at(ipoint).vecPosition[0];
-										spoints(1, ipoint) = spose.at(ipoint).vecPosition[1];
-										spoints(2, ipoint) = spose.at(ipoint).vecPosition[2];
-
-										hpoints(0, ipoint) = hpose.at(ipoint).v[0];
-										hpoints(1, ipoint) = hpose.at(ipoint).v[1];
-										hpoints(2, ipoint) = hpose.at(ipoint).v[2];
-										if (!KinectSettings::isCalibrating) break;
-									}
-
-									PointSet A = hpoints, B = spoints;
-
-									const auto [ret_R, ret_t] = rigid_transform_3D(A, B);
-
-									std::cout << "\nHead points\n" << A << "\nSteamvr points\n" << B << "\nTranslation\n" <<
-										ret_t << "\nRotation\n" << ret_R << '\n';
-
-									PointSet B2 = (ret_R * A).colwise() + ret_t;
-
-									PointSet err = B2 - B;
-									err = err.cwiseProduct(err);
-									const float rmse = std::sqrt(err.sum() / static_cast<float>(3));
-
-									// Used in Korejan's algo for checking results
-									/*if (rmse < 0.01f)
-										std::cout << "\nEverything looks good!\n";
-									else
-										std::cout << "\nHmm something doesn't look right ...\n";*/
-
-									std::cout << "\nOrginal points\n" << B << "\nMy result\n" << B2 << '\n';
-
-									// Used in Korejan's algo for checking results
-									/*Eigen::Matrix<float, 3, 1> xht;
-									xht << 0, 0, 3;
-									Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
-
-									KinectSettings::calibration_rotation = ret_R;
-									KinectSettings::calibration_translation = ret_t;
-
-									settings.rcR_matT = ret_R;
-									settings.rcT_matT = ret_t;
-
-									/*
-									 * A little explaination what's going on in applying Korejan's transforms...
-									 *
-									 * So then, what is colwise and what does it do?
-									 * https://eigen.tuxfamily.org/dox/group__TutorialReductionsVisitorsBroadcasting -> Broadcasting
-									 * Since points are columns and poses are in rows,
-									 * we need to "rotate" it to add poses to X,Y,Z
-									 * and not X,X,X... ERROR WRONG TYPE
-									 *
-									 * Lower, transpose is just ^-1 or inverse() in glm.
-									 * Anyway, if you don't get something, please read eigen's docs,
-									 * and if you still don't, repeat it until you do...
-									 */
-									
-									Eigen::Vector3f
-										KinectDirectionEigenMatEulerDegrees = 
-										ret_R.eulerAngles(0, 1, 2) * 180 / M_PI;
-									
-									LOG(INFO) << "Retrieved playspace Yaw rotation [mat, degrees]: ";
-									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.x();
-									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.y();
-									LOG(INFO) << KinectDirectionEigenMatEulerDegrees.z();
-									
-									// Save it to settings
-
-									// Save our retrieved yaw (this one's in degrees)
-									//KinectSettings::calibration_trackers_yaw = RetrievedYaw; // Use fixed one
-									KinectSettings::calibration_trackers_yaw = KinectDirectionEigenMatEulerDegrees.y(); // Use fixed one
-									settings.CalibrationTrackersYawOffset = KinectSettings::calibration_trackers_yaw;
-
-									// Pitch in autocalibration is unused
-									KinectSettings::calibration_kinect_pitch = 0.f;
-									settings.CalibrationKinectCalculatedPitch = KinectSettings::calibration_kinect_pitch;
-
-									// In maualcalib it's hips position, although here it's gonna be 0
-									KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
-									settings.caliborigin = KinectSettings::calibration_origin;
-
-									/* NEW Try to "compute" lookAt kinect yaw ourselves */
-								}
-								
-								// Just the last thing to go back if we're somehow not sure
-								if (!KinectSettings::isCalibrating)
-								{
-									KinectSettings::calibration_origin = settings.caliborigin;
-									KinectSettings::calibration_rotation = settings.rcR_matT;
-									KinectSettings::calibration_translation = settings.rcT_matT;
-									KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
-
-									KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
-								}
-								
-								/**********************************************************************************************/
-								
-								KinectSettings::matrixes_calibrated = true;
-								settings.AreMatricesCalibrated = true;
-
-								if (KinectSettings::isCalibrating) {
-									KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
-									KinectSettings::autoCalibration = true;
-									settings.AutoCalibration = true;
-								}
-								else
-									KinectSettings::k2ex_PlaySound(KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
-
-								TrackersCalibButton->SetLabel(
-									std::string(!KinectSettings::isCalibrating
-										? "Calibration aborted! Hit me to re-calibrate!"
-										: "Done! Hit me to re-calibrate!").c_str());
-								TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
-								KinectSettings::isCalibrating = false;
-
-								saveSettings();
-							});
-					}
+						saveSettings();
+					});
 				}
 				else
-					KinectSettings::isCalibrating = false;
+				{
+					auto t1 = new std::thread([this]()
+					{
+						// Wait for the sound
+						std::this_thread::sleep_for(std::chrono::seconds(1));
 
-				saveSettings();
-			});
+						vr::TrackedDevicePose_t trackedDevicePose;
+						vr::HmdVector3_t position;
+
+						std::vector<vr::DriverPose_t> spose;
+						std::vector<vr::HmdVector3d_t> hpose;
+
+						KinectSettings::ismatrixcalibrated = false;
+						KinectSettings::matrixes_calibrated = false;
+						KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
+						settings.caliborigin = KinectSettings::calibration_origin;
+
+						for (int ipoint = 1; ipoint <= KinectSettings::cpoints; ipoint++)
+						{
+							if (!KinectSettings::isCalibrating) break;
+							vr::DriverPose_t ispose;
+							vr::HmdVector3d_t ihpose;
+
+							// Tell the user to move somewhere else, ! means WE WANT IT
+							for (auto i = 4; i >= 0; i--)
+							{
+								TrackersCalibButton->SetLabel(
+									std::string(
+										"[Time left: " + boost::lexical_cast<std::string>(i) + "s]     "
+										"Point " + boost::lexical_cast<std::string>(ipoint) +
+										": Move somewhere else! "
+										"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
+									c_str());
+								if (i > 0) // Don't play the last one
+									KinectSettings::k2ex_PlaySound(
+										KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_move);
+								std::this_thread::sleep_for(std::chrono::seconds(1));
+								if (!KinectSettings::isCalibrating) break;
+							}
+							if (!KinectSettings::isCalibrating) break;
+
+							// NEW Stand still for 3 seconds, lil' idiot-proofing
+							for (auto i = 3; i >= 0; i--)
+							{
+								TrackersCalibButton->SetLabel(
+									std::string(
+										"[Time left: " + boost::lexical_cast<std::string>(i) + "s]     "
+										"Point " + boost::lexical_cast<std::string>(ipoint) +
+										": Please stand still!"
+										"     [Time left: " + boost::lexical_cast<std::string>(i) + "s]").
+									c_str());
+								if (i > 0) // Don't play the last one
+									KinectSettings::k2ex_PlaySound(
+										KinectSettings::IK2EXSoundType::k2ex_sound_calibration_tick_stand);
+								std::this_thread::sleep_for(std::chrono::seconds(1));
+								if (!KinectSettings::isCalibrating) break;
+							}
+							if (!KinectSettings::isCalibrating) break;
+
+							vr::VRSystem()->GetDeviceToAbsoluteTrackingPose(
+								vr::TrackingUniverseStanding, 0, &trackedDevicePose, 1);
+							position = GetPosition(trackedDevicePose.mDeviceToAbsoluteTracking);
+
+							ispose.vecPosition[0] = position.v[0] - KinectSettings::trackingOriginPosition.v[0];
+							ispose.vecPosition[1] = position.v[1] - KinectSettings::trackingOriginPosition.v[1];
+							ispose.vecPosition[2] = position.v[2] - KinectSettings::trackingOriginPosition.v[2];
+
+							Eigen::AngleAxisd rollAngle(0.f, Eigen::Vector3d::UnitZ());
+							Eigen::AngleAxisd yawAngle(-KinectSettings::svrhmdyaw, Eigen::Vector3d::UnitY());
+							Eigen::AngleAxisd pitchAngle(0.f, Eigen::Vector3d::UnitX());
+
+							Eigen::Quaternion<double> q = rollAngle * yawAngle * pitchAngle;
+
+							Eigen::Vector3d in(ispose.vecPosition[0], ispose.vecPosition[1], ispose.vecPosition[2]);
+							Eigen::Vector3d out = q * in;
+
+							ispose.vecPosition[0] = out(0);
+							ispose.vecPosition[1] = out(1);
+							ispose.vecPosition[2] = out(2);
+
+							for (auto i = 0; i < 3; i++)ihpose.v[i] = KinectSettings::kinect_m_positions[0].v[i];
+
+							TrackersCalibButton->SetLabel(
+								std::string(
+									"Position captured: Point " + boost::lexical_cast<std::string>(ipoint) + "!")
+								.c_str());
+							if (ipoint < KinectSettings::cpoints) // Don't play the last one
+								KinectSettings::k2ex_PlaySound(
+									KinectSettings::IK2EXSoundType::k2ex_sound_calibration_point_captured);
+							std::this_thread::sleep_for(std::chrono::seconds(1));
+
+							spose.push_back(ispose);
+							hpose.push_back(ihpose);
+
+							if (!KinectSettings::isCalibrating) break;
+						}
+						if (!KinectSettings::isCalibrating)
+						{
+							KinectSettings::calibration_origin = settings.caliborigin;
+							KinectSettings::calibration_rotation = settings.rcR_matT;
+							KinectSettings::calibration_translation = settings.rcT_matT;
+							KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
+
+							KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
+						}
+
+						if (KinectSettings::isCalibrating)
+						{
+							Eigen::Matrix<float, 3, Eigen::Dynamic> spoints(3, KinectSettings::cpoints), hpoints(
+								                                        3, KinectSettings::cpoints);
+
+							for (int ipoint = 0; ipoint < KinectSettings::cpoints; ipoint++)
+							{
+								spoints(0, ipoint) = spose.at(ipoint).vecPosition[0];
+								spoints(1, ipoint) = spose.at(ipoint).vecPosition[1];
+								spoints(2, ipoint) = spose.at(ipoint).vecPosition[2];
+
+								hpoints(0, ipoint) = hpose.at(ipoint).v[0];
+								hpoints(1, ipoint) = hpose.at(ipoint).v[1];
+								hpoints(2, ipoint) = hpose.at(ipoint).v[2];
+								if (!KinectSettings::isCalibrating) break;
+							}
+
+							PointSet A = hpoints, B = spoints;
+
+							const auto [ret_R, ret_t] = rigid_transform_3D(A, B);
+
+							std::cout << "\nHead points\n" << A << "\nSteamvr points\n" << B << "\nTranslation\n" <<
+								ret_t << "\nRotation\n" << ret_R << '\n';
+
+							PointSet B2 = (ret_R * A).colwise() + ret_t;
+
+							PointSet err = B2 - B;
+							err = err.cwiseProduct(err);
+							const float rmse = std::sqrt(err.sum() / static_cast<float>(3));
+
+							// Used in Korejan's algo for checking results
+							/*if (rmse < 0.01f)
+								std::cout << "\nEverything looks good!\n";
+							else
+								std::cout << "\nHmm something doesn't look right ...\n";*/
+
+							std::cout << "\nOrginal points\n" << B << "\nMy result\n" << B2 << '\n';
+
+							// Used in Korejan's algo for checking results
+							/*Eigen::Matrix<float, 3, 1> xht;
+							xht << 0, 0, 3;
+							Eigen::Matrix<float, 3, 1> xht2 = (ret_R * xht).colwise() + ret_t;*/
+
+							KinectSettings::calibration_rotation = ret_R;
+							KinectSettings::calibration_translation = ret_t;
+
+							settings.rcR_matT = ret_R;
+							settings.rcT_matT = ret_t;
+
+							/*
+							 * A little explaination what's going on in applying Korejan's transforms...
+							 *
+							 * So then, what is colwise and what does it do?
+							 * https://eigen.tuxfamily.org/dox/group__TutorialReductionsVisitorsBroadcasting -> Broadcasting
+							 * Since points are columns and poses are in rows,
+							 * we need to "rotate" it to add poses to X,Y,Z
+							 * and not X,X,X... ERROR WRONG TYPE
+							 *
+							 * Lower, transpose is just ^-1 or inverse() in glm.
+							 * Anyway, if you don't get something, please read eigen's docs,
+							 * and if you still don't, repeat it until you do...
+							 */
+
+							Eigen::Vector3f
+								KinectDirectionEigenMatEulerDegrees =
+									ret_R.eulerAngles(0, 1, 2) * 180 / M_PI;
+
+							LOG(INFO) << "Retrieved playspace Yaw rotation [mat, degrees]: ";
+							LOG(INFO) << KinectDirectionEigenMatEulerDegrees.x();
+							LOG(INFO) << KinectDirectionEigenMatEulerDegrees.y();
+							LOG(INFO) << KinectDirectionEigenMatEulerDegrees.z();
+
+							// Save it to settings
+
+							// Save our retrieved yaw (this one's in degrees)
+							//KinectSettings::calibration_trackers_yaw = RetrievedYaw; // Use fixed one
+							KinectSettings::calibration_trackers_yaw = KinectDirectionEigenMatEulerDegrees.y();
+							// Use fixed one
+							settings.CalibrationTrackersYawOffset = KinectSettings::calibration_trackers_yaw;
+
+							// Pitch in autocalibration is unused
+							KinectSettings::calibration_kinect_pitch = 0.f;
+							settings.CalibrationKinectCalculatedPitch = KinectSettings::calibration_kinect_pitch;
+
+							// In maualcalib it's hips position, although here it's gonna be 0
+							KinectSettings::calibration_origin = Eigen::Vector3f(0, 0, 0);
+							settings.caliborigin = KinectSettings::calibration_origin;
+
+							/* NEW Try to "compute" lookAt kinect yaw ourselves */
+						}
+
+						// Just the last thing to go back if we're somehow not sure
+						if (!KinectSettings::isCalibrating)
+						{
+							KinectSettings::calibration_origin = settings.caliborigin;
+							KinectSettings::calibration_rotation = settings.rcR_matT;
+							KinectSettings::calibration_translation = settings.rcT_matT;
+							KinectSettings::calibration_trackers_yaw = settings.CalibrationTrackersYawOffset;
+
+							KinectSettings::calibration_kinect_pitch = settings.CalibrationKinectCalculatedPitch;
+						}
+
+						/**********************************************************************************************/
+
+						KinectSettings::matrixes_calibrated = true;
+						settings.AreMatricesCalibrated = true;
+
+						if (KinectSettings::isCalibrating)
+						{
+							KinectSettings::k2ex_PlaySound(
+								KinectSettings::IK2EXSoundType::k2ex_sound_calibration_complete);
+							KinectSettings::autoCalibration = true;
+							settings.AutoCalibration = true;
+						}
+						else
+							KinectSettings::k2ex_PlaySound(
+								KinectSettings::IK2EXSoundType::k2ex_sound_calibration_aborted);
+
+						TrackersCalibButton->SetLabel(
+							std::string(!KinectSettings::isCalibrating
+								            ? "Calibration aborted! Hit me to re-calibrate!"
+								            : "Done! Hit me to re-calibrate!").c_str());
+						TrackersCalibButton->SetState(sfg::Widget::State::NORMAL);
+						KinectSettings::isCalibrating = false;
+
+						saveSettings();
+					});
+				}
+			}
+			else
+				KinectSettings::isCalibrating = false;
+
+			saveSettings();
+		});
 	}
 
 private:
@@ -1817,7 +1858,7 @@ private:
 	sfg::Label::Ptr KinectPosLabel = sfg::Label::Create(
 		"Calibrate the position of the Kinect sensor with the controller thumbsticks. Press the trigger to confirm.");
 	sfg::CheckButton::Ptr KinectPosButton = sfg::CheckButton::Create("Enable Kinect Position Calibration");
-	
+
 	sfg::Label::Ptr CalibrationSettingsLabel = sfg::Label::Create(
 		"This tab allows you to (manually) offset every one of your trackers. It will aeffect real calibration values, but it will not change them directly.\nYou may need it for example when your right foot will be upper than left, etc.\nRotation is in degrees and position is declared in meters.");
 	sfg::Label::Ptr CalibrationrPosLabel = sfg::Label::Create("Right Foot Position x, y, z");
