@@ -731,33 +731,6 @@ namespace KinectSettings
 								rfoot_euler.x() + M_PI,
 								rfoot_euler.y(),
 								(flip ? -1.f : 1.f) * rfoot_euler.z()));
-
-						left_tracker_rot =
-							EigenUtils::EulersToQuat(
-								Eigen::Vector3f(
-									0.f,
-									glm::radians(2.f * calibration_trackers_yaw),
-									0.f)) *
-							left_tracker_rot;
-
-						right_tracker_rot =
-							EigenUtils::EulersToQuat(
-								Eigen::Vector3f(
-									0.f,
-									glm::radians(2.f * calibration_trackers_yaw),
-									0.f)) *
-							right_tracker_rot;
-
-						// Yeah it's weird
-						/*if (flip) {
-							waist_tracker_rot =
-								EigenUtils::EulersToQuat(
-									Eigen::Vector3f(
-										0.f,
-										M_PI,
-										0.f)) *
-								waist_tracker_rot;
-						}*/
 					}
 				}
 				// If we're using PSMoves, apply the manual offset
