@@ -715,23 +715,36 @@ namespace KinectSettings
 						waist_tracker_rot = temp_orientation[2];
 					}
 
-					if (!autoCalibration && feet_rotation_option == k_EnableOrientationFilter_Software)
-					{
-						Eigen::Vector3f lfoot_euler = EigenUtils::QuatToEulers(left_tracker_rot),
-						                rfoot_euler = EigenUtils::QuatToEulers(right_tracker_rot);
-						
-						left_tracker_rot = EigenUtils::EulersToQuat(
-							Eigen::Vector3f(
-								lfoot_euler.x() + M_PI,
-								(flip ? 1.f : -1.f) * lfoot_euler.y(), // flip 1, !flip -1
-								/*(flip ? -1.f : 1.f) * */ -lfoot_euler.z())); // notice the -
+					// WHAT THE FWAK
+					// why was this here, even...
 
-						right_tracker_rot = EigenUtils::EulersToQuat(
-							Eigen::Vector3f(
-								rfoot_euler.x() + M_PI,
-								(flip ? 1.f : -1.f) * rfoot_euler.y(), // flip 1, !flip -1
-								/*(flip ? -1.f : 1.f) * */ -rfoot_euler.z())); // notice the -
-					}
+					//// Just don't ask me about this part, all this stuff is just cursed...
+					//// idk how, why and when did it break, I only know it's fixed by this
+					//if (!flip && !autoCalibration && feet_rotation_option == k_EnableOrientationFilter_Software)
+					//{
+					//	Eigen::Vector3f lfoot_euler = EigenUtils::QuatToEulers(left_tracker_rot),
+					//	                rfoot_euler = EigenUtils::QuatToEulers(right_tracker_rot);
+
+					//	left_tracker_rot = EigenUtils::EulersToQuat(
+					//			Eigen::Vector3f(
+					//				lfoot_euler.x() + M_PI,
+					//				(flip ? 1.f : -1.f) * lfoot_euler.y(), // flip 1, !flip -1
+					//				/*(flip ? -1.f : 1.f) * */ -lfoot_euler.z())) // notice the -
+					//		* EigenUtils::EulersToQuat(Eigen::Vector3f(
+					//			M_PI,
+					//			0.,
+					//			0.));
+
+					//	right_tracker_rot = EigenUtils::EulersToQuat(
+					//		Eigen::Vector3f(
+					//			rfoot_euler.x() + M_PI,
+					//			(flip ? 1.f : -1.f) * rfoot_euler.y(), // flip 1, !flip -1
+					//			/*(flip ? -1.f : 1.f) * */ -rfoot_euler.z())) // notice the -
+					//		* EigenUtils::EulersToQuat(Eigen::Vector3f(
+					//			M_PI, 
+					//			0., 
+					//			0.));
+					//}
 				}
 				// If we're using PSMoves, apply the manual offset
 				else if (positional_tracking_option == k_PSMoveFullTracking)
