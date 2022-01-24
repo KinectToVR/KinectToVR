@@ -9,7 +9,7 @@
 #include <SFML/System/Vector3.hpp>
 #include <KinectSettings.h>
 #include "KinectV1Includes.h"
-#include <openvr_math.h>
+#include <openvr_types.h>
 #include <VectorMath.h>
 
 

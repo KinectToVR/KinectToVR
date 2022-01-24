@@ -24,6 +24,8 @@ public:
 	}
 
 	DoubleExponentialFilter filter;
+	DoubleExponentialFilter bakfilter;
+	
 	DoubleExpBoneOrientationsFilter rotationFilter;
 	IKinectSensor* kinectSensor = nullptr;
 	//IMultiSourceFrameReader* frameReader = nullptr;
@@ -65,10 +67,6 @@ public:
 	void drawKinectImageData(sf::RenderWindow& win) override;
 	void drawTrackedSkeletons(sf::RenderWindow& win) override;
 
-	bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position,
-	                      vr::HmdQuaternion_t& rotation) override;
-
-
 	bool convertColorToDepthResolution = false;
 	/*
 	virtual bool putRGBDataIntoMatrix(cv::Mat& image) override {
@@ -91,11 +89,7 @@ public:
 	*/
 	void onBodyFrameArrived(IBodyFrameReader& sender, IBodyFrameArrivedEventArgs& eventArgs);
 	virtual void updateSkeletalData();
-
-
-	void zeroAllTracking(vr::IVRSystem* & m_sys) override;
-	void updateTrackersWithSkeletonPosition(std::vector<KVR::KinectTrackedDevice>& trackers) override;
-	void updateTrackersWithColorPosition(std::vector<KVR::KinectTrackedDevice> trackers, sf::Vector2i pos) override;
+	
 	JointType convertJoint(KVR::KinectJoint joint);
 private:
 	bool initKinect();

@@ -84,6 +84,9 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg">
+    <VcpkgEnabled>true</VcpkgEnabled>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>Use</PrecompiledHeader>
@@ -108,11 +111,13 @@
       <WarningLevel>EnableAllWarnings</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>NOMINMAX;_DEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\eigen-3.3.7;$(SolutionDir)external\glm_glm\;$(SolutionDir)external\cereal\include;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <ShowIncludes>true</ShowIncludes>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\gflags\vcbuild\include;$(SolutionDir)external\glog\src;$(SolutionDir)external\glog\vcbuild;$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ShowIncludes>false</ShowIncludes>
       <ForcedIncludeFiles>
       </ForcedIncludeFiles>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,8 +126,19 @@
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y
-xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
-xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
+
+xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+
+xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+
+xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(Configuration)\sounds\"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -159,11 +175,14 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NOMINMAX;NDEBUG;_CONSOLE;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\inputemulator\lib_vrinputemulator\include;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\SFML\include\;$(SolutionDir)external\glew\;$(SolutionDir)external\sfgui\include;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)external\gflags\vcbuild\include;$(SolutionDir)external\glog\src;$(SolutionDir)external\glog\vcbuild;$(SolutionDir)external\SFGUI\include;$(SolutionDir)external\KTVR\KinectToVR_API;$(SolutionDir)external\glm;$(SolutionDir)external\eigen;$(IncludePath);$(ProjectDir);$(ProjectDir)inc;$(SolutionDir)external\openvr\headers;$(SolutionDir)external\opencv\include;$(SolutionDir)external\PSMoveService\include;$(SolutionDir)external\easylogging\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <ForcedIncludeFiles>%(ForcedIncludeFiles)</ForcedIncludeFiles>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <UndefinePreprocessorDefinitions>
+      </UndefinePreprocessorDefinitions>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -174,8 +193,22 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(TargetPath)" "$(SolutionDir)external\KVRlib\" /I /Y
-xcopy "$(SolutionDir)external\dlls\*.dll" "$(TargetDir)"  /Y
-xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
+
+xcopy "$(SolutionDir)external\PSMoveService\bin\PSMoveClient_CAPI.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\openvr\bin\win64\openvr_api.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\KinectToVR_API.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+xcopy "$(SolutionDir)external\KTVR\$(Platform)\$(Configuration)\boost_serialization*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\" /I /Y
+
+xcopy /y /d "$(SolutionDir)external\KTVR\external\gflags\vcbuild\bin\$(Configuration)\gflags*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+xcopy /y /d "$(SolutionDir)external\KTVR\external\glog\vcbuild\$(Configuration)\glog*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+
+xcopy /y /d "$(SolutionDir)external\SFGUI\build\lib\$(Configuration)\*.dll" "$(SolutionDir)$(Platform)\$(Configuration)\"
+
+xcopy /y /d "$(SolutionDir)external\bindings\action_manifest\action_manifest.json" "$(SolutionDir)$(Platform)\$(Configuration)\"
+xcopy /y /d "$(SolutionDir)external\bindings\legacy_bindings\*.json" "$(SolutionDir)$(Platform)\$(Configuration)\input_profiles\"
+
+xcopy /y /d "$(SolutionDir)external\sounds\*.wav" "$(SolutionDir)$(Platform)\$(Configuration)\sounds\"</Command>
     </PostBuildEvent>
     <CustomBuildStep>
       <Command>
@@ -190,50 +223,35 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="EKF_Filter.h" />
-    <ClInclude Include="inc\Calibrator.h" />
-    <ClInclude Include="inc\ColorPositionMethod.h" />
-    <ClInclude Include="inc\ColorTracker.h" />
     <ClInclude Include="inc\DeviceHandler.h" />
-    <ClInclude Include="inc\GamepadController.h" />
-    <ClInclude Include="inc\GenericController.h" />
+    <ClInclude Include="inc\EigenGLHelpers.h" />
     <ClInclude Include="inc\GUIHandler.h" />
-    <ClInclude Include="inc\HeadAndHandsAutoCalibrator.h" />
-    <ClInclude Include="inc\IETracker.h" />
     <ClInclude Include="inc\IKinectHandler.h" />
-    <ClInclude Include="inc\IMU_PositionMethod.h" />
-    <ClInclude Include="inc\IMU_RotationMethod.h" />
     <ClInclude Include="inc\KinectHandlerBase.h" />
     <ClInclude Include="inc\KinectJoint.h" />
     <ClInclude Include="inc\KinectSettings.h" />
     <ClInclude Include="inc\KinectToVR.h" />
-    <ClInclude Include="inc\KinectTrackedDevice.h" />
     <ClInclude Include="inc\logging.h" />
-    <ClInclude Include="inc\ManualCalibrator.h" />
+    <ClInclude Include="inc\openvr_types.h" />
     <ClInclude Include="inc\PSMoveHandler.h" />
     <ClInclude Include="inc\QuaternionMath.h" />
     <ClInclude Include="inc\sfLine.h" />
-    <ClInclude Include="inc\SkeletonPositionMethod.h" />
-    <ClInclude Include="inc\SkeletonRotationMethod.h" />
-    <ClInclude Include="inc\SkeletonTracker.h" />
-    <ClInclude Include="inc\TrackedDeviceInputData.h" />
-    <ClInclude Include="inc\TrackingMethod.h" />
-    <ClInclude Include="inc\TrackingPoolManager.h" />
+    <ClInclude Include="inc\SteamEVRInput.h" />
+    <ClInclude Include="inc\TypeCast.h" />
     <ClInclude Include="inc\VectorMath.h" />
-    <ClInclude Include="inc\VRController.h" />
     <ClInclude Include="inc\VRDeviceHandler.h" />
     <ClInclude Include="inc\VRHelper.h" />
-    <ClInclude Include="LowPassFilter.h" />
     <ClInclude Include="MathEigen.h" />
     <ClInclude Include="Math_Utility.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="IETracker.cpp" />
+    <ClCompile Include="..\external\KTVR\KinectToVR\K2STracker.cpp" />
     <ClCompile Include="KinectJoint.cpp" />
     <ClCompile Include="KinectSettings.cpp" />
     <ClCompile Include="KinectToVR.cpp" />
+    <ClCompile Include="logging.cpp" />
     <ClCompile Include="MathEigen.cpp" />
     <ClCompile Include="Math_Utility.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -242,109 +260,9 @@ xcopy "$(SolutionDir)external\dlls\release\*.dll" "$(TargetDir)"  /Y</Command>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="TrackingPoolManager.cpp" />
     <ClCompile Include="VectorMath.cpp" />
     <ClCompile Include="VRHelper.cpp" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\boost.1.72.0.0\build\boost.targets" Condition="Exists('..\packages\boost.1.72.0.0\build\boost.targets')" />
-    <Import Project="..\packages\boost_atomic-vc142.1.72.0.0\build\boost_atomic-vc142.targets" Condition="Exists('..\packages\boost_atomic-vc142.1.72.0.0\build\boost_atomic-vc142.targets')" />
-    <Import Project="..\packages\boost_bzip2-vc142.1.72.0.0\build\boost_bzip2-vc142.targets" Condition="Exists('..\packages\boost_bzip2-vc142.1.72.0.0\build\boost_bzip2-vc142.targets')" />
-    <Import Project="..\packages\boost_chrono-vc142.1.72.0.0\build\boost_chrono-vc142.targets" Condition="Exists('..\packages\boost_chrono-vc142.1.72.0.0\build\boost_chrono-vc142.targets')" />
-    <Import Project="..\packages\boost_container-vc142.1.72.0.0\build\boost_container-vc142.targets" Condition="Exists('..\packages\boost_container-vc142.1.72.0.0\build\boost_container-vc142.targets')" />
-    <Import Project="..\packages\boost_context-vc142.1.72.0.0\build\boost_context-vc142.targets" Condition="Exists('..\packages\boost_context-vc142.1.72.0.0\build\boost_context-vc142.targets')" />
-    <Import Project="..\packages\boost_contract-vc142.1.72.0.0\build\boost_contract-vc142.targets" Condition="Exists('..\packages\boost_contract-vc142.1.72.0.0\build\boost_contract-vc142.targets')" />
-    <Import Project="..\packages\boost_coroutine-vc142.1.72.0.0\build\boost_coroutine-vc142.targets" Condition="Exists('..\packages\boost_coroutine-vc142.1.72.0.0\build\boost_coroutine-vc142.targets')" />
-    <Import Project="..\packages\boost_date_time-vc142.1.72.0.0\build\boost_date_time-vc142.targets" Condition="Exists('..\packages\boost_date_time-vc142.1.72.0.0\build\boost_date_time-vc142.targets')" />
-    <Import Project="..\packages\boost_exception-vc142.1.72.0.0\build\boost_exception-vc142.targets" Condition="Exists('..\packages\boost_exception-vc142.1.72.0.0\build\boost_exception-vc142.targets')" />
-    <Import Project="..\packages\boost_fiber-vc142.1.72.0.0\build\boost_fiber-vc142.targets" Condition="Exists('..\packages\boost_fiber-vc142.1.72.0.0\build\boost_fiber-vc142.targets')" />
-    <Import Project="..\packages\boost_filesystem-vc142.1.72.0.0\build\boost_filesystem-vc142.targets" Condition="Exists('..\packages\boost_filesystem-vc142.1.72.0.0\build\boost_filesystem-vc142.targets')" />
-    <Import Project="..\packages\boost_graph-vc142.1.72.0.0\build\boost_graph-vc142.targets" Condition="Exists('..\packages\boost_graph-vc142.1.72.0.0\build\boost_graph-vc142.targets')" />
-    <Import Project="..\packages\boost_iostreams-vc142.1.72.0.0\build\boost_iostreams-vc142.targets" Condition="Exists('..\packages\boost_iostreams-vc142.1.72.0.0\build\boost_iostreams-vc142.targets')" />
-    <Import Project="..\packages\boost_locale-vc142.1.72.0.0\build\boost_locale-vc142.targets" Condition="Exists('..\packages\boost_locale-vc142.1.72.0.0\build\boost_locale-vc142.targets')" />
-    <Import Project="..\packages\boost_log-vc142.1.72.0.0\build\boost_log-vc142.targets" Condition="Exists('..\packages\boost_log-vc142.1.72.0.0\build\boost_log-vc142.targets')" />
-    <Import Project="..\packages\boost_log_setup-vc142.1.72.0.0\build\boost_log_setup-vc142.targets" Condition="Exists('..\packages\boost_log_setup-vc142.1.72.0.0\build\boost_log_setup-vc142.targets')" />
-    <Import Project="..\packages\boost_math_c99-vc142.1.72.0.0\build\boost_math_c99-vc142.targets" Condition="Exists('..\packages\boost_math_c99-vc142.1.72.0.0\build\boost_math_c99-vc142.targets')" />
-    <Import Project="..\packages\boost_math_c99f-vc142.1.72.0.0\build\boost_math_c99f-vc142.targets" Condition="Exists('..\packages\boost_math_c99f-vc142.1.72.0.0\build\boost_math_c99f-vc142.targets')" />
-    <Import Project="..\packages\boost_math_c99l-vc142.1.72.0.0\build\boost_math_c99l-vc142.targets" Condition="Exists('..\packages\boost_math_c99l-vc142.1.72.0.0\build\boost_math_c99l-vc142.targets')" />
-    <Import Project="..\packages\boost_math_tr1-vc142.1.72.0.0\build\boost_math_tr1-vc142.targets" Condition="Exists('..\packages\boost_math_tr1-vc142.1.72.0.0\build\boost_math_tr1-vc142.targets')" />
-    <Import Project="..\packages\boost_math_tr1f-vc142.1.72.0.0\build\boost_math_tr1f-vc142.targets" Condition="Exists('..\packages\boost_math_tr1f-vc142.1.72.0.0\build\boost_math_tr1f-vc142.targets')" />
-    <Import Project="..\packages\boost_math_tr1l-vc142.1.72.0.0\build\boost_math_tr1l-vc142.targets" Condition="Exists('..\packages\boost_math_tr1l-vc142.1.72.0.0\build\boost_math_tr1l-vc142.targets')" />
-    <Import Project="..\packages\boost_prg_exec_monitor-vc142.1.72.0.0\build\boost_prg_exec_monitor-vc142.targets" Condition="Exists('..\packages\boost_prg_exec_monitor-vc142.1.72.0.0\build\boost_prg_exec_monitor-vc142.targets')" />
-    <Import Project="..\packages\boost_program_options-vc142.1.72.0.0\build\boost_program_options-vc142.targets" Condition="Exists('..\packages\boost_program_options-vc142.1.72.0.0\build\boost_program_options-vc142.targets')" />
-    <Import Project="..\packages\boost_python38-vc142.1.72.0.0\build\boost_python38-vc142.targets" Condition="Exists('..\packages\boost_python38-vc142.1.72.0.0\build\boost_python38-vc142.targets')" />
-    <Import Project="..\packages\boost_random-vc142.1.72.0.0\build\boost_random-vc142.targets" Condition="Exists('..\packages\boost_random-vc142.1.72.0.0\build\boost_random-vc142.targets')" />
-    <Import Project="..\packages\boost_regex-vc142.1.72.0.0\build\boost_regex-vc142.targets" Condition="Exists('..\packages\boost_regex-vc142.1.72.0.0\build\boost_regex-vc142.targets')" />
-    <Import Project="..\packages\boost_serialization-vc142.1.72.0.0\build\boost_serialization-vc142.targets" Condition="Exists('..\packages\boost_serialization-vc142.1.72.0.0\build\boost_serialization-vc142.targets')" />
-    <Import Project="..\packages\boost_stacktrace_noop-vc142.1.72.0.0\build\boost_stacktrace_noop-vc142.targets" Condition="Exists('..\packages\boost_stacktrace_noop-vc142.1.72.0.0\build\boost_stacktrace_noop-vc142.targets')" />
-    <Import Project="..\packages\boost_stacktrace_windbg-vc142.1.72.0.0\build\boost_stacktrace_windbg-vc142.targets" Condition="Exists('..\packages\boost_stacktrace_windbg-vc142.1.72.0.0\build\boost_stacktrace_windbg-vc142.targets')" />
-    <Import Project="..\packages\boost_stacktrace_windbg_cached-vc142.1.72.0.0\build\boost_stacktrace_windbg_cached-vc142.targets" Condition="Exists('..\packages\boost_stacktrace_windbg_cached-vc142.1.72.0.0\build\boost_stacktrace_windbg_cached-vc142.targets')" />
-    <Import Project="..\packages\boost_system-vc142.1.72.0.0\build\boost_system-vc142.targets" Condition="Exists('..\packages\boost_system-vc142.1.72.0.0\build\boost_system-vc142.targets')" />
-    <Import Project="..\packages\boost_test_exec_monitor-vc142.1.72.0.0\build\boost_test_exec_monitor-vc142.targets" Condition="Exists('..\packages\boost_test_exec_monitor-vc142.1.72.0.0\build\boost_test_exec_monitor-vc142.targets')" />
-    <Import Project="..\packages\boost_thread-vc142.1.72.0.0\build\boost_thread-vc142.targets" Condition="Exists('..\packages\boost_thread-vc142.1.72.0.0\build\boost_thread-vc142.targets')" />
-    <Import Project="..\packages\boost_timer-vc142.1.72.0.0\build\boost_timer-vc142.targets" Condition="Exists('..\packages\boost_timer-vc142.1.72.0.0\build\boost_timer-vc142.targets')" />
-    <Import Project="..\packages\boost_type_erasure-vc142.1.72.0.0\build\boost_type_erasure-vc142.targets" Condition="Exists('..\packages\boost_type_erasure-vc142.1.72.0.0\build\boost_type_erasure-vc142.targets')" />
-    <Import Project="..\packages\boost_unit_test_framework-vc142.1.72.0.0\build\boost_unit_test_framework-vc142.targets" Condition="Exists('..\packages\boost_unit_test_framework-vc142.1.72.0.0\build\boost_unit_test_framework-vc142.targets')" />
-    <Import Project="..\packages\boost_wave-vc142.1.72.0.0\build\boost_wave-vc142.targets" Condition="Exists('..\packages\boost_wave-vc142.1.72.0.0\build\boost_wave-vc142.targets')" />
-    <Import Project="..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets" Condition="Exists('..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets')" />
-    <Import Project="..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets" Condition="Exists('..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets')" />
-    <Import Project="..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets" Condition="Exists('..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets')" />
-    <Import Project="..\packages\glm.0.9.9.800\build\native\glm.targets" Condition="Exists('..\packages\glm.0.9.9.800\build\native\glm.targets')" />
-    <Import Project="..\packages\Eigen.3.3.3\build\native\Eigen.targets" Condition="Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" />
-    <Import Project="..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets" Condition="Exists('..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets')" />
-  </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\boost.1.72.0.0\build\boost.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost.1.72.0.0\build\boost.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_atomic-vc142.1.72.0.0\build\boost_atomic-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_atomic-vc142.1.72.0.0\build\boost_atomic-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_bzip2-vc142.1.72.0.0\build\boost_bzip2-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_bzip2-vc142.1.72.0.0\build\boost_bzip2-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_chrono-vc142.1.72.0.0\build\boost_chrono-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_chrono-vc142.1.72.0.0\build\boost_chrono-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_container-vc142.1.72.0.0\build\boost_container-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_container-vc142.1.72.0.0\build\boost_container-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_context-vc142.1.72.0.0\build\boost_context-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_context-vc142.1.72.0.0\build\boost_context-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_contract-vc142.1.72.0.0\build\boost_contract-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_contract-vc142.1.72.0.0\build\boost_contract-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_coroutine-vc142.1.72.0.0\build\boost_coroutine-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_coroutine-vc142.1.72.0.0\build\boost_coroutine-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_date_time-vc142.1.72.0.0\build\boost_date_time-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_date_time-vc142.1.72.0.0\build\boost_date_time-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_exception-vc142.1.72.0.0\build\boost_exception-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_exception-vc142.1.72.0.0\build\boost_exception-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_fiber-vc142.1.72.0.0\build\boost_fiber-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_fiber-vc142.1.72.0.0\build\boost_fiber-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_filesystem-vc142.1.72.0.0\build\boost_filesystem-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_filesystem-vc142.1.72.0.0\build\boost_filesystem-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_graph-vc142.1.72.0.0\build\boost_graph-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_graph-vc142.1.72.0.0\build\boost_graph-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_iostreams-vc142.1.72.0.0\build\boost_iostreams-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_iostreams-vc142.1.72.0.0\build\boost_iostreams-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_locale-vc142.1.72.0.0\build\boost_locale-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_locale-vc142.1.72.0.0\build\boost_locale-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_log-vc142.1.72.0.0\build\boost_log-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_log-vc142.1.72.0.0\build\boost_log-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_log_setup-vc142.1.72.0.0\build\boost_log_setup-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_log_setup-vc142.1.72.0.0\build\boost_log_setup-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_math_c99-vc142.1.72.0.0\build\boost_math_c99-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_math_c99-vc142.1.72.0.0\build\boost_math_c99-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_math_c99f-vc142.1.72.0.0\build\boost_math_c99f-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_math_c99f-vc142.1.72.0.0\build\boost_math_c99f-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_math_c99l-vc142.1.72.0.0\build\boost_math_c99l-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_math_c99l-vc142.1.72.0.0\build\boost_math_c99l-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_math_tr1-vc142.1.72.0.0\build\boost_math_tr1-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_math_tr1-vc142.1.72.0.0\build\boost_math_tr1-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_math_tr1f-vc142.1.72.0.0\build\boost_math_tr1f-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_math_tr1f-vc142.1.72.0.0\build\boost_math_tr1f-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_math_tr1l-vc142.1.72.0.0\build\boost_math_tr1l-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_math_tr1l-vc142.1.72.0.0\build\boost_math_tr1l-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_prg_exec_monitor-vc142.1.72.0.0\build\boost_prg_exec_monitor-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_prg_exec_monitor-vc142.1.72.0.0\build\boost_prg_exec_monitor-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_program_options-vc142.1.72.0.0\build\boost_program_options-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_program_options-vc142.1.72.0.0\build\boost_program_options-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_python38-vc142.1.72.0.0\build\boost_python38-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_python38-vc142.1.72.0.0\build\boost_python38-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_random-vc142.1.72.0.0\build\boost_random-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_random-vc142.1.72.0.0\build\boost_random-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_regex-vc142.1.72.0.0\build\boost_regex-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_regex-vc142.1.72.0.0\build\boost_regex-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_serialization-vc142.1.72.0.0\build\boost_serialization-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_serialization-vc142.1.72.0.0\build\boost_serialization-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_stacktrace_noop-vc142.1.72.0.0\build\boost_stacktrace_noop-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_stacktrace_noop-vc142.1.72.0.0\build\boost_stacktrace_noop-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_stacktrace_windbg-vc142.1.72.0.0\build\boost_stacktrace_windbg-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_stacktrace_windbg-vc142.1.72.0.0\build\boost_stacktrace_windbg-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_stacktrace_windbg_cached-vc142.1.72.0.0\build\boost_stacktrace_windbg_cached-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_stacktrace_windbg_cached-vc142.1.72.0.0\build\boost_stacktrace_windbg_cached-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_system-vc142.1.72.0.0\build\boost_system-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_system-vc142.1.72.0.0\build\boost_system-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_test_exec_monitor-vc142.1.72.0.0\build\boost_test_exec_monitor-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_test_exec_monitor-vc142.1.72.0.0\build\boost_test_exec_monitor-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_thread-vc142.1.72.0.0\build\boost_thread-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_thread-vc142.1.72.0.0\build\boost_thread-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_timer-vc142.1.72.0.0\build\boost_timer-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_timer-vc142.1.72.0.0\build\boost_timer-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_type_erasure-vc142.1.72.0.0\build\boost_type_erasure-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_type_erasure-vc142.1.72.0.0\build\boost_type_erasure-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_unit_test_framework-vc142.1.72.0.0\build\boost_unit_test_framework-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_unit_test_framework-vc142.1.72.0.0\build\boost_unit_test_framework-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_wave-vc142.1.72.0.0\build\boost_wave-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_wave-vc142.1.72.0.0\build\boost_wave-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_wserialization-vc142.1.72.0.0\build\boost_wserialization-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost_zlib-vc142.1.72.0.0\build\boost_zlib-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\boost-vc142.1.72.0.0\build\boost-vc142.targets'))" />
-    <Error Condition="!Exists('..\packages\glm.0.9.9.800\build\native\glm.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\glm.0.9.9.800\build\native\glm.targets'))" />
-    <Error Condition="!Exists('..\packages\Eigen.3.3.3\build\native\Eigen.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Eigen.3.3.3\build\native\Eigen.targets'))" />
-    <Error Condition="!Exists('..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\unofficial-flayan-cereal.1.2.2\build\native\unofficial-flayan-cereal.targets'))" />
-  </Target>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>

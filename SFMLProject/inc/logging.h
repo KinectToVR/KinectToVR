@@ -1,14 +1,8 @@
 #pragma once
+#define GLOG_NO_ABBREVIATED_SEVERITIES
+#include <KinectToVR_API.h>
+#include <string>
+#include <glog/logging.h>
 
-// easylogging includes
-#ifdef NDEBUG
-#undef NDEBUG
-#define ELPP_THREAD_SAFE
-#define ELPP_NO_DEFAULT_LOG_FILE
-#include <easylogging++.h>
-#define NDEBUG
-#else
-#define ELPP_THREAD_SAFE
-#define ELPP_NO_DEFAULT_LOG_FILE
-#include <easylogging++.h>
-#endif
+/* Configure logging and print first message */
+extern void initLogging();

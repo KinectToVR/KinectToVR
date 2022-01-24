@@ -46,3 +46,17 @@ driver_K2VR/x64/
 x64/
 
 packages/
+
+external/openvr/
+
+external/eigen/
+
+external/KTVR
+
+external/glm/
+
+external/SFGUI
+
+external/gflags/
+
+external/glog/

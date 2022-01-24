@@ -12,6 +12,20 @@
 #include <Eigen/Geometry>
 #include "KinectJoint.h"
 #include <PSMoveClient_CAPI.h>
+#include <EigenGLHelpers.h>
+
+#include <Windows.h>
+#include <mmsystem.h>
+#include <filesystem>
+
+// Hook into KTVR and use its K2STracker object
+// (for easier tracker management)
+// This also gives us some built-in filters
+#include <../KTVR/KinectToVR/K2STracker.h>
+
+// Casting Eigen<->GLM<->OpenVR
+#include <codecvt>
+#include <TypeCast.h>
 
 enum KinectVersion
 {
@@ -31,13 +45,23 @@ enum footRotationFilterOption
 	k_EnableOrientationFilter_WithoutYaw,
 	///don't rotate foots in +y
 	k_EnableOrientationFilter_HeadOrientation,
-	///use headset orientation for foots
-	k_HipTrackerOrientation,
+	///use headset orientation for feet
+	
+	/*
+	 * WTF IS GOING ON HERE, IT'S COMMENTED OUT
+	*/
+
+	//k_HipTrackerOrientation,
 	///use the kinect/vive/owotrack hip yaw instead of head
-	k_HipTrackerOrientationMixed,
+	//k_HipTrackerOrientationMixed,
 	///same as previous but keep orientation filter for pitch/roll
-	k_EnableOrientationFilter_Software,
-	///use headset orientation for foots
+
+	/*
+	 * WTF IS GOING ON HERE, IT'S COMMENTED OUT
+	*/
+	
+	k_EnableOrientationFilter_Software
+	///use calculated orientation for feet
 };
 
 enum hipsRotationFilterOption
@@ -60,14 +84,15 @@ static struct hipsRotFilter
 	hipsRotationFilterOption filterOption;
 } hipsOrientationFilterOption;
 
+// Updated to match KTVR
 enum positionalFilterOption
 {
-	k_EnablePositionFilter_Kalman,
-	///use EKF filtering for position
-	k_EnablePositionFilter_LowPass,
-	///use LowPass filtering for position
 	k_EnablePositionFilter_LERP,
 	///use Interpolation filtering for position
+	k_EnablePositionFilter_LowPass,
+	///use LowPass filtering for position
+	k_EnablePositionFilter_Kalman,
+	///use EKF filtering for position
 	k_DisablePositionFilter,
 	///disable filtering for position
 };
@@ -76,6 +101,9 @@ static struct posFilter
 {
 	positionalFilterOption filterOption;
 } positionFilterOption;
+
+// Ancient things left from the ArduVR
+// BELOW
 
 enum controllersTrackingOption
 {
@@ -88,6 +116,9 @@ static struct trackingOpt
 	controllersTrackingOption trackingOption;
 } controllersTrackingOption_s;
 
+// UP
+// Ancient things left from the ArduVR
+
 enum bodyTrackingOption
 {
 	k_PSMoveFullTracking,
@@ -99,34 +130,60 @@ static struct bodyTrackingOpt
 	bodyTrackingOption trackingOption;
 } bodyTrackingOption_s;
 
-enum headTrackingOption
+inline std::wstring s2ws(const std::string& utf8Str)
 {
-	k_PSMoveTracking,
-	k_KinectTracking
-};
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+	return conv.from_bytes(utf8Str);
+}
 
-static struct headTrackingOpt
+inline std::string ws2s(const std::wstring& utf16Str)
 {
-	headTrackingOption trackingOption;
-} headTrackingOption_s;
+	std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> conv;
+	return conv.to_bytes(utf16Str);
+}
 
 namespace KinectSettings
 {
+	extern const std::wstring CFG_NAME;
+	
 	static struct K2VR_PSMoveData
 	{
 		PSMPSMove PSMoveData;
 		bool isValidController = false;
 	} KVRPSMoveData[11];
 
+	/* Interfacing with the k2api */
+	extern long long pingTime, parsingTime,
+		lastLoopTime;
+	extern int pingCheckingThreadsNumber;
+	extern const int maxPingCheckingThreads;
+
+	/* For PSMS refreshing */
+	extern bool nowRefreshPSMS;
+
+	/*All trackers which should be added : W, L, R*/
+	extern std::vector<K2STracker> trackerVector;
+	extern int trackerID[3]; // W, L, R
+	extern std::string trackerSerial[3]; // W, L, R
+
+	extern vr::TrackedDeviceIndex_t trackerIndex[3]; // Trackers' indexes : L, R, W
+	extern bool latencyTestPending, doingLatencyTest;
+	extern long long latencyTestMillis;
+	
+	extern std::chrono::steady_clock::time_point latencyTestStart, latencyTestEnd;
+	
 	static std::vector<K2VR_PSMoveData> KVR_PSMoves;
-	extern bool isCalibrating, isKinectPSMS;
+	extern bool isCalibrating, isKinectPSMS, isServerFailure;
 	extern int K2Drivercode, kinectVersion;
-	extern PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove, atamamove;
-	extern glm::quat left_tracker_rot, right_tracker_rot, waist_tracker_rot;
-	extern glm::quat trackerSoftRot[2]; //Software-calculated
-	extern bool isGripPressed[2], isTriggerPressed[2]; //0L, 1R
+	extern PSMPSMove right_move_controller, left_move_controller, left_foot_psmove, right_foot_psmove, waist_psmove;
+	extern Eigen::Quaternionf left_tracker_rot, right_tracker_rot, waist_tracker_rot;
+	extern Eigen::Quaternionf trackerSoftRot[2]; //Software-calculated
 	extern bool isDriverPresent;
 	extern bool isKinectDrawn;
+	
+	extern bool OnTrackersSave[3];
+	extern bool EnabledTrackersSave[3];
+	
 	extern bool isSkeletonDrawn;
 	extern bool ignoreInferredPositions;
 	extern bool ignoreRotationSmoothing;
@@ -153,7 +210,7 @@ namespace KinectSettings
 	extern const int kinectV2Width;
 	extern bool rtconcalib;
 	extern double kinectToVRScale;
-	extern bool initialised;
+	extern bool initialised, initialised_bak;
 	extern bool psmbuttons[5][10];
 	extern float conID[2];
 	extern double hipRoleHeightAdjust;
@@ -176,7 +233,6 @@ namespace KinectSettings
 	extern vr::HmdVector3d_t secondaryTrackingOriginOffset;
 	// Demonic offset, actual origin unknown. Probably evil and trying to destroy everything I love.
 	extern vr::HmdVector3d_t hauoffset, mauoffset;
-	extern int psmh, psmm;
 	extern vr::HmdQuaternion_t kinectRepRotation;
 	extern vr::HmdVector3d_t kinectRadRotation;
 	extern vr::HmdVector3d_t kinectRepPosition;
@@ -195,7 +251,7 @@ namespace KinectSettings
 	extern Eigen::Vector3f calibration_origin;
 	extern int cpoints;
 	extern bool matrixes_calibrated;
-	extern int psmmigi, psmhidari, psmyobu, psmatama;
+	extern int psm_right_id, psm_left_id, psm_waist_id, psmatama;
 
 	extern float hmdegree;
 	extern bool sensorConfigChanged;
@@ -207,14 +263,102 @@ namespace KinectSettings
 	void updateKinectQuaternion();
 
 	extern std::string KVRversion;
-	extern glm::vec3 head_position, left_hand_pose, mHandPose, left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose, hElPose, mElPose,
-	                 lastPose[3][2];
-	extern glm::quat left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
+	extern std::string KVRversion_m;
 
+	extern glm::vec3 head_position, left_hand_pose, mHandPose, hElPose, mElPose,
+	                 lastPose[3][2];
+	extern Eigen::Quaternionf left_foot_raw_ori, right_foot_raw_ori, waist_raw_ori;
+
+	extern Eigen::Vector3f left_foot_raw_pose, right_foot_raw_pose, waist_raw_pose;
+	
 	void sendipc();
 
 	void serializeKinectSettings();
 	void writeKinectSettings();
+
+	// When a reconnect is pending
+	inline bool reconnecting = false;
+	inline bool trackersAdded = false;
+	inline bool soundPlaying = false;
+	inline bool autoCalibration = true;
+	// If the tracing is paused
+	inline bool trackingPaused = false;
+	// If the flip is enabled
+	inline bool FlipEnabled = true;
+	// If trackers are spawned
+	inline bool spawned = false;
+	// MCalibration derivatives
+	inline bool calibration_confirm = false,
+		calibration_modeSwap = false,
+		calibration_fineTune = false;
+	inline float calibration_leftJoystick[2] = { 0.f,0.f },
+		calibration_rightJoystick[2] = { 0.f,0.f };
+
+	// https://stackoverflow.com/questions/8498300/allow-for-range-based-for-with-enum-classes
+	enum class IK2EXSoundType
+	{
+		k2ex_sound_invalid, // always first, not mapped
+		k2ex_sound_startup,
+		k2ex_sound_trackers_spawned,
+		k2ex_sound_trackers_destroyed,
+		k2ex_sound_calibration_start,
+		k2ex_sound_calibration_complete,
+		k2ex_sound_calibration_aborted,
+		k2ex_sound_calibration_tick_move,
+		k2ex_sound_calibration_tick_stand,
+		k2ex_sound_calibration_point_captured,
+		k2ex_sound_tracking_freeze_toggle_on,
+		k2ex_sound_tracking_freeze_toggle_off,
+		k2ex_sound_flip_toggle_on,
+		k2ex_sound_flip_toggle_off,
+		k2ex_sound_server_error,
+		k2ex_sound_kinect_error,
+		k2ex_sound_count // always last, not mapped
+	};
+
+	inline bool k2ex_SoundsEnabled = true;
+	inline const boost::unordered_map<IK2EXSoundType, const char*>
+		IK2EXSoundType_String = boost::assign::map_list_of
+		(IK2EXSoundType::k2ex_sound_startup, "k2ex_startup")
+		(IK2EXSoundType::k2ex_sound_trackers_spawned, "k2ex_trackers_spawned")
+		(IK2EXSoundType::k2ex_sound_trackers_destroyed, "k2ex_trackers_destroyed")
+		(IK2EXSoundType::k2ex_sound_calibration_start, "k2ex_calibration_start")
+		(IK2EXSoundType::k2ex_sound_calibration_complete, "k2ex_calibration_complete")
+		(IK2EXSoundType::k2ex_sound_calibration_aborted, "k2ex_calibration_aborted")
+		(IK2EXSoundType::k2ex_sound_calibration_tick_move, "k2ex_calibration_tick_move")
+		(IK2EXSoundType::k2ex_sound_calibration_tick_stand, "k2ex_calibration_tick_stand")
+		(IK2EXSoundType::k2ex_sound_calibration_point_captured, "k2ex_calibration_point_captured")
+		(IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_on, "k2ex_toggle_on")
+		(IK2EXSoundType::k2ex_sound_tracking_freeze_toggle_off, "k2ex_toggle_off")
+		(IK2EXSoundType::k2ex_sound_flip_toggle_on, "k2ex_toggle_on")
+		(IK2EXSoundType::k2ex_sound_flip_toggle_off, "k2ex_toggle_off")
+		(IK2EXSoundType::k2ex_sound_server_error, "k2ex_server_error")
+		(IK2EXSoundType::k2ex_sound_kinect_error, "k2ex_kinect_error");
+
+	// Sounds
+	inline void k2ex_LoadSounds()
+	{
+		if (k2ex_SoundsEnabled)
+			for (int i = (int)IK2EXSoundType::k2ex_sound_invalid + 1; i < (int)IK2EXSoundType::k2ex_sound_count; i++) {
+				if (!std::filesystem::exists((std::string("sounds\\") + IK2EXSoundType_String.at(static_cast<IK2EXSoundType>(i)) + ".wav").c_str()))
+					LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(static_cast<IK2EXSoundType>(i)) + ".wav" + "] was not found inside sounds/ folder.";
+			}
+	}
+
+	// Play sound
+	inline void k2ex_PlaySound(IK2EXSoundType sound)
+	{
+		if (k2ex_SoundsEnabled && !soundPlaying) {
+			soundPlaying = true;
+			if (std::filesystem::exists((std::string("sounds\\") + IK2EXSoundType_String.at(sound) + ".wav").c_str())) {
+				if (!PlaySoundA((std::string("sounds\\") + IK2EXSoundType_String.at(sound) + ".wav").c_str(), NULL, SND_FILENAME | SND_ASYNC))
+					LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(sound) + ".wav" + "] could not be played.";
+			}
+			else
+				LOG(ERROR) << std::string("Sound file with name [") + IK2EXSoundType_String.at(sound) + ".wav" + "] was not found inside sounds/ folder.";
+			soundPlaying = false;
+		}
+	}
 }
 
 namespace SFMLsettings
@@ -277,36 +421,6 @@ namespace KVR
 
 	TrackingSystemCalibration retrieveSystemCalibration(const std::string& systemName);
 	void saveSystemCalibration(const std::string& systemName, TrackingSystemCalibration calibration);
-}
-
-namespace VRInput
-{
-	// Switch to fall back to legacy controls when the new SteamVR Input system breaks.
-	extern bool legacyInputModeEnabled;
-
-	// Action Handles
-	extern vr::VRActionHandle_t moveHorizontallyHandle;
-	extern vr::VRActionHandle_t moveVerticallyHandle;
-	extern vr::VRActionHandle_t confirmCalibrationHandle;
-
-	// Calibration Sets
-	extern vr::VRActionSetHandle_t calibrationSetHandle;
-
-	// Action Sets
-	extern vr::VRActiveActionSet_t activeActionSet;
-
-	// Digital Action Data
-	extern vr::InputDigitalActionData_t confirmCalibrationData;
-
-	// Analog Action Data
-	extern vr::InputAnalogActionData_t moveHorizontallyData;
-	extern vr::InputAnalogActionData_t moveVerticallyData;
-
-	extern vr::InputAnalogActionData_t trackpadpose[2];
-	extern vr::InputDigitalActionData_t confirmdatapose;
-
-	bool initialiseVRInput();
-	void updateVRInput();
 }
 
 # define M_PI           3.14159265358979323846

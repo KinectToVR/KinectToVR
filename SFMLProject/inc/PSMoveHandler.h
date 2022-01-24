@@ -24,8 +24,7 @@
 #include <openvr.h>
 
 #include "DeviceHandler.h"
-#include "TrackingPoolManager.h"
-#include "TrackedDeviceInputData.h"
+#include "KinectSettings.h"
 
 #define M_PI_2 1.57079632679
 
@@ -834,10 +833,16 @@ private:
 		if (success)
 		{
 			loadTrackingCalibration();
+			LOG(INFO) << "Tracking Calibration (Dummy) loaded.";
 
 			rebuildControllerList();
+			LOG(INFO) << "Controller List has been rebuilt.";
+
 			rebuildTrackerList();
+			LOG(INFO) << "Tracker List has been rebuilt.";
+
 			rebuildHmdList();
+			LOG(INFO) << "HMD List has been rebuilt.";
 
 			// Register as listener and start stream for each controller
 			unsigned int data_stream_flags =
@@ -850,19 +855,50 @@ private:
 			{
 				for (int i = 0; i < controllerList.count; ++i)
 				{
+					LOG(INFO) << "Allocating controller with ID " << i << " into its listener...";
+
 					// In order for the controllers to report more than their IMU stuff, and turn on the light, they all have to go through this
 					if (PSM_AllocateControllerListener(controllerList.controller_id[i]) != PSMResult_Success)
-					{
 						success = false;
-					}
 					if (PSM_StartControllerDataStream(controllerList.controller_id[i], data_stream_flags,
 					                                  PSM_DEFAULT_TIMEOUT) != PSMResult_Success)
-					{
 						success = false;
+
+					if(success)
+					LOG(INFO) << "Allocated controller with ID " << i;
+				}
+
+				v_controllers.clear(); // All old controllers must be gone
+				for (int i = 0; i < controllerList.count; ++i)
+				{
+					auto controller = PSM_GetController(controllerList.controller_id[i]);
+					// Check that it's actually a Psmove/Virtual, as there could be dualshock's connected
+					if (controller->ControllerType == PSMController_Move ||
+						controller->ControllerType == PSMController_Virtual)
+					{
+						MoveWrapper_PSM wrapper;
+						wrapper.controller = controller;
+						v_controllers.push_back(wrapper);
+
+						LOG(INFO) << "Pushed controller's ID: " << controller->ControllerID << " wrapper to the controllers' vector.";
 					}
 				}
-				rebuildPSMovesForPool();
-				rebuildPSEyesForPool();
+
+				for (int i = 0; i < v_controllers.size(); ++i)
+				{
+					// Redo the loop over the successfully excised trackers (PS Move's only)
+					// But this time edit the wrapper with the tracking pool id's
+					v_controllers[i].id.internalID = i;
+					if (v_controllers[i].controller->ControllerType == PSMController_Move)
+					{
+						auto value = v_controllers[i].controller->ControllerState.PSMoveState.BatteryValue;
+
+						LOG(INFO) << "Controller " << i << " has battery level: " << batteryValueString(value);
+					}
+				}
+
+				// Request a refresh
+				KinectSettings::nowRefreshPSMS = true;
 			}
 			else
 			{
@@ -887,52 +923,21 @@ private:
 
 		// Get the controller data for each controller
 		if (m_keepRunning)
-		{
 			processKeyInputs();
-			for (int i = 0; i < v_controllers.size(); ++i)
-			{
-				//const PSMPSMove &view = v_controllers[i].controller->ControllerState.PSMoveState;
-				//LOG(INFO) << "Controller " << i << " has a battery level of " << (int)view.BatteryValue;
-				KVR::TrackedDeviceInputData data = defaultDeviceData(i);
-				data.pose = getDriverPose(i);
-				// Reuse, instead of recalling for PSMoveState
-				data.position = {
-					data.pose.vecPosition[0],
-					data.pose.vecPosition[1],
-					data.pose.vecPosition[2]
-				}; // Pose stores as array
-				data.rotation = data.pose.qRotation;
-
-				TrackingPoolManager::updatePoolWithDevice(data, data.deviceId);
-			}
-			for (int i = 0; i < v_eyeTrackers.size(); ++i)
-			{
-				KVR::TrackedDeviceInputData data = defaultDeviceData_PSEYE(i);
-				data.pose = getPSEyeDriverPose(i);
-				// Reuse, instead of recalling for PSMoveState
-				data.position = {
-					data.pose.vecPosition[0],
-					data.pose.vecPosition[1],
-					data.pose.vecPosition[2]
-				}; // Pose stores as array
-
-				//LOG(INFO) << "PSEYE " << i << data.position.v[0] << ", " << data.position.v[1] << ", " << data.position.v[2];
-				data.rotation = data.pose.qRotation;
-
-				TrackingPoolManager::updatePoolWithDevice(data, data.deviceId);
-			}
-		}
 	}
 
 	bool rb = false;
 
 	void processKeyInputs()
 	{
-		if (controllerList.count == 0 || v_controllers.size() == 0) { return; }
+
+		if (controllerList.count < 1 || v_controllers.size() < 1) { return; }
+		
 		bool inputAvailable = false;
 		for (MoveWrapper_PSM& wrapper : v_controllers)
 		{
-			if (wrapper.controller->ControllerType == PSMController_Move)
+			if (wrapper.controller->ControllerType == PSMController_Move ||
+				wrapper.controller->ControllerType == PSMController_Virtual)
 			{
 				inputAvailable = true;
 			}
@@ -960,31 +965,7 @@ private:
 
 			for (int psmid = 0; psmid < KinectSettings::psmindexidpsm[0].size(); psmid++)
 			{
-				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmh
-					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
-				{
-					KinectSettings::left_move_controller = controller;
-					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
-						KinectSettings::flashnow[1])
-					{
-						std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
-						KinectSettings::flashnow[1] = false;
-					}
-				}
-
-				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmm
-					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
-				{
-					KinectSettings::right_move_controller = controller;
-					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
-						KinectSettings::flashnow[1])
-					{
-						std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
-						KinectSettings::flashnow[1] = false;
-					}
-				}
-
-				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmhidari
+				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psm_left_id
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
 					KinectSettings::left_foot_psmove = controller;
@@ -996,7 +977,7 @@ private:
 					}
 				}
 
-				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmmigi
+				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psm_right_id
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
 					KinectSettings::right_foot_psmove = controller;
@@ -1008,22 +989,10 @@ private:
 					}
 				}
 
-				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmyobu
+				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psm_waist_id
 					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
 				{
 					KinectSettings::waist_psmove = controller;
-					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
-						KinectSettings::flashnow[1])
-					{
-						std::thread* rb = new std::thread(flashRainbow, wrapper.controller->ControllerID);
-						KinectSettings::flashnow[1] = false;
-					}
-				}
-
-				if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::psmatama
-					&& wrapper.controller->ControllerID == KinectSettings::psmindexidpsm[1].at(psmid))
-				{
-					KinectSettings::atamamove = controller;
 					if (KinectSettings::psmindexidpsm[0].at(psmid) == KinectSettings::flashnow[0] &&
 						KinectSettings::flashnow[1])
 					{
@@ -1101,30 +1070,7 @@ private:
 
 		saveSystemCalibration(k_trackingSystemName, calibration);
 	}
-
-	KVR::TrackedDeviceInputData defaultDeviceData(uint32_t localID)
-	{
-		KVR::TrackedDeviceInputData data;
-		data.parentHandler = dynamic_cast<DeviceHandler*>(this);
-		data.deviceName = "PSMOVE " + std::to_string(localID);
-		data.deviceId = v_controllers[localID].id.globalID;
-		data.serial = controllerList.controller_serial[localID];
-		data.customModelName = "{k2vr}psmove_controller";
-		return data;
-	}
-
-	KVR::TrackedDeviceInputData defaultDeviceData_PSEYE(uint32_t localID)
-	{
-		KVR::TrackedDeviceInputData data;
-		data.parentHandler = dynamic_cast<DeviceHandler*>(this);
-		data.deviceName = "PSEYE " + std::to_string(localID);
-		data.deviceId = v_eyeTrackers[localID].id.globalID;
-		data.serial = v_eyeTrackers[localID].trackerInfo.device_path;
-		// For the eyes, the path is basically their serial number
-		data.customModelName = "{k2vr}ps3eye_tracker";
-		return data;
-	}
-
+	
 	std::string batteryValueString(PSMBatteryState battery)
 	{
 		switch (battery)
@@ -1150,76 +1096,7 @@ private:
 			return "INVALID";
 		}
 	}
-
-	void rebuildPSEyesForPool()
-	{
-		for (int i = 0; i < v_eyeTrackers.size(); ++i)
-		{
-			TrackingPoolManager::clearDeviceInPool(v_eyeTrackers[i].id.globalID);
-		} // Clear last controllers in pool
-
-		v_eyeTrackers.clear(); // All old controllers must be gone
-		for (int i = 0; i < trackerList.count; ++i)
-		{
-			auto eye = trackerList.trackers[i];
-			// Check that it's actually a Psmove/Virtual, as there could be dualshock's connected
-			TrackerWrapper_PSM wrapper;
-			wrapper.trackerInfo = eye;
-			v_eyeTrackers.push_back(wrapper);
-		}
-
-		for (int i = 0; i < v_eyeTrackers.size(); ++i)
-		{
-			// Redo the loop over the successfully excised trackers (PS Move's only)
-			// But this time edit the wrapper with the tracking pool id's
-			v_eyeTrackers[i].id.internalID = i;
-			KVR::TrackedDeviceInputData data = defaultDeviceData_PSEYE(i);
-			uint32_t gID = k_invalidTrackerID;
-			TrackingPoolManager::addDeviceToPool(data, gID);
-			v_eyeTrackers[i].id.globalID = gID;
-		}
-	}
-
-	void rebuildPSMovesForPool()
-	{
-		for (int i = 0; i < v_controllers.size(); ++i)
-		{
-			TrackingPoolManager::clearDeviceInPool(v_controllers[i].id.globalID);
-		} // Clear last controllers in pool
-
-		v_controllers.clear(); // All old controllers must be gone
-		for (int i = 0; i < controllerList.count; ++i)
-		{
-			auto controller = PSM_GetController(controllerList.controller_id[i]);
-			// Check that it's actually a Psmove/Virtual, as there could be dualshock's connected
-			if (controller->ControllerType == PSMController_Move ||
-				controller->ControllerType == PSMController_Virtual)
-			{
-				MoveWrapper_PSM wrapper;
-				wrapper.controller = controller;
-				v_controllers.push_back(wrapper);
-			}
-		}
-
-		for (int i = 0; i < v_controllers.size(); ++i)
-		{
-			// Redo the loop over the successfully excised trackers (PS Move's only)
-			// But this time edit the wrapper with the tracking pool id's
-			v_controllers[i].id.internalID = i;
-			KVR::TrackedDeviceInputData data = defaultDeviceData(i);
-			uint32_t gID = k_invalidTrackerID;
-			TrackingPoolManager::addDeviceToPool(data, gID);
-			v_controllers[i].id.globalID = gID;
-
-			if (v_controllers[i].controller->ControllerType == PSMController_Move)
-			{
-				auto value = v_controllers[i].controller->ControllerState.PSMoveState.BatteryValue;
-
-				LOG(INFO) << "Controller " << i << " has battery level: " << batteryValueString(value);
-			}
-		}
-	}
-
+	
 	void rebuildPSMoveLists()
 	{
 		// Unneccessary holdover from inspiration for implementation
@@ -1267,7 +1144,6 @@ private:
 					}
 				}
 				// Rebuild K2VR Controller List for Trackers
-				rebuildPSMovesForPool();
 				// Here, because of timing issue, where controllers will report as 'None' occasionally when uninitialised properly
 			}
 			else
@@ -1279,10 +1155,7 @@ private:
 
 		// See if we need to rebuild the tracker list
 		if (m_keepRunning && PSM_HasTrackerListChanged())
-		{
 			rebuildTrackerList();
-			rebuildPSEyesForPool();
-		}
 
 		// See if we need to rebuild the hmd list
 		if (m_keepRunning && PSM_HasHMDListChanged())
@@ -1320,7 +1193,7 @@ private:
 				break;
 			}
 
-			LOG(INFO) << "  Controller ID: " << controllerList.controller_id[cntlr_ix] << " is a " << controller_type;
+			LOG(INFO) << "Controller ID : " << controllerList.controller_id[cntlr_ix] << " is a " << controller_type;
 		}
 	}
 

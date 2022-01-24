@@ -6,7 +6,7 @@
 #include "Kinect.h"
 #include "SmoothingParameters.h"
 #include "openvr.h"
-#include "openvr_math.h"
+#include "openvr_types.h"
 #include "VectorMath.h"
 
 #define max(a,b)            (((a) > (b)) ? (a) : (b))

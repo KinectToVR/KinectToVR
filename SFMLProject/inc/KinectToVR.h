@@ -3,28 +3,26 @@
 //OpenGl and SFML
 #include <SFML/Window/Event.hpp>
 #include "KinectHandlerBase.h"
+
 //VR
 #include <openvr.h>
 
-//void updateKinectTracker(vrinputemulator::VRInputEmulator &emulator, KinectTrackedDevice device);
+//cURL
+#include <curlpp/cURLpp.hpp>
+#include <curlpp/Easy.hpp>
+#include <curlpp/Options.hpp>
+
+// Version number
+const int
+k2vr_version_major[3] = { 0, 9, 0 },
+k2vr_version_minor[4] = { 51, 5, 35, 1 };
+
 void processKeyEvents(sf::Event event);
 void toggle(bool& b);
-
-
-void limitVRFramerate(double& endTimeMilliseconds, std::stringstream& ss);
 
 void processLoop(KinectHandlerBase& kinect);
 
 void updateFilePath();
 
-void spawnAndConnectTracker(vrinputemulator::VRInputEmulator& inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers,
-                            uint32_t posDevice_gId,
-                            uint32_t rotDevice_gId, KVR::KinectDeviceRole role);
-void spawnAndConnectTracker(vrinputemulator::VRInputEmulator& inputE, std::vector<KVR::KinectTrackedDevice>& v_trackers,
-                            KVR::KinectJointType mainJoint, KVR::KinectJointType secondaryJoint,
-                            KVR::KinectDeviceRole role);
-void spawnAndConnectHandTrackers(vrinputemulator::VRInputEmulator& inputE,
-                                 std::vector<KVR::KinectTrackedDevice>& v_trackers);
+// Property of KinectToVR.cpp
 void spawnDefaultLowerBodyTrackers();
-void spawnAndConnectKinectTracker(vrinputemulator::VRInputEmulator& inputE,
-                                  std::vector<KVR::KinectTrackedDevice>& v_trackers);

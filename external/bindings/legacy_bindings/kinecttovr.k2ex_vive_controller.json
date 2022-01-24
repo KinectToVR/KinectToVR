@@ -1,0 +1,102 @@
+{
+   "action_manifest_version" : 0,
+   "alias_info" : {},
+   "app_key" : "kinecttovr.k2ex",
+   "bindings" : {
+      "/actions/default" : {
+         "chords" : [
+            {
+               "inputs" : [
+                  [ "/user/hand/left/input/trigger", "click" ],
+                  [ "/user/hand/right/input/trigger", "click" ]
+               ],
+               "output" : "/actions/default/in/confirmandsave"
+            },
+            {
+               "inputs" : [
+                  [ "/user/hand/right/input/grip", "click" ]
+               ],
+               "output" : "/actions/default/in/modeswap"
+            },
+            {
+               "inputs" : [
+                  [ "/user/hand/left/input/grip", "click" ]
+               ],
+               "output" : "/actions/default/in/finetune"
+            },
+            {
+               "inputs" : [
+                  [ "/user/hand/left/input/trigger", "click" ],
+                  [ "/user/hand/left/input/application_menu", "click" ],
+                  [ "/user/hand/left/input/grip", "click" ]
+               ],
+               "output" : "/actions/default/in/trackerfreeze"
+            },
+            {
+               "inputs" : [
+                  [ "/user/hand/right/input/trigger", "click" ],
+                  [ "/user/hand/right/input/grip", "click" ],
+                  [ "/user/hand/right/input/application_menu", "click" ]
+               ],
+               "output" : "/actions/default/in/fliptoggle"
+            }
+         ],
+         "sources" : [
+            {
+               "inputs" : {},
+               "mode" : "button",
+               "path" : "/user/hand/left/input/trigger"
+            },
+            {
+               "inputs" : {},
+               "mode" : "button",
+               "path" : "/user/hand/right/input/trigger"
+            },
+            {
+               "inputs" : {},
+               "mode" : "button",
+               "path" : "/user/hand/left/input/grip"
+            },
+            {
+               "inputs" : {},
+               "mode" : "button",
+               "path" : "/user/hand/right/input/grip"
+            },
+            {
+               "inputs" : {},
+               "mode" : "button",
+               "path" : "/user/hand/left/input/application_menu"
+            },
+            {
+               "inputs" : {},
+               "mode" : "button",
+               "path" : "/user/hand/right/input/application_menu"
+            },
+            {
+               "inputs" : {
+                  "position" : {
+                     "output" : "/actions/default/in/leftjoystick"
+                  }
+               },
+               "mode" : "trackpad",
+               "path" : "/user/hand/left/input/trackpad"
+            },
+            {
+               "inputs" : {
+                  "position" : {
+                     "output" : "/actions/default/in/rightjoystick"
+                  }
+               },
+               "mode" : "trackpad",
+               "path" : "/user/hand/right/input/trackpad"
+            }
+         ]
+      }
+   },
+   "category" : "steamvr_input",
+   "controller_type" : "vive_controller",
+   "description" : "",
+   "name" : "Default K2EX Bindings for Vive Controller",
+   "options" : {},
+   "simulated_actions" : []
+}

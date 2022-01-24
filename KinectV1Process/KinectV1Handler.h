@@ -40,19 +40,7 @@ public:
 	void drawKinectData(sf::RenderWindow& win) override;
 	void drawKinectImageData(sf::RenderWindow& win) override;
 	void drawTrackedSkeletons(sf::RenderWindow& win) override;
-
-	bool putRGBDataIntoMatrix(cv::Mat& image) override
-	{
-		return false;
-	}
-
-	//Consider moving this tracking stuff into a seperate class
-	void zeroAllTracking(vr::IVRSystem* & m_sys) override;
-	void updateTrackersWithSkeletonPosition(
-		std::vector<KVR::KinectTrackedDevice>& trackers) override;
-
-	bool getFilteredJoint(KVR::KinectTrackedDevice device, vr::HmdVector3d_t& position,
-	                      vr::HmdQuaternion_t& rotation) override;
+	
 	NUI_SKELETON_POSITION_INDEX convertJoint(KVR::KinectJoint joint);
 	
 private:
