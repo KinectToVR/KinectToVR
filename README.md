@@ -1,10 +1,15 @@
 ## <ins>__[Discord server](https://discord.gg/YBQCRDG)__</ins> | <ins>__[Site](https://k2vr.tech/)__</ins>
 
-## Experiments
+## KinectToVR
+KinectToVR is an application for emulating Vive trackers in SteamVR for full-body tracking using a Kinect for Xbox 360, Kinect for Xbox One or PlayStation Move controllers and cameras.
+
+This version of the app (0.9) will be the last based on this repo. Development on 1.0 and onward is happening elsewhere, more on that later.
+
+<!-- ## Experiments
 This branch is dedicated to experiments and other funny stuff<br> 
 that should never come off to the daylight.<br>
 Generally, this is a sacrifice for the development of the [K2APP](https://github.com/KinectToVR/k2vr-application),<br>
-but also if something works, it may be pushed to production and used, *yay!*
+but also if something works, it may be pushed to production and used, *yay!* -->
 
 ## Authors
 AutoCalibration scripts are written by **[コレヂャン](https://github.com/korejan)**<br>
