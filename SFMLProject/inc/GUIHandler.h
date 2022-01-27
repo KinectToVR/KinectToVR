@@ -536,6 +536,20 @@ public:
 					TrackersCalibButton->Show(true);
 					expcalibbutton->Show(!KinectSettings::isKinectPSMS);
 
+					/*
+					 * BugFix vWhatever:
+					 *
+					 * Trackers are stealing input from controllers when first added,
+					 * due to some weird wonky stuff happening and OpenVR not expecting them.
+					 * We're gonna despawn them for 8 frames (100ms) and respawn after another
+					 */
+
+					KinectSettings::initialised = true;
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+					KinectSettings::initialised = false;
+
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
 					KinectSettings::initialised = true;
 				});
 			}
@@ -584,6 +598,20 @@ public:
 							TrackersCalibButton->Show(true);
 							expcalibbutton->Show(!KinectSettings::isKinectPSMS); //Manual only if PSMS
 
+							/*
+							 * BugFix vWhatever:
+							 *
+							 * Trackers are stealing input from controllers when first added,
+							 * due to some weird wonky stuff happening and OpenVR not expecting them.
+							 * We're gonna despawn them for 8 frames (100ms) and respawn after another
+							 */
+
+							KinectSettings::initialised = true;
+
+							std::this_thread::sleep_for(std::chrono::milliseconds(100));
+							KinectSettings::initialised = false;
+
+							std::this_thread::sleep_for(std::chrono::milliseconds(100));
 							KinectSettings::initialised = true;
 						}
 						else
