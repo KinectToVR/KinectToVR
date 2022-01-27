@@ -416,10 +416,6 @@ jobs:
               New-Item -Name "Release" -ItemType "directory"; Copy-Item -Path "x64/Release/*" -Destination "Release" -Recurse; Copy-Item -Path "external/KTVR/x64/Release/driver/KinectToVR" -Destination "Release" -Recurse
               cd Release; 7z a "K2-Release-Windows-x64.zip" *
 
-      - store_artifacts:
-          name: Upload K2 Release Artifact
-          path: "C:/Users/circleci/project/Release/K2-Release-Windows-x64.zip"
-
       - run:
           name: Login to GitHub (via Token)
           # IDK why but this returns False most of the times, although everything's okay. So I made it always return 0...
