@@ -7,27 +7,27 @@
          "chords" : [
             {
                "inputs" : [
-                  [ "/user/hand/left/input/trigger", "click" ],
-                  [ "/user/hand/right/input/trigger", "click" ]
+                  [ "/user/hand/left/input/grip", "click" ],
+                  [ "/user/hand/right/input/grip", "click" ]
                ],
                "output" : "/actions/default/in/confirmandsave"
             },
             {
                "inputs" : [
-                  [ "/user/hand/right/input/grip", "click" ]
+                  [ "/user/hand/right/input/trigger", "click" ]
                ],
                "output" : "/actions/default/in/modeswap"
             },
             {
                "inputs" : [
-                  [ "/user/hand/left/input/grip", "click" ]
+                  [ "/user/hand/left/input/trigger", "click" ]
                ],
                "output" : "/actions/default/in/finetune"
             },
             {
                "inputs" : [
                   [ "/user/hand/left/input/trigger", "click" ],
-                  [ "/user/hand/left/input/a", "click" ],
+                  [ "/user/hand/left/input/b", "click" ],
                   [ "/user/hand/left/input/grip", "click" ]
                ],
                "output" : "/actions/default/in/trackerfreeze"
@@ -36,7 +36,7 @@
                "inputs" : [
                   [ "/user/hand/right/input/trigger", "click" ],
                   [ "/user/hand/right/input/grip", "click" ],
-                  [ "/user/hand/right/input/a", "click" ]
+                  [ "/user/hand/right/input/b", "click" ]
                ],
                "output" : "/actions/default/in/fliptoggle"
             }
@@ -88,8 +88,8 @@
                      "output" : "/actions/default/in/leftjoystick"
                   }
                },
-               "mode" : "trackpad",
-               "path" : "/user/hand/left/input/trackpad"
+               "mode" : "joystick",
+               "path" : "/user/hand/left/input/thumbstick"
             },
             {
                "inputs" : {
@@ -97,8 +97,8 @@
                      "output" : "/actions/default/in/rightjoystick"
                   }
                },
-               "mode" : "trackpad",
-               "path" : "/user/hand/right/input/trackpad"
+               "mode" : "joystick",
+               "path" : "/user/hand/right/input/thumbstick"
             }
          ]
       }
