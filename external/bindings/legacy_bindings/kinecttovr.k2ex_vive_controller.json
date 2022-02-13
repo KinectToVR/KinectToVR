@@ -7,27 +7,27 @@
          "chords" : [
             {
                "inputs" : [
-                  [ "/user/hand/left/input/trigger", "click" ],
-                  [ "/user/hand/right/input/trigger", "click" ]
+                  [ "/user/hand/left/input/grip", "click" ],
+                  [ "/user/hand/right/input/grip", "click" ]
                ],
                "output" : "/actions/default/in/confirmandsave"
             },
             {
                "inputs" : [
-                  [ "/user/hand/right/input/grip", "click" ]
+                  [ "/user/hand/right/input/trigger", "click" ]
                ],
                "output" : "/actions/default/in/modeswap"
             },
             {
                "inputs" : [
-                  [ "/user/hand/left/input/grip", "click" ]
+                  [ "/user/hand/left/input/trigger", "click" ]
                ],
                "output" : "/actions/default/in/finetune"
             },
             {
                "inputs" : [
                   [ "/user/hand/left/input/trigger", "click" ],
-                  [ "/user/hand/left/input/application_menu", "click" ],
+                  [ "/user/hand/left/input/trackpad", "click" ],
                   [ "/user/hand/left/input/grip", "click" ]
                ],
                "output" : "/actions/default/in/trackerfreeze"
@@ -36,7 +36,7 @@
                "inputs" : [
                   [ "/user/hand/right/input/trigger", "click" ],
                   [ "/user/hand/right/input/grip", "click" ],
-                  [ "/user/hand/right/input/application_menu", "click" ]
+                  [ "/user/hand/right/input/trackpad", "click" ]
                ],
                "output" : "/actions/default/in/fliptoggle"
             }
