@@ -1,5 +1,5 @@
 {
-  "release": "0,9,1",
-  "build": "51,5,35,2",
-  "changes": "S51.5.35.2+3 Fixed input stealing,\ntweaked input bindings."
+  "release": "0,9,2",
+  "build": "52,5,35,2",
+  "changes": "K2EX is no more. Introducing Amethyst."
 }
